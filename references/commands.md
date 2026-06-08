@@ -68,6 +68,31 @@ Quit
 
 Use `simplis_run` when POP trigger resolution, schematic preprocessing, and normal GUI run behavior matter.
 
+## Exporting Waveforms
+
+Prefer the helper command over hand-written `Show` statements:
+
+```powershell
+python scripts\simplis_cli.py make-vector-export `
+  --schematic path\to\design.sxsch `
+  --out-dir path\to\vectors `
+  --out path\to\export_vectors.sxscr `
+  --vector simplis_pop1:#VOUT `
+  --vector simplis_pop1:#V_SERVO `
+  --vector simplis_ac1:46
+
+python scripts\simplis_cli.py run-script path\to\export_vectors.sxscr
+python scripts\simplis_cli.py parse-show path\to\vectors\pop_vout.txt path\to\vectors\ac_n46.txt --out parsed_vectors.json
+```
+
+SIMetrix vector export details that matter:
+
+- Use `SetGroup simplis_pop1` or `SetGroup simplis_ac1` before `Show`.
+- Vector names are case-sensitive; the POP x-axis is usually `time`, not `TIME`.
+- Names with `#`, arithmetic characters, or numeric-only names must be read with `Vec('...')`, for example `Vec('#VOUT')` or `Vec('46')`.
+- Separate multiple `Show` expressions with commas if writing one line manually.
+- AC `Show` output uses complex values like `(-1.0 ,0.02 )`; parse it before computing gain or phase.
+
 ## Screenshots, Text, and Annotations
 
 In the installed 8.4 Script Reference, `ScreenShotWindow` captures the current window to the clipboard. Do not assume `ScreenShotWindow "file.png"` writes a PNG unless proven in the local session.

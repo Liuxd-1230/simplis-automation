@@ -51,6 +51,7 @@ Use `references/generated_rc_labeled.json` as the smallest connectivity smoke te
 - To create a proof-of-control schematic, run `simplis_cli.py create-concept --out-dir <dir>`.
 - To generate a library-symbol schematic from a structured YAML/JSON spec, run `simplis_cli.py generate-schematic --config <spec.json|yaml> --out-dir <dir> --netlist-check`.
 - To run an existing open-style schematic like the GUI Run button, generate a script with `simplis_run` after `OpenSchem`.
+- To export POP/AC vectors from an existing schematic, generate a script with `simplis_cli.py make-vector-export`, run it with `run-script`, then parse the `Show` text files with `simplis_cli.py parse-show`.
 - To run a raw SIMPLIS deck, use `RunSIMPLIS`; if starting from a generated schematic netlist, use `Netlist /simplis`, then `PreProcessNetlist`, then `RunSIMPLIS`. For generated POP designs, prefer the `generate-schematic --run` flow because it resolves `{TRIG_GATE}` first.
 - To sweep a fixed grid, use `sweep_optimize.py`.
 - To iterate based on prior results, use `closed_loop_optimize.py`; it supports grid, random, and coordinate search, resumes from history, launches SIMetrix, reads metric JSON, and writes `best_candidate.json`.
@@ -66,6 +67,7 @@ This skill is fragile and tool-version dependent. Every action must depend on ob
 - Before claiming connectivity, run `Netlist /simplis` and inspect `.node_map` or generated netlist lines.
 - Before claiming POP works, verify `{TRIG_GATE}` was resolved to an internal event such as `X1.!D_CYCLE` in the netlist/deck.
 - Before claiming probes work, verify `.PRINT V(...)` or `.PRINT I(...)` lines exist in the generated deck.
+- Before claiming waveform export works, verify the data group with `VectorsInGroup(...)`, use `SetGroup`, and reference special vector names with `Vec('...')`.
 - Do not invent SIMPLIS symbol names, pin names, command syntax, measurement functions, DVM file names, or waveform names. Search installed libraries/docs/examples or inspect generated artifacts first.
 - If a step cannot be verified, say exactly what evidence is missing and what file/path/config is needed.
 
@@ -78,6 +80,7 @@ This skill is fragile and tool-version dependent. Every action must depend on ob
 - Non-interactive schematic drawing is possible but symbol names and properties are library/version specific. Use `Inst /loc ...`, `Wire /loc ...`, and `SaveAs /force ...`.
 - For robust generated connectivity, prefer `term VALUE <netname>` labels at each device pin over long coordinate wires. `schematic_generator.py` parses `.sxslb` pin locations and places terminals at the actual transformed pin coordinates.
 - For waveform debugging, prefer `probev_new` for voltage nodes and `InlineCurrentProbe` for current paths. `InlineCurrentProbe` inserts a zero-volt source in series, so split the original net into two named nets and define the current direction as `P -> N`.
+- For exported waveform data, do not hand-write `Show` lines for names like `#VOUT`, `50`, or `IN+`. Use `make-vector-export`; it emits `Vec('#VOUT')`, `Vec('50')`, and group-specific output files.
 - For fragile symbol placement, first generate a visible concept schematic, inspect it, then harden the script from real symbol names in the installed libraries.
 
 ## References

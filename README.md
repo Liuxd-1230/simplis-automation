@@ -8,6 +8,7 @@ Codex skill for automating SIMetrix/SIMPLIS 8.4 on Windows. It can create SIMPLI
 
 - `SKILL.md`: Codex skill instructions.
 - `scripts/simplis_cli.py`: Main CLI entry point.
+- `scripts/simetrix_waveforms.py`: Waveform export-script generation and SIMetrix `Show` text parsing helpers.
 - `scripts/schematic_generator.py`: JSON/YAML to `.sxscr`, `.sxsch`, `.net`, and `.deck` generator.
 - `scripts/smoke_test.py`: Local validation for RC and buck examples.
 - `references/generated_buck_open_loop_tran.json`: 12 V buck example with body diodes, inverter-derived `PWM_LS`, POP trigger, 60 us transient, voltage probes, and inline current probes.
@@ -76,6 +77,21 @@ Or ask Codex naturally:
 
 ```text
 Use simplis-automation to run the 12 V buck POP+60 us example with probes and check VOUT, SW, IL, and PWM waveforms.
+```
+
+Export POP/AC vectors from an existing schematic:
+
+```powershell
+python %CODEX_HOME%\skills\simplis-automation\scripts\simplis_cli.py make-vector-export `
+  --schematic path\to\VRAMPValley.sxsch `
+  --out-dir path\to\vectors `
+  --out path\to\export_vectors.sxscr `
+  --vector simplis_pop1:#VOUT `
+  --vector simplis_pop1:#V_SERVO `
+  --vector simplis_ac1:46
+
+python %CODEX_HOME%\skills\simplis-automation\scripts\simplis_cli.py run-script path\to\export_vectors.sxscr
+python %CODEX_HOME%\skills\simplis-automation\scripts\simplis_cli.py parse-show path\to\vectors\pop_vout.txt --out parsed_vectors.json
 ```
 
 ## Agent Install
