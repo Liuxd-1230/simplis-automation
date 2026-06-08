@@ -54,10 +54,17 @@ def clip(value: float, spec: dict[str, Any]) -> float:
     return value
 
 
+def safe_template_value(value: Any) -> str:
+    text = str(value)
+    if any(item in text for item in ("{{", "}}", "'", "\r", "\n")):
+        raise ValueError(f"Unsafe template value: {text!r}")
+    return text
+
+
 def render_template(template: str, candidate: dict[str, float], result_json: Path, candidate_json: Path) -> str:
-    values = {name: f"{value:.12g}" for name, value in candidate.items()}
-    values["RESULT_JSON"] = str(result_json)
-    values["CANDIDATE_JSON"] = str(candidate_json)
+    values = {name: safe_template_value(f"{value:.12g}") for name, value in candidate.items()}
+    values["RESULT_JSON"] = safe_template_value(result_json)
+    values["CANDIDATE_JSON"] = safe_template_value(candidate_json)
     text = template
     for key, value in values.items():
         text = text.replace("{{" + key + "}}", value)

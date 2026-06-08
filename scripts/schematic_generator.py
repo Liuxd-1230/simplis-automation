@@ -16,7 +16,7 @@ from typing import Any
 from runtime_config import resolve_simetrix_exe, resolve_symbol_lib_dir
 
 GROUND_NETS = {"0", "GND", "gnd", "gnd!", "GROUND"}
-BUCK_SYMBOL_ALLOWLIST = {
+SYMBOL_ALLOWLIST = {
     "dc_source",
     "res",
     "cap",
@@ -147,6 +147,13 @@ def transform_pin(pin: Pin, orient: str) -> tuple[int, int]:
 def quote_sxscr(value: Any) -> str:
     text = str(value).replace('"', '\\"')
     return f'"{text}"' if any(ch.isspace() for ch in text) else text
+
+
+def quote_simetrix_string(value: Any) -> str:
+    text = str(value)
+    if any(ch in text for ch in ("'", "\r", "\n")):
+        raise ValueError(f"SIMetrix script string contains unsupported characters: {text!r}")
+    return f"'{text}'"
 
 
 def parse_properties(lines: list[str]) -> dict[str, str]:
@@ -292,7 +299,7 @@ def validate_config(config: dict[str, Any], symbols: dict[str, Symbol], placemen
     for placement in placements.values():
         if placement.symbol not in symbols:
             errors.append(f"{placement.ref}: symbol {placement.symbol!r} not found in SIMPLIS libraries")
-        elif placement.symbol not in BUCK_SYMBOL_ALLOWLIST:
+        elif placement.symbol not in SYMBOL_ALLOWLIST:
             print(f"warning: {placement.ref} uses non-allowlisted symbol {placement.symbol!r}; pin labels will still be generated", file=sys.stderr)
     for ref, pin_map in nets.items():
         if ref not in placements:
@@ -405,7 +412,7 @@ def build_run_script(config: dict[str, Any], paths: dict[str, Path]) -> str:
     lines = [
         f'PreProcessNetlist "{paths["netlist"]}" "{paths["deck"]}"',
         f'RunSIMPLIS /fresh "{paths["deck"]}"',
-        f"Let echo_file = OpenEchoFile('{paths['metrics']}', 'w')",
+        f"Let echo_file = OpenEchoFile({quote_simetrix_string(paths['metrics'])}, {quote_simetrix_string('w')})",
         "Echo failed=false",
         f"Echo metric_source=generated_stub",
         f"Echo vout_net={vout}",

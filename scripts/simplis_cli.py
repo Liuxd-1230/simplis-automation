@@ -11,12 +11,13 @@ import time
 from pathlib import Path
 
 from runtime_config import resolve_simetrix_exe, runtime_config_status
-from schematic_generator import generate_from_config
+from schematic_generator import generate_from_config, quote_simetrix_string
 
 
 def simetrix_path(value: str | None, config_path: str | None = None) -> Path:
     path = resolve_simetrix_exe(value, config_path=config_path)
-    assert path is not None
+    if path is None:
+        raise SystemExit("SIMetrix executable path is not configured")
     return path
 
 
@@ -132,7 +133,7 @@ def make_metric_writer(args: argparse.Namespace) -> int:
         name, value = item.split("=", 1)
         metric_items.append((name, value))
     lines = [
-        f"Let echo_file = OpenEchoFile('{result}', 'w')",
+        f"Let echo_file = OpenEchoFile({quote_simetrix_string(result)}, {quote_simetrix_string('w')})",
     ]
     for name, value in metric_items:
         lines.append(f"Echo {name}={value}")

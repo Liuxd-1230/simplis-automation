@@ -28,11 +28,18 @@ def candidates(params: dict[str, list[float]]) -> list[dict[str, float]]:
 
 
 def render_template(template: str, cand: dict[str, float], result_path: Path) -> str:
-    values = {k: str(v) for k, v in cand.items()}
-    values["RESULT_JSON"] = str(result_path)
+    values = {k: safe_template_value(v) for k, v in cand.items()}
+    values["RESULT_JSON"] = safe_template_value(result_path)
     text = template
     for key, value in values.items():
         text = text.replace("{{" + key + "}}", value)
+    return text
+
+
+def safe_template_value(value: object) -> str:
+    text = str(value)
+    if any(item in text for item in ("{{", "}}", "'", "\r", "\n")):
+        raise ValueError(f"Unsafe template value: {text!r}")
     return text
 
 
@@ -54,9 +61,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--work-dir", required=True)
     parser.add_argument("--simetrix-exe", help="Path to SIMetrix.exe; overrides runtime config")
     parser.add_argument("--runtime-config", help="JSON runtime config with simetrix_exe")
+    parser.add_argument("--timeout", type=float, default=180.0)
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args(argv)
-    simetrix_exe = str(resolve_simetrix_exe(args.simetrix_exe, config_path=args.runtime_config)) if not args.dry_run else ""
+    simetrix_exe = resolve_simetrix_exe(args.simetrix_exe, config_path=args.runtime_config) if not args.dry_run else None
 
     spec_path = Path(args.spec).resolve()
     spec = load_spec(spec_path)
@@ -69,13 +77,25 @@ def main(argv: list[str] | None = None) -> int:
     for idx, cand in enumerate(candidates(spec["parameters"])):
         result_json = work / f"candidate_{idx:04d}_metrics.json"
         script = work / f"candidate_{idx:04d}.sxscr"
+        if result_json.exists():
+            result_json.unlink()
         script.write_text(render_template(template, cand, result_json), encoding="utf-8")
         rc = 0
         if not args.dry_run:
-            rc = subprocess.run([simetrix_exe, "/i", "/s", str(script)], cwd=str(work), check=False).returncode
-        metrics = {"failed": rc != 0}
-        if result_json.exists():
+            if simetrix_exe is None:
+                raise SystemExit("SIMetrix executable path is required unless --dry-run is used")
+            try:
+                rc = subprocess.run([str(simetrix_exe), "/i", "/s", str(script)], cwd=str(work), check=False, timeout=args.timeout).returncode
+            except subprocess.TimeoutExpired:
+                rc = 124
+        if rc != 0:
+            metrics = {"failed": True, "returncode": rc}
+        elif result_json.exists():
+            metrics = {"failed": False}
             metrics.update(json.loads(result_json.read_text(encoding="utf-8")).get("metrics", {}))
+            metrics["failed"] = bool(metrics.get("failed", False))
+        else:
+            metrics = {"failed": False}
         results.append({"index": idx, "candidate": cand, "returncode": rc, "metrics": metrics, "score": score_metrics(metrics, weights)})
 
     results.sort(key=lambda row: row["score"])
