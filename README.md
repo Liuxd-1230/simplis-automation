@@ -33,7 +33,7 @@ Clone this repository into your Codex skills folder:
 ```powershell
 $codexHome = if ($env:CODEX_HOME) { $env:CODEX_HOME } else { Join-Path $env:USERPROFILE ".codex" }
 New-Item -ItemType Directory -Force -Path (Join-Path $codexHome "skills") | Out-Null
-git clone https://github.com/Liuxd-1230/simplis-automation..git (Join-Path $codexHome "skills\simplis-automation")
+git clone https://github.com/Liuxd-1230/simplis-automation.git (Join-Path $codexHome "skills\simplis-automation")
 ```
 
 Restart Codex after installation so the skill metadata is reloaded.
@@ -72,4 +72,3 @@ Use simplis-automation to run the 12 V buck POP+60 us example with probes and ch
 ## Agent Install
 
 If you want an AI coding agent to install this skill for you, point it to [`agent.md`](agent.md).
-

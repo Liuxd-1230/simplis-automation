@@ -33,7 +33,7 @@ $skillDir = Join-Path $skillsDir "simplis-automation"
 if (Test-Path -LiteralPath $skillDir) {
   git -C $skillDir pull --ff-only
 } else {
-  git clone https://github.com/Liuxd-1230/simplis-automation..git $skillDir
+  git clone https://github.com/Liuxd-1230/simplis-automation.git $skillDir
 }
 ```
 
@@ -64,5 +64,3 @@ python (Join-Path $skillDir "scripts\smoke_test.py") --include-buck-run --timeou
 - This repository intentionally does not include proprietary SIMetrix/SIMPLIS libraries or generated simulation output files.
 - The scripts default to `D:\Simplis8.4\bin64\SIMetrix.exe`. If the user installed SIMetrix elsewhere, set `SIMETRIX_EXE` or pass `--simetrix-exe`.
 - Do not put generated `.sxsch`, `.net`, `.deck`, `.err`, or `SIMPLIS_Data` output inside the skill directory.
-- The GitHub repository name currently ends with a dot, so the clone URL contains two dots before `git`: `simplis-automation..git`.
-
