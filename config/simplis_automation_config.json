@@ -1,0 +1,5 @@
+{
+  "simetrix_exe": "",
+  "symbol_lib_dir": "",
+  "notes": "Copy this file to config/local_config.json or set SIMETRIX_EXE and SIMPLIS_SYMBOL_LIB_DIR. Do not assume installation paths."
+}

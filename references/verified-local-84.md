@@ -2,10 +2,10 @@
 
 Verified on this machine on 2026-06-08.
 
-SIMetrix executable:
+SIMetrix executable was resolved from local runtime configuration:
 
 ```text
-D:\Simplis8.4\bin64\SIMetrix.exe
+config/local_config.json -> simetrix_exe
 ```
 
 Validated behaviors:

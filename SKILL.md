@@ -7,19 +7,26 @@ description: Automate SIMetrix/SIMPLIS 8.4 on Windows for schematic creation or 
 
 ## Core Workflow
 
-Use `scripts/simplis_cli.py` as the entry point. Prefer generating SIMetrix `.sxscr` scripts and launching them through:
+Use `scripts/simplis_cli.py` as the entry point. Before any SIMetrix/SIMPLIS action, resolve runtime configuration from:
+
+1. CLI flags such as `--simetrix-exe`, `--symbol-lib-dir`, or `--runtime-config`
+2. Environment variables `SIMETRIX_EXE`, `SIMPLIS_SYMBOL_LIB_DIR`, or `SIMPLIS_AUTOMATION_CONFIG`
+3. `config/local_config.json`
+4. `config/simplis_automation_config.json`
+
+Do not assume any SIMPLIS installation path. If `simetrix_exe` or `symbol_lib_dir` cannot be resolved and verified on disk, stop and report the missing configuration.
+
+Prefer generating SIMetrix `.sxscr` scripts and launching them through:
 
 ```powershell
 python %CODEX_HOME%\skills\simplis-automation\scripts\simplis_cli.py run-script path\to\job.sxscr
 ```
 
-Default SIMetrix path on this machine:
+Use this command as the first diagnostic when paths are uncertain:
 
-```text
-D:\Simplis8.4\bin64\SIMetrix.exe
+```powershell
+python %CODEX_HOME%\skills\simplis-automation\scripts\simplis_cli.py show-config
 ```
-
-If the path differs, pass `--simetrix-exe` or set `SIMETRIX_EXE`.
 
 ## Structured Schematic Generation
 
@@ -49,6 +56,18 @@ Use `references/generated_rc_labeled.json` as the smallest connectivity smoke te
 - To iterate based on prior results, use `closed_loop_optimize.py`; it supports grid, random, and coordinate search, resumes from history, launches SIMetrix, reads metric JSON, and writes `best_candidate.json`.
 - To use DVM, treat it as a testplan/report layer on top of a working schematic with a DVM control symbol and `.testplan`. Read `references/dvm.md`.
 - To validate the skill after edits, run `scripts/smoke_test.py`.
+
+## Evidence Rules
+
+This skill is fragile and tool-version dependent. Every action must depend on observed evidence:
+
+- Before launching SIMetrix, verify the configured executable exists.
+- Before placing symbols, parse the configured `.sxslb` directory and verify each symbol and pin name exists.
+- Before claiming connectivity, run `Netlist /simplis` and inspect `.node_map` or generated netlist lines.
+- Before claiming POP works, verify `{TRIG_GATE}` was resolved to an internal event such as `X1.!D_CYCLE` in the netlist/deck.
+- Before claiming probes work, verify `.PRINT V(...)` or `.PRINT I(...)` lines exist in the generated deck.
+- Do not invent SIMPLIS symbol names, pin names, command syntax, measurement functions, DVM file names, or waveform names. Search installed libraries/docs/examples or inspect generated artifacts first.
+- If a step cannot be verified, say exactly what evidence is missing and what file/path/config is needed.
 
 ## Important Constraints
 

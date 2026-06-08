@@ -15,6 +15,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+from runtime_config import resolve_simetrix_exe
+
 
 def load_spec(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
@@ -50,9 +52,11 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("spec", help="JSON spec with parameters, template, and weights")
     parser.add_argument("--work-dir", required=True)
-    parser.add_argument("--simetrix-exe", default=r"D:\Simplis8.4\bin64\SIMetrix.exe")
+    parser.add_argument("--simetrix-exe", help="Path to SIMetrix.exe; overrides runtime config")
+    parser.add_argument("--runtime-config", help="JSON runtime config with simetrix_exe")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args(argv)
+    simetrix_exe = str(resolve_simetrix_exe(args.simetrix_exe, config_path=args.runtime_config)) if not args.dry_run else ""
 
     spec_path = Path(args.spec).resolve()
     spec = load_spec(spec_path)
@@ -68,7 +72,7 @@ def main(argv: list[str] | None = None) -> int:
         script.write_text(render_template(template, cand, result_json), encoding="utf-8")
         rc = 0
         if not args.dry_run:
-            rc = subprocess.run([args.simetrix_exe, "/i", "/s", str(script)], cwd=str(work), check=False).returncode
+            rc = subprocess.run([simetrix_exe, "/i", "/s", str(script)], cwd=str(work), check=False).returncode
         metrics = {"failed": rc != 0}
         if result_json.exists():
             metrics.update(json.loads(result_json.read_text(encoding="utf-8")).get("metrics", {}))

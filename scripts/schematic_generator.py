@@ -13,9 +13,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from runtime_config import resolve_simetrix_exe, resolve_symbol_lib_dir
 
-DEFAULT_SIMETRIX = Path(r"D:\Simplis8.4\bin64\SIMetrix.exe")
-DEFAULT_SYMBOL_LIB_DIR = Path(r"D:\Simplis8.4\support\symbollibs")
 GROUND_NETS = {"0", "GND", "gnd", "gnd!", "GROUND"}
 BUCK_SYMBOL_ALLOWLIST = {
     "dc_source",
@@ -169,7 +168,7 @@ def parse_pins(lines: list[str]) -> dict[str, Pin]:
     return pins
 
 
-def parse_symbol_libraries(symbol_dir: Path = DEFAULT_SYMBOL_LIB_DIR) -> dict[str, Symbol]:
+def parse_symbol_libraries(symbol_dir: Path) -> dict[str, Symbol]:
     symbols: dict[str, Symbol] = {}
     if not symbol_dir.exists():
         raise SystemExit(f"SIMPLIS symbol library directory not found: {symbol_dir}")
@@ -468,7 +467,7 @@ def resolve_pop_trigger_gate(netlist: Path) -> str | None:
     return None
 
 
-def run_simetrix(script: Path, timeout: float | None, interactive: bool, simetrix_exe: Path = DEFAULT_SIMETRIX) -> int:
+def run_simetrix(script: Path, timeout: float | None, interactive: bool, simetrix_exe: Path) -> int:
     if not simetrix_exe.exists():
         raise SystemExit(f"SIMetrix executable not found: {simetrix_exe}")
     cmd = [str(simetrix_exe)]
@@ -564,11 +563,13 @@ def generate_from_config(
     dry_run: bool = False,
     timeout: float | None = 60.0,
     interactive: bool = False,
-    simetrix_exe: Path = DEFAULT_SIMETRIX,
+    simetrix_exe: Path,
+    runtime_config: str | Path | None = None,
+    symbol_lib_dir: str | Path | None = None,
 ) -> dict[str, Any]:
     config = load_config(config_path)
     out_dir.mkdir(parents=True, exist_ok=True)
-    symbols = parse_symbol_libraries()
+    symbols = parse_symbol_libraries(resolve_symbol_lib_dir(symbol_lib_dir, config_path=runtime_config, simetrix_exe=simetrix_exe))
     placements = compute_placements(config)
     validate_config(config, symbols, placements)
     paths = get_design_paths(config, out_dir)
@@ -632,7 +633,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--interactive", action="store_true")
     parser.add_argument("--timeout", type=float, default=60.0)
-    parser.add_argument("--simetrix-exe", default=str(DEFAULT_SIMETRIX))
+    parser.add_argument("--simetrix-exe", help="Path to SIMetrix.exe; overrides runtime config")
+    parser.add_argument("--runtime-config", help="JSON runtime config with simetrix_exe and symbol_lib_dir")
+    parser.add_argument("--symbol-lib-dir", help="SIMPLIS symbol library directory; overrides runtime config")
     args = parser.parse_args(argv)
     result = generate_from_config(
         Path(args.config).resolve(),
@@ -643,7 +646,9 @@ def main(argv: list[str] | None = None) -> int:
         dry_run=args.dry_run,
         timeout=args.timeout,
         interactive=args.interactive,
-        simetrix_exe=Path(args.simetrix_exe),
+        simetrix_exe=resolve_simetrix_exe(args.simetrix_exe, config_path=args.runtime_config),
+        runtime_config=args.runtime_config,
+        symbol_lib_dir=args.symbol_lib_dir,
     )
     print(json.dumps(result, indent=2))
     return 1 if result.get("failed") else 0

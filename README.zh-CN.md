@@ -20,13 +20,20 @@
 - Python 3.10 或更新版本。
 - 如果从 GitHub 安装，需要 Git。
 
-脚本默认使用的 SIMetrix 路径是：
+安装后创建本机运行配置：
 
-```text
-D:\Simplis8.4\bin64\SIMetrix.exe
+```powershell
+Copy-Item %CODEX_HOME%\skills\simplis-automation\config\simplis_automation_config.json `
+  %CODEX_HOME%\skills\simplis-automation\config\local_config.json
 ```
 
-如果你的安装路径不同，可以设置环境变量 `SIMETRIX_EXE`，或者在命令里传入 `--simetrix-exe`。
+编辑 `config\local_config.json`，把 `simetrix_exe` 和 `symbol_lib_dir` 指到你本机安装的 SIMetrix/SIMPLIS 文件。也可以设置 `SIMETRIX_EXE` 和 `SIMPLIS_SYMBOL_LIB_DIR`，或者在命令里传入 `--simetrix-exe` 和 `--symbol-lib-dir`。
+
+检查最终解析到的配置：
+
+```powershell
+python %CODEX_HOME%\skills\simplis-automation\scripts\simplis_cli.py show-config
+```
 
 ## 安装
 
@@ -82,4 +89,3 @@ python %CODEX_HOME%\skills\simplis-automation\scripts\simplis_cli.py generate-sc
 ## 让 Agent 安装
 
 如果你想让另一个 AI coding agent 帮你安装这个 skill，把 [`agent.zh-CN.md`](agent.zh-CN.md) 发给它即可。英文版安装说明见 [`agent.md`](agent.md)。
-

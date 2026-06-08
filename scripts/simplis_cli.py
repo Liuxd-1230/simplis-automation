@@ -5,28 +5,23 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import subprocess
 import sys
 import time
 from pathlib import Path
 
+from runtime_config import resolve_simetrix_exe, runtime_config_status
 from schematic_generator import generate_from_config
 
 
-DEFAULT_SIMETRIX = Path(r"D:\Simplis8.4\bin64\SIMetrix.exe")
-
-
-def simetrix_path(value: str | None) -> Path:
-    raw = value or os.environ.get("SIMETRIX_EXE") or str(DEFAULT_SIMETRIX)
-    path = Path(raw)
-    if not path.exists():
-        raise SystemExit(f"SIMetrix executable not found: {path}")
+def simetrix_path(value: str | None, config_path: str | None = None) -> Path:
+    path = resolve_simetrix_exe(value, config_path=config_path)
+    assert path is not None
     return path
 
 
 def run_script(args: argparse.Namespace) -> int:
-    exe = simetrix_path(args.simetrix_exe)
+    exe = simetrix_path(args.simetrix_exe, args.runtime_config)
     script = Path(args.script).resolve()
     if not script.exists():
         raise SystemExit(f"Script not found: {script}")
@@ -82,6 +77,7 @@ def create_concept(args: argparse.Namespace) -> int:
         dry_run=args.dry_run,
         timeout=args.timeout,
         expect=[str(schematic)],
+        runtime_config=args.runtime_config,
     )
     return run_script(ns)
 
@@ -158,16 +154,32 @@ def generate_schematic(args: argparse.Namespace) -> int:
         dry_run=args.dry_run,
         timeout=args.timeout,
         interactive=args.interactive,
-        simetrix_exe=simetrix_path(args.simetrix_exe),
+        simetrix_exe=simetrix_path(args.simetrix_exe, args.runtime_config),
+        runtime_config=args.runtime_config,
+        symbol_lib_dir=args.symbol_lib_dir,
     )
     print(json.dumps(result, indent=2))
     return 1 if result.get("failed") else 0
 
 
+def show_config(args: argparse.Namespace) -> int:
+    print(json.dumps(runtime_config_status(
+        cli_simetrix_exe=args.simetrix_exe,
+        cli_symbol_lib_dir=args.symbol_lib_dir,
+        config_path=args.runtime_config,
+    ), indent=2))
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="SIMetrix/SIMPLIS automation helpers")
-    parser.add_argument("--simetrix-exe", help="Path to SIMetrix.exe")
+    parser.add_argument("--simetrix-exe", help="Path to SIMetrix.exe; overrides runtime config")
+    parser.add_argument("--runtime-config", help="JSON runtime config with simetrix_exe and symbol_lib_dir")
     sub = parser.add_subparsers(dest="cmd", required=True)
+
+    p = sub.add_parser("show-config", help="Show resolved runtime configuration and path validation evidence")
+    p.add_argument("--symbol-lib-dir", help="SIMPLIS symbol library directory; overrides runtime config")
+    p.set_defaults(func=show_config)
 
     p = sub.add_parser("run-script", help="Launch SIMetrix with a .sxscr script")
     p.add_argument("script")
@@ -215,6 +227,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--dry-run", action="store_true", help="Write scripts only; do not launch SIMetrix")
     p.add_argument("--batch", dest="interactive", action="store_false", default=True)
     p.add_argument("--timeout", type=float, default=60.0)
+    p.add_argument("--symbol-lib-dir", help="SIMPLIS symbol library directory; overrides runtime config")
     p.set_defaults(func=generate_schematic)
 
     args = parser.parse_args(argv)

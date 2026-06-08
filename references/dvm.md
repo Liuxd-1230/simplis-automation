@@ -22,12 +22,12 @@ Minimum DVM ingredients:
 Example installed files:
 
 ```text
-D:\Simplis8.4\support\dvm\syncbuck_1in_1out.testplan
-D:\Simplis8.4\support\dvm\dcdc_1in_1out.testplan
-D:\Simplis8.4\support\dvm\efficiency_dcdc_1in_1out.testplan
-D:\Simplis8.4\support\dvm\preprocess.sxscr
-D:\Simplis8.4\support\dvm\postprocess.sxscr
-D:\Simplis8.4\support\symbollibs\SIMPLIS_DVM_ADVANCED.sxslb
+<SIMPLIS_INSTALL_DIR>\support\dvm\syncbuck_1in_1out.testplan
+<SIMPLIS_INSTALL_DIR>\support\dvm\dcdc_1in_1out.testplan
+<SIMPLIS_INSTALL_DIR>\support\dvm\efficiency_dcdc_1in_1out.testplan
+<SIMPLIS_INSTALL_DIR>\support\dvm\preprocess.sxscr
+<SIMPLIS_INSTALL_DIR>\support\dvm\postprocess.sxscr
+<SIMPLIS_INSTALL_DIR>\support\symbollibs\SIMPLIS_DVM_ADVANCED.sxslb
 ```
 
 Typical `.testplan` row shape:

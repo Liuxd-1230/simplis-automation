@@ -16,3 +16,4 @@ SIMPLIS_Data/
 
 outputs/
 .codex_tmp/
+config/local_config.json

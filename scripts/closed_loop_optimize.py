@@ -19,8 +19,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-
-DEFAULT_SIMETRIX = r"D:\Simplis8.4\bin64\SIMetrix.exe"
+from runtime_config import resolve_simetrix_exe
 
 
 def load_json(path: Path) -> dict[str, Any]:
@@ -283,12 +282,15 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Closed-loop SIMPLIS optimizer")
     parser.add_argument("spec", help="JSON optimization spec")
     parser.add_argument("--work-dir", required=True)
-    parser.add_argument("--simetrix-exe", default=DEFAULT_SIMETRIX)
+    parser.add_argument("--simetrix-exe", help="Path to SIMetrix.exe; overrides runtime config")
+    parser.add_argument("--runtime-config", help="JSON runtime config with simetrix_exe")
     parser.add_argument("--timeout", type=float, default=180.0)
     parser.add_argument("--interactive", action="store_true")
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--mock", action="store_true", help="Generate synthetic metrics for optimizer validation")
     args = parser.parse_args(argv)
+    if not args.mock and not args.dry_run:
+        args.simetrix_exe = str(resolve_simetrix_exe(args.simetrix_exe, config_path=args.runtime_config))
 
     spec_path = Path(args.spec).resolve()
     spec = load_json(spec_path)

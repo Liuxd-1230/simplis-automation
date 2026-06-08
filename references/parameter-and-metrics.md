@@ -30,7 +30,7 @@ GetSIMPLISExitCode
 GetSimulationErrors
 ```
 
-Use these as a search list in `D:\Simplis8.4\support\docs\ScriptReference.pdf` and installed examples before finalizing a real measurement script.
+Use these as a search list in `<SIMPLIS_INSTALL_DIR>\support\docs\ScriptReference.pdf` and installed examples before finalizing a real measurement script.
 
 ## Template Shape
 

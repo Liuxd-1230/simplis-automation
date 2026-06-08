@@ -45,7 +45,24 @@ Test-Path (Join-Path $skillDir "scripts\simplis_cli.py")
 Test-Path (Join-Path $skillDir "references\generated_buck_open_loop_tran.json")
 ```
 
-4. 如果本机装了 SIMetrix/SIMPLIS，运行 smoke test。
+4. 创建或检查运行配置。
+
+```powershell
+$localConfig = Join-Path $skillDir "config\local_config.json"
+if (-not (Test-Path -LiteralPath $localConfig)) {
+  Copy-Item (Join-Path $skillDir "config\simplis_automation_config.json") $localConfig
+}
+```
+
+向用户确认 SIMetrix 可执行文件路径和 symbol library 目录，把它们写入 `config\local_config.json`。不要猜路径。运行仿真前必须验证两个路径都存在。
+
+运行 `show-config` 并检查 JSON 证据，然后才能继续仿真：
+
+```powershell
+python (Join-Path $skillDir "scripts\simplis_cli.py") show-config
+```
+
+5. 如果本机已经安装并配置好 SIMetrix/SIMPLIS，运行 smoke test。
 
 轻量 RC 测试：
 
@@ -59,12 +76,11 @@ python (Join-Path $skillDir "scripts\smoke_test.py") --timeout 90
 python (Join-Path $skillDir "scripts\smoke_test.py") --include-buck-run --timeout 240
 ```
 
-5. 提醒用户重启 Codex，让 skill metadata 重新加载。
+6. 提醒用户重启 Codex，让 skill metadata 重新加载。
 
 ## 注意事项
 
 - 这个仓库不包含 SIMetrix/SIMPLIS 的专有库文件，也不包含生成出来的仿真输出。
-- 脚本默认 SIMetrix 路径是 `D:\Simplis8.4\bin64\SIMetrix.exe`。如果用户安装在其他位置，设置 `SIMETRIX_EXE` 或传入 `--simetrix-exe`。
+- 运行路径必须来自命令行参数、环境变量或 `config/local_config.json`。不要假设 SIMetrix 安装路径。
 - 不要把生成的 `.sxsch`、`.net`、`.deck`、`.err` 或 `SIMPLIS_Data` 放进 skill 目录。
 - 安装后，用户可以这样调用：`用 simplis-automation 跑 12V buck POP+60us，加 probe 看波形。`
-

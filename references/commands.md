@@ -5,7 +5,7 @@
 Use Windows command line for interactive inspection:
 
 ```powershell
-& "D:\Simplis8.4\bin64\SIMetrix.exe" /i /s "path\to\startup.sxscr"
+& "<SIMETRIX_EXE_FROM_CONFIG>" /i /s "path\to\startup.sxscr"
 ```
 
 Known command-line pattern from SIMetrix docs:
@@ -79,9 +79,9 @@ The `AddFreeText` command applies to the selected graph, not schematic annotatio
 Installed files worth searching:
 
 ```text
-D:\Simplis8.4\support\docs\ScriptReference.pdf
-D:\Simplis8.4\support\help\scriptdocumentedCommands.txt
-D:\Simplis8.4\support\help\scriptdocumentedFunctions.txt
-D:\Simplis8.4\support\dvm
-D:\Simplis8.4\support\examples\SIMPLIS
+<SIMPLIS_INSTALL_DIR>\support\docs\ScriptReference.pdf
+<SIMPLIS_INSTALL_DIR>\support\help\scriptdocumentedCommands.txt
+<SIMPLIS_INSTALL_DIR>\support\help\scriptdocumentedFunctions.txt
+<SIMPLIS_INSTALL_DIR>\support\dvm
+<SIMPLIS_INSTALL_DIR>\support\examples\SIMPLIS
 ```

@@ -20,13 +20,20 @@ Codex skill for automating SIMetrix/SIMPLIS 8.4 on Windows. It can create SIMPLI
 - Python 3.10 or newer.
 - Git, if installing from GitHub.
 
-Default SIMetrix path used by the scripts:
+Create a local runtime config after installation:
 
-```text
-D:\Simplis8.4\bin64\SIMetrix.exe
+```powershell
+Copy-Item %CODEX_HOME%\skills\simplis-automation\config\simplis_automation_config.json `
+  %CODEX_HOME%\skills\simplis-automation\config\local_config.json
 ```
 
-If your installation path differs, set `SIMETRIX_EXE` or pass `--simetrix-exe`.
+Edit `config\local_config.json` so `simetrix_exe` and `symbol_lib_dir` point to your installed SIMetrix/SIMPLIS files. You can also set `SIMETRIX_EXE` and `SIMPLIS_SYMBOL_LIB_DIR`, or pass `--simetrix-exe` and `--symbol-lib-dir`.
+
+Check the resolved configuration:
+
+```powershell
+python %CODEX_HOME%\skills\simplis-automation\scripts\simplis_cli.py show-config
+```
 
 ## Install
 
