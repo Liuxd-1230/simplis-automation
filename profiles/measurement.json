@@ -1,0 +1,21 @@
+{
+  "name": "measurement",
+  "source": "official SIMPLIS examples inspected with scripts/inspect_schematic.py",
+  "roles": {
+    "voltage_probe": {
+      "preferred": "probev_new",
+      "observed_official": ["probev_new", "Differential_Voltage_Probe"],
+      "validation": "verify probe symbol pins in the configured installed .sxslb libraries before placement"
+    },
+    "current_probe": {
+      "preferred": "InlineCurrentProbe",
+      "observed_official": ["InlineCurrentProbe", "Power_Probe"],
+      "validation": "insert inline current probes in series; define direction from P to N"
+    },
+    "bode_probe": {
+      "preferred": "Bode_Probe2",
+      "observed_official": ["Bode_Probe2", "Websim_Bode_Probe"],
+      "validation": "verify Bode probe symbol and pins before loop-gain or AC-style checks"
+    }
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "name": "buck",
+  "source": "official SIMPLIS buck examples inspected with scripts/inspect_schematic.py",
+  "includes": ["power-stage", "digital-control", "measurement", "control-modules"],
+  "roles": {
+    "input_source": {
+      "profile": "power-stage",
+      "role": "voltage_source"
+    },
+    "switch": {
+      "profile": "power-stage",
+      "role": "power_switch"
+    },
+    "body_diode": {
+      "profile": "power-stage",
+      "role": "body_diode"
+    },
+    "output_inductor": {
+      "profile": "power-stage",
+      "role": "inductor"
+    },
+    "output_capacitor": {
+      "profile": "power-stage",
+      "role": "capacitor"
+    },
+    "load_or_feedback_resistor": {
+      "profile": "power-stage",
+      "role": "resistor"
+    },
+    "voltage_probe": {
+      "profile": "measurement",
+      "role": "voltage_probe"
+    },
+    "current_probe": {
+      "profile": "measurement",
+      "role": "current_probe"
+    },
+    "pop_trigger": {
+      "profile": "digital-control",
+      "role": "pop_trigger"
+    },
+    "type_iii_compensation": {
+      "profile": "control-modules",
+      "module": "compensator_3p2z"
+    }
+  }
+}

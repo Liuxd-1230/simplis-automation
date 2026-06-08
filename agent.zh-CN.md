@@ -43,6 +43,8 @@ if (Test-Path -LiteralPath $skillDir) {
 Test-Path (Join-Path $skillDir "SKILL.md")
 Test-Path (Join-Path $skillDir "scripts\simplis_cli.py")
 Test-Path (Join-Path $skillDir "references\generated_buck_open_loop_tran.json")
+Test-Path (Join-Path $skillDir "profiles\buck.json")
+Test-Path (Join-Path $skillDir "examples\official")
 ```
 
 4. 创建或检查运行配置。
@@ -76,11 +78,21 @@ python (Join-Path $skillDir "scripts\smoke_test.py") --timeout 90
 python (Join-Path $skillDir "scripts\smoke_test.py") --include-buck-run --timeout 240
 ```
 
-6. 提醒用户重启 Codex，让 skill metadata 重新加载。
+6. 检查官方示例并确认 profile 证据。
+
+```powershell
+python (Join-Path $skillDir "scripts\simplis_cli.py") inspect-schematic `
+  --input (Join-Path $skillDir "examples\official") `
+  --out (Join-Path $env:TEMP "simplis_official_examples.json")
+```
+
+7. 提醒用户重启 Codex，让 skill metadata 重新加载。
 
 ## 注意事项
 
 - 这个仓库不包含 SIMetrix/SIMPLIS 的专有库文件，也不包含生成出来的仿真输出。
 - 运行路径必须来自命令行参数、环境变量或 `config/local_config.json`。不要假设 SIMetrix 安装路径。
 - 不要把生成的 `.sxsch`、`.net`、`.deck`、`.err` 或 `SIMPLIS_Data` 放进 skill 目录。
+- 选择 SIMPLIS 器件时，先查 `profiles/` 和 `examples/official/`。不要把用户的私有研究 schematic 当成公开示例。
+- 解释失败或可疑仿真前，先运行 `export-agent-evidence`，结论必须基于导出的报告。
 - 安装后，用户可以这样调用：`用 simplis-automation 跑 12V buck POP+60us，加 probe 看波形。`

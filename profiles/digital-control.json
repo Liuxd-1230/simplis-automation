@@ -1,0 +1,41 @@
+{
+  "name": "digital-control",
+  "source": "official SIMPLIS examples plus installed-library canonical generator names",
+  "roles": {
+    "digital_comparator": {
+      "preferred": "SIMPLIS_DIGI1_COMP_Y",
+      "observed_official": ["SIMPLIS_LOGIC_BB_COMP"],
+      "validation": "verify comparator symbol and pins in the configured installed .sxslb libraries before placement"
+    },
+    "digital_buffer": {
+      "preferred": "SIMPLIS_DIGI1_BUF_Y",
+      "observed_official": [],
+      "validation": "verify buffer symbol and pins in the configured installed .sxslb libraries before placement"
+    },
+    "digital_latch": {
+      "preferred": "SIMPLIS_DIGI1_SRLATCH_1_NONE_Y",
+      "observed_official": [],
+      "validation": "verify latch symbol and pins in the configured installed .sxslb libraries before placement"
+    },
+    "digital_and": {
+      "preferred": "SIMPLIS_DIGI1_AND_2I0_Y",
+      "observed_official": [],
+      "validation": "verify AND gate symbol and pins in the configured installed .sxslb libraries before placement"
+    },
+    "digital_or": {
+      "preferred": "SIMPLIS_DIGI1_OR_2I0_Y",
+      "observed_official": [],
+      "validation": "verify OR gate symbol and pins in the configured installed .sxslb libraries before placement"
+    },
+    "pwm_source": {
+      "preferred": "vwave_v2",
+      "observed_official": ["vwave_v2"],
+      "validation": "verify waveform source properties before using it as a PWM source"
+    },
+    "pop_trigger": {
+      "preferred": "PERIODIC_OP_V8",
+      "observed_official": ["PERIODIC_OP_V8"],
+      "validation": "after netlisting, resolve TRIG_GATE to an internal event such as X1.!D_CYCLE before claiming POP works"
+    }
+  }
+}

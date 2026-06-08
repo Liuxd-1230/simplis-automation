@@ -45,12 +45,16 @@ The generator:
 - Injects optional F11 analysis text after saving the schematic, then netlists again so simulation settings are current.
 - For POP trigger devices, resolves `{TRIG_GATE}` to the internal SIMPLIS comparator event such as `X1.!D_CYCLE` before deck execution.
 
+Use `profiles/` for canonical symbol names derived from official examples and verified generator defaults. Prefer profile roles over guessed symbol names. For reusable compensation or transconductance blocks, prefer official `.sxcmp` modules when they are present and verified.
+
 Use `references/generated_rc_labeled.json` as the smallest connectivity smoke test. Use `references/generated_feedback_divider_hybrid.json` as the smallest hand-drawn-style routing smoke test. Use `references/generated_buck_open_loop_tran.json` as the current 12 V buck example with body diodes, `PWM_LS` generated from `PWM_HS` through `inv_d`, `PERIODIC_OP_V8` POP trigger, and POP followed by `.TRAN 60u 0`. The buck example includes voltage probes on `VIN`, `SW`, `VOUT`, `PWM_HS`, `PWM_LS`, and `TRIG_GATE`, plus inline current probes for input current, inductor current, output-capacitor current, and load current.
 
 ## Decision Tree
 
 - To create a proof-of-control schematic, run `simplis_cli.py create-concept --out-dir <dir>`.
 - To generate a library-symbol schematic from a structured YAML/JSON spec, run `simplis_cli.py generate-schematic --config <spec.json|yaml> --out-dir <dir> --netlist-check`.
+- To inspect official or generated SIMPLIS files, run `simplis_cli.py inspect-schematic --input <file-or-dir> --out <report.json>`.
+- To prepare simulation output for agent analysis, run `simplis_cli.py export-agent-evidence --work-dir <dir> --out <report.json>`.
 - To run an existing open-style schematic like the GUI Run button, generate a script with `simplis_run` after `OpenSchem`.
 - To export POP/AC vectors from an existing schematic, generate a script with `simplis_cli.py make-vector-export`, run it with `run-script`, then parse the `Show` text files with `simplis_cli.py parse-show`.
 - To run a raw SIMPLIS deck, use `RunSIMPLIS`; if starting from a generated schematic netlist, use `Netlist /simplis`, then `PreProcessNetlist`, then `RunSIMPLIS`. For generated POP designs, prefer the `generate-schematic --run` flow because it resolves `{TRIG_GATE}` first.
@@ -69,7 +73,10 @@ This skill is fragile and tool-version dependent. Every action must depend on ob
 - Before claiming POP works, verify `{TRIG_GATE}` was resolved to an internal event such as `X1.!D_CYCLE` in the netlist/deck.
 - Before claiming probes work, verify `.PRINT V(...)` or `.PRINT I(...)` lines exist in the generated deck.
 - Before claiming waveform export works, verify the data group with `VectorsInGroup(...)`, use `SetGroup`, and reference special vector names with `Vec('...')`.
+- Before choosing default devices, inspect official examples or read `profiles/`; do not invent symbol names.
+- Before suggesting simulation-driven circuit changes, read an `export-agent-evidence` report.
 - Do not invent SIMPLIS symbol names, pin names, command syntax, measurement functions, DVM file names, or waveform names. Search installed libraries/docs/examples or inspect generated artifacts first.
+- Do not copy private research schematics into this skill. Only official/open-source-approved examples belong under `examples/official/`.
 - If a step cannot be verified, say exactly what evidence is missing and what file/path/config is needed.
 
 ## Important Constraints
@@ -92,5 +99,7 @@ This skill is fragile and tool-version dependent. Every action must depend on ob
 - Read `references/optimization.md` before sweep/optimizer loops.
 - Read `references/parameter-and-metrics.md` before wiring a real schematic's parameters and measurements into an optimization script.
 - Read `references/research-validation.md` for buck PMIC validation metrics tied to ACOT/Vramp-valley work.
+- Read `references/simplis-design-method.md` before deriving new schematic-generation behavior from examples.
 - Read `references/verified-local-84.md` for what has already been proven on this Windows SIMPLIS 8.4 installation.
+- Canonical symbol and module profiles live in `profiles/`.
 - Example generator specs live in `references/generated_rc_labeled.json`, `references/generated_feedback_divider_hybrid.json`, `references/generated_buck_acot_min.json`, and `references/generated_buck_open_loop_tran.json`.

@@ -10,6 +10,12 @@ import sys
 import time
 from pathlib import Path
 
+SCRIPT_DIR = Path(__file__).resolve().parent
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
+
+import export_agent_evidence
+import inspect_schematic
 from runtime_config import resolve_simetrix_exe, runtime_config_status
 from schematic_generator import generate_from_config, quote_simetrix_string
 from simetrix_waveforms import build_vector_export_script, parse_show_file
@@ -206,6 +212,22 @@ def show_config(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_inspect_schematic(args: argparse.Namespace) -> int:
+    argv = ["--input", str(args.input), "--out", str(args.out)]
+    if args.summary_md:
+        argv.extend(["--summary-md", str(args.summary_md)])
+    return inspect_schematic.main(argv)
+
+
+def cmd_export_agent_evidence(args: argparse.Namespace) -> int:
+    argv = ["--work-dir", str(args.work_dir), "--out", str(args.out)]
+    if args.summary_md:
+        argv.extend(["--summary-md", str(args.summary_md)])
+    if args.redact_paths:
+        argv.append("--redact-paths")
+    return export_agent_evidence.main(argv)
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="SIMetrix/SIMPLIS automation helpers")
     parser.add_argument("--simetrix-exe", help="Path to SIMetrix.exe; overrides runtime config")
@@ -277,6 +299,19 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--timeout", type=float, default=60.0)
     p.add_argument("--symbol-lib-dir", help="SIMPLIS symbol library directory; overrides runtime config")
     p.set_defaults(func=generate_schematic)
+
+    p = sub.add_parser("inspect-schematic", help="Inspect SIMPLIS .sxsch/.sxcmp files and write an evidence report")
+    p.add_argument("--input", required=True, type=Path)
+    p.add_argument("--out", required=True, type=Path)
+    p.add_argument("--summary-md", type=Path)
+    p.set_defaults(func=cmd_inspect_schematic)
+
+    p = sub.add_parser("export-agent-evidence", help="Export agent-readable evidence from a generated SIMPLIS work directory")
+    p.add_argument("--work-dir", required=True, type=Path)
+    p.add_argument("--out", required=True, type=Path)
+    p.add_argument("--summary-md", type=Path)
+    p.add_argument("--redact-paths", action="store_true")
+    p.set_defaults(func=cmd_export_agent_evidence)
 
     args = parser.parse_args(argv)
     args.started_at = time.time()
