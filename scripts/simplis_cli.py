@@ -12,6 +12,7 @@ from pathlib import Path
 
 from runtime_config import resolve_simetrix_exe, runtime_config_status
 from schematic_generator import generate_from_config, quote_simetrix_string
+from simetrix_waveforms import build_vector_export_script, parse_show_file
 
 
 def simetrix_path(value: str | None, config_path: str | None = None) -> Path:
@@ -145,6 +146,39 @@ def make_metric_writer(args: argparse.Namespace) -> int:
     return 0
 
 
+def make_vector_export(args: argparse.Namespace) -> int:
+    exports = []
+    for item in args.vector:
+        if ":" not in item:
+            raise SystemExit(f"Vector export must use group:vector syntax: {item}")
+        group_name, vector_name = item.split(":", 1)
+        exports.append((group_name, vector_name))
+    script = Path(args.out).resolve()
+    output_dir = Path(args.out_dir).resolve()
+    output_dir.mkdir(parents=True, exist_ok=True)
+    status_file = Path(args.status_file).resolve() if args.status_file else output_dir / "vector_export_status.txt"
+    status_file.parent.mkdir(parents=True, exist_ok=True)
+    text = build_vector_export_script(
+        schematic=Path(args.schematic).resolve(),
+        output_dir=output_dir,
+        exports=exports,
+        status_file=status_file,
+    )
+    write_text(script, text)
+    print(json.dumps({"script": str(script), "status_file": str(status_file)}, indent=2))
+    return 0
+
+
+def parse_show(args: argparse.Namespace) -> int:
+    data = [parse_show_file(Path(item).resolve()) for item in args.files]
+    text = json.dumps(data, indent=2, allow_nan=False)
+    if args.out:
+        write_text(Path(args.out).resolve(), text + "\n")
+    else:
+        print(text)
+    return 0
+
+
 def generate_schematic(args: argparse.Namespace) -> int:
     result = generate_from_config(
         Path(args.config).resolve(),
@@ -218,6 +252,19 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--metric", action="append", default=[], help="Metric as name=value, e.g. vout_dc_error_mv=1.2")
     p.add_argument("--keep-open", action="store_true")
     p.set_defaults(func=make_metric_writer)
+
+    p = sub.add_parser("make-vector-export", help="Generate a SIMetrix script that exports vectors from data groups")
+    p.add_argument("--schematic", required=True, help="Existing .sxsch to open and run with simplis_run")
+    p.add_argument("--out-dir", required=True, help="Directory for exported vector text files")
+    p.add_argument("--out", required=True, help="Output .sxscr script path")
+    p.add_argument("--status-file", help="Optional Echo status file written by the generated script")
+    p.add_argument("--vector", action="append", required=True, help="Vector as group:vector, e.g. simplis_pop1:#VOUT")
+    p.set_defaults(func=make_vector_export)
+
+    p = sub.add_parser("parse-show", help="Parse SIMetrix Show output files into JSON")
+    p.add_argument("files", nargs="+")
+    p.add_argument("--out", help="Optional output JSON path")
+    p.set_defaults(func=parse_show)
 
     p = sub.add_parser("generate-schematic", help="Generate a SIMPLIS schematic from a YAML/JSON circuit spec")
     p.add_argument("--config", required=True, help="YAML or JSON schematic spec")
