@@ -83,6 +83,18 @@ class DevicePlacement:
     group: str
 
 
+@dataclass(frozen=True)
+class NetEndpoint:
+    ref: str
+    pin: str
+    net: str
+    x: int
+    y: int
+    dx: int
+    dy: int
+    group: str
+
+
 def load_config(path: Path) -> dict[str, Any]:
     suffix = path.suffix.lower()
     text = path.read_text(encoding="utf-8")
@@ -333,34 +345,325 @@ def pin_abs_loc(placement: DevicePlacement, pin: Pin) -> tuple[int, int]:
     return placement.x + dx, placement.y + dy
 
 
+def label_line_for_endpoint(endpoint: NetEndpoint) -> str:
+    if endpoint.net in GROUND_NETS:
+        return f"Inst /loc {endpoint.x} {endpoint.y} 0 gnd"
+    term_orient = term_orientation_for_pin(endpoint.dx, endpoint.dy)
+    return f"Inst /loc {endpoint.x} {endpoint.y} {term_orient} term VALUE {quote_sxscr(endpoint.net)}"
+
+
+def collect_net_endpoints(config: dict[str, Any], symbols: dict[str, Symbol], placements: dict[str, DevicePlacement]) -> dict[str, list[NetEndpoint]]:
+    endpoints: dict[str, list[NetEndpoint]] = {}
+    nets = config.get("nets", {})
+    for ref, pin_map in nets.items():
+        placement = placements[str(ref)]
+        symbol = symbols[placement.symbol]
+        for pin_name, net_value in pin_map.items():
+            pin = symbol.pins[str(pin_name)]
+            x, y = pin_abs_loc(placement, pin)
+            dx, dy = transform_pin(pin, placement.orient)
+            net = str(net_value)
+            endpoint = NetEndpoint(ref=placement.ref, pin=str(pin_name), net=net, x=x, y=y, dx=dx, dy=dy, group=placement.group)
+            endpoints.setdefault(net, []).append(endpoint)
+    return endpoints
+
+
+def build_default_connectivity_lines(config: dict[str, Any], symbols: dict[str, Symbol], placements: dict[str, DevicePlacement]) -> list[str]:
+    lines: list[str] = []
+    for endpoints in collect_net_endpoints(config, symbols, placements).values():
+        for endpoint in endpoints:
+            lines.append(label_line_for_endpoint(endpoint))
+    return lines
+
+
+def manhattan_distance(a: NetEndpoint, b: NetEndpoint) -> int:
+    return abs(a.x - b.x) + abs(a.y - b.y)
+
+
+def local_components(endpoints: list[NetEndpoint], *, max_wire_length: int, max_component_span: int, same_group_only: bool) -> list[list[NetEndpoint]]:
+    if len(endpoints) <= 1:
+        return [endpoints]
+
+    parent = list(range(len(endpoints)))
+    bbox = [(item.x, item.y, item.x, item.y) for item in endpoints]
+
+    def find(index: int) -> int:
+        while parent[index] != index:
+            parent[index] = parent[parent[index]]
+            index = parent[index]
+        return index
+
+    def union(left: int, right: int) -> None:
+        root_l = find(left)
+        root_r = find(right)
+        if root_l == root_r:
+            return
+        min_x = min(bbox[root_l][0], bbox[root_r][0])
+        min_y = min(bbox[root_l][1], bbox[root_r][1])
+        max_x = max(bbox[root_l][2], bbox[root_r][2])
+        max_y = max(bbox[root_l][3], bbox[root_r][3])
+        if max_component_span > 0 and (max_x - min_x > max_component_span or max_y - min_y > max_component_span):
+            return
+        parent[root_r] = root_l
+        bbox[root_l] = (min_x, min_y, max_x, max_y)
+
+    candidate_edges: list[tuple[int, int, int]] = []
+    for left in range(len(endpoints)):
+        for right in range(left + 1, len(endpoints)):
+            if same_group_only and endpoints[left].group != endpoints[right].group:
+                continue
+            distance = manhattan_distance(endpoints[left], endpoints[right])
+            if distance <= max_wire_length:
+                candidate_edges.append((distance, left, right))
+    for _distance, left, right in sorted(candidate_edges):
+        union(left, right)
+
+    groups: dict[int, list[NetEndpoint]] = {}
+    for index, endpoint in enumerate(endpoints):
+        groups.setdefault(find(index), []).append(endpoint)
+    return list(groups.values())
+
+
+def component_mst_edges(component: list[NetEndpoint], *, max_wire_length: int) -> list[tuple[NetEndpoint, NetEndpoint]]:
+    if len(component) <= 1:
+        return []
+    parent = list(range(len(component)))
+
+    def find(index: int) -> int:
+        while parent[index] != index:
+            parent[index] = parent[parent[index]]
+            index = parent[index]
+        return index
+
+    edges: list[tuple[int, int, int]] = []
+    for left in range(len(component)):
+        for right in range(left + 1, len(component)):
+            distance = manhattan_distance(component[left], component[right])
+            if distance <= max_wire_length:
+                edges.append((distance, left, right))
+
+    selected: list[tuple[NetEndpoint, NetEndpoint]] = []
+    for _distance, left, right in sorted(edges):
+        root_l = find(left)
+        root_r = find(right)
+        if root_l == root_r:
+            continue
+        parent[root_r] = root_l
+        selected.append((component[left], component[right]))
+    return selected
+
+
+def normalized_segment(x1: int, y1: int, x2: int, y2: int) -> tuple[int, int, int, int] | None:
+    if x1 == x2 and y1 == y2:
+        return None
+    if (x2, y2) < (x1, y1):
+        return (x2, y2, x1, y1)
+    return (x1, y1, x2, y2)
+
+
+def manhattan_segments(a: NetEndpoint, b: NetEndpoint, *, elbow: str) -> list[tuple[int, int, int, int]]:
+    if a.x == b.x or a.y == b.y:
+        segment = normalized_segment(a.x, a.y, b.x, b.y)
+        return [segment] if segment else []
+    if elbow == "vh":
+        raw = [(a.x, a.y, a.x, b.y), (a.x, b.y, b.x, b.y)]
+    else:
+        raw = [(a.x, a.y, b.x, a.y), (b.x, a.y, b.x, b.y)]
+    segments = [normalized_segment(*item) for item in raw]
+    return [item for item in segments if item is not None]
+
+
+def point_on_segment(x: int, y: int, segment: tuple[int, int, int, int]) -> bool:
+    x1, y1, x2, y2 = segment
+    if x1 == x2:
+        return x == x1 and min(y1, y2) <= y <= max(y1, y2)
+    if y1 == y2:
+        return y == y1 and min(x1, x2) <= x <= max(x1, x2)
+    raise ValueError(f"Non-Manhattan segment: {segment}")
+
+
+def segments_intersect(left: tuple[int, int, int, int], right: tuple[int, int, int, int]) -> bool:
+    lx1, ly1, lx2, ly2 = left
+    rx1, ry1, rx2, ry2 = right
+    left_vertical = lx1 == lx2
+    right_vertical = rx1 == rx2
+    if left_vertical and right_vertical:
+        return lx1 == rx1 and max(min(ly1, ly2), min(ry1, ry2)) <= min(max(ly1, ly2), max(ry1, ry2))
+    if not left_vertical and not right_vertical:
+        return ly1 == ry1 and max(min(lx1, lx2), min(rx1, rx2)) <= min(max(lx1, lx2), max(rx1, rx2))
+    vertical = left if left_vertical else right
+    horizontal = right if left_vertical else left
+    vx, vy1, _, vy2 = vertical
+    hx1, hy, hx2, _ = horizontal
+    return min(hx1, hx2) <= vx <= max(hx1, hx2) and min(vy1, vy2) <= hy <= max(vy1, vy2)
+
+
+def segment_is_safe(
+    segment: tuple[int, int, int, int],
+    *,
+    net: str,
+    all_endpoints: list[NetEndpoint],
+    emitted_segments: list[tuple[str, tuple[int, int, int, int]]],
+) -> bool:
+    for endpoint in all_endpoints:
+        if endpoint.net != net and point_on_segment(endpoint.x, endpoint.y, segment):
+            return False
+    for other_net, other_segment in emitted_segments:
+        if other_net != net and segments_intersect(segment, other_segment):
+            return False
+    return True
+
+
+def safe_manhattan_segments(
+    left: NetEndpoint,
+    right: NetEndpoint,
+    *,
+    net: str,
+    all_endpoints: list[NetEndpoint],
+    emitted_segments: list[tuple[str, tuple[int, int, int, int]]],
+    elbow: str,
+) -> list[tuple[int, int, int, int]] | None:
+    elbows = [elbow]
+    alternate = "vh" if elbow == "hv" else "hv"
+    if alternate not in elbows:
+        elbows.append(alternate)
+    for candidate_elbow in elbows:
+        segments = manhattan_segments(left, right, elbow=candidate_elbow)
+        if all(segment_is_safe(segment, net=net, all_endpoints=all_endpoints, emitted_segments=emitted_segments) for segment in segments):
+            return segments
+    return None
+
+
+def safe_component_routes(
+    endpoints: list[NetEndpoint],
+    *,
+    net: str,
+    all_endpoints: list[NetEndpoint],
+    emitted_segments: list[tuple[str, tuple[int, int, int, int]]],
+    max_wire_length: int,
+    max_component_span: int,
+    same_group_only: bool,
+    elbow: str,
+) -> tuple[list[tuple[NetEndpoint, NetEndpoint, list[tuple[int, int, int, int]]]], list[list[NetEndpoint]]]:
+    if len(endpoints) <= 1:
+        return [], [endpoints]
+
+    parent = list(range(len(endpoints)))
+    bbox = [(item.x, item.y, item.x, item.y) for item in endpoints]
+
+    def find(index: int) -> int:
+        while parent[index] != index:
+            parent[index] = parent[parent[index]]
+            index = parent[index]
+        return index
+
+    def union(left_index: int, right_index: int) -> bool:
+        root_l = find(left_index)
+        root_r = find(right_index)
+        if root_l == root_r:
+            return False
+        min_x = min(bbox[root_l][0], bbox[root_r][0])
+        min_y = min(bbox[root_l][1], bbox[root_r][1])
+        max_x = max(bbox[root_l][2], bbox[root_r][2])
+        max_y = max(bbox[root_l][3], bbox[root_r][3])
+        if max_component_span > 0 and (max_x - min_x > max_component_span or max_y - min_y > max_component_span):
+            return False
+        parent[root_r] = root_l
+        bbox[root_l] = (min_x, min_y, max_x, max_y)
+        return True
+
+    candidate_edges: list[tuple[int, int, int, list[tuple[int, int, int, int]]]] = []
+    for left_index in range(len(endpoints)):
+        for right_index in range(left_index + 1, len(endpoints)):
+            if same_group_only and endpoints[left_index].group != endpoints[right_index].group:
+                continue
+            distance = manhattan_distance(endpoints[left_index], endpoints[right_index])
+            if distance > max_wire_length:
+                continue
+            segments = safe_manhattan_segments(
+                endpoints[left_index],
+                endpoints[right_index],
+                net=net,
+                all_endpoints=all_endpoints,
+                emitted_segments=emitted_segments,
+                elbow=elbow,
+            )
+            if segments is not None:
+                candidate_edges.append((distance, left_index, right_index, segments))
+
+    selected: list[tuple[NetEndpoint, NetEndpoint, list[tuple[int, int, int, int]]]] = []
+    for _distance, left_index, right_index, segments in sorted(candidate_edges):
+        if union(left_index, right_index):
+            selected.append((endpoints[left_index], endpoints[right_index], segments))
+
+    groups: dict[int, list[NetEndpoint]] = {}
+    for index, endpoint in enumerate(endpoints):
+        groups.setdefault(find(index), []).append(endpoint)
+    return selected, list(groups.values())
+
+
+def label_endpoint(component: list[NetEndpoint]) -> NetEndpoint:
+    return sorted(component, key=lambda item: (item.x, item.y, item.ref, item.pin))[0]
+
+
+def build_hybrid_connectivity_lines(config: dict[str, Any], symbols: dict[str, Symbol], placements: dict[str, DevicePlacement]) -> list[str]:
+    routing = config.get("routing", {})
+    max_wire_length = int(routing.get("max_wire_length", 1200))
+    max_component_span = int(routing.get("max_component_span", 2400))
+    same_group_only = bool(routing.get("same_group_only", False))
+    elbow = str(routing.get("elbow", "hv")).lower()
+    if elbow not in {"hv", "vh"}:
+        raise SystemExit("routing.elbow must be 'hv' or 'vh'")
+
+    lines: list[str] = []
+    emitted_segments: list[tuple[str, tuple[int, int, int, int]]] = []
+    emitted_segment_keys: set[tuple[str, int, int, int, int]] = set()
+    endpoints_by_net = collect_net_endpoints(config, symbols, placements)
+    all_endpoints = [endpoint for endpoints in endpoints_by_net.values() for endpoint in endpoints]
+    for net, endpoints in endpoints_by_net.items():
+        routes, components = safe_component_routes(
+            endpoints,
+            net=net,
+            all_endpoints=all_endpoints,
+            emitted_segments=emitted_segments,
+            max_wire_length=max_wire_length,
+            max_component_span=max_component_span,
+            same_group_only=same_group_only,
+            elbow=elbow,
+        )
+        for _left, _right, segments in routes:
+            for segment in segments:
+                key = (net, *segment)
+                if key in emitted_segment_keys:
+                    continue
+                emitted_segment_keys.add(key)
+                emitted_segments.append((net, segment))
+                lines.append(f"Wire /loc {segment[0]} {segment[1]} {segment[2]} {segment[3]}")
+        for component in components:
+            lines.append(label_line_for_endpoint(label_endpoint(component)))
+    return lines
+
+
+def build_connectivity_lines(config: dict[str, Any], symbols: dict[str, Symbol], placements: dict[str, DevicePlacement]) -> list[str]:
+    mode = str(config.get("routing", {}).get("mode", "labels")).lower()
+    if mode in {"labels", "label", "terminals", "terms"}:
+        return build_default_connectivity_lines(config, symbols, placements)
+    if mode in {"hybrid", "local", "local_wires"}:
+        return build_hybrid_connectivity_lines(config, symbols, placements)
+    raise SystemExit(f"Unsupported routing.mode {mode!r}; use 'labels' or 'hybrid'")
+
+
 def build_create_script(config: dict[str, Any], symbols: dict[str, Symbol], placements: dict[str, DevicePlacement], paths: dict[str, Path], run_netlist: bool) -> str:
     design = config.get("design", {})
     simulator = str(design.get("simulator", "SIMPLIS"))
     title = str(design.get("name", "generated_simplis_design"))
-    nets = config.get("nets", {})
     lines = [f"NewSchem /newWindow /simulator {simulator} {title}"]
     for placement in placements.values():
         args = ["Inst", "/loc", str(placement.x), str(placement.y), orient_to_instance(placement.orient), placement.symbol]
         for name, value in placement.props.items():
             args.extend([str(name), quote_sxscr(value)])
         lines.append(" ".join(args))
-    term_count = 0
-    gnd_count = 0
-    for ref, pin_map in nets.items():
-        placement = placements[ref]
-        symbol = symbols[placement.symbol]
-        for pin_name, net_value in pin_map.items():
-            net = str(net_value)
-            pin = symbol.pins[str(pin_name)]
-            x, y = pin_abs_loc(placement, pin)
-            if net in GROUND_NETS:
-                gnd_count += 1
-                lines.append(f"Inst /loc {x} {y} 0 gnd")
-                continue
-            dx, dy = transform_pin(pin, placement.orient)
-            term_orient = term_orientation_for_pin(dx, dy)
-            term_count += 1
-            lines.append(f"Inst /loc {x} {y} {term_orient} term VALUE {quote_sxscr(net)}")
+    lines.extend(build_connectivity_lines(config, symbols, placements))
     if config.get("visual_stubs", False):
         lines.extend(build_visual_stubs(config, symbols, placements))
     lines.append(f'SaveAs /force "{paths["schematic"]}"')

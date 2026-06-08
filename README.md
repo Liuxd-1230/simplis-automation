@@ -11,6 +11,7 @@ Codex skill for automating SIMetrix/SIMPLIS 8.4 on Windows. It can create SIMPLI
 - `scripts/simetrix_waveforms.py`: Waveform export-script generation and SIMetrix `Show` text parsing helpers.
 - `scripts/schematic_generator.py`: JSON/YAML to `.sxscr`, `.sxsch`, `.net`, and `.deck` generator.
 - `scripts/smoke_test.py`: Local validation for RC and buck examples.
+- `references/generated_feedback_divider_hybrid.json`: Small feedback-divider example that uses hybrid local-wire routing.
 - `references/generated_buck_open_loop_tran.json`: 12 V buck example with body diodes, inverter-derived `PWM_LS`, POP trigger, 60 us transient, voltage probes, and inline current probes.
 - `references/`: SIMetrix/SIMPLIS command notes, DVM notes, optimization guidance, and verified local behavior.
 
@@ -78,6 +79,17 @@ Or ask Codex naturally:
 ```text
 Use simplis-automation to run the 12 V buck POP+60 us example with probes and check VOUT, SW, IL, and PWM waveforms.
 ```
+
+Generate a cleaner hand-drawn-style feedback block:
+
+```powershell
+python %CODEX_HOME%\skills\simplis-automation\scripts\simplis_cli.py generate-schematic `
+  --config %CODEX_HOME%\skills\simplis-automation\references\generated_feedback_divider_hybrid.json `
+  --out-dir path\to\outputs\generated_feedback_divider_hybrid `
+  --netlist-check --timeout 180 --batch
+```
+
+Set `routing.mode` to `hybrid` when a schematic should use short local Manhattan wires and only a few boundary `term` labels. Leave it unset for the older, most robust one-label-per-pin behavior.
 
 Export POP/AC vectors from an existing schematic:
 
