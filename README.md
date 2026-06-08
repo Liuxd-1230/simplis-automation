@@ -1,5 +1,7 @@
 # SIMPLIS Automation Skill
 
+[中文说明](README.zh-CN.md)
+
 Codex skill for automating SIMetrix/SIMPLIS 8.4 on Windows. It can create SIMPLIS schematics from structured JSON/YAML specs, run POP/transient jobs, add voltage/current probes, validate generated netlists, and support sweep or closed-loop optimization workflows for buck/PMIC experiments.
 
 ## What It Includes
