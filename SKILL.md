@@ -41,10 +41,11 @@ The generator:
 - Parses installed `.sxslb` symbol libraries for pin names and pin coordinates.
 - Places devices by group/row/col with configurable spacing.
 - Uses `term VALUE <net>` labels at each connected pin to avoid long-wire misalignment.
+- If `routing.mode` is `hybrid`, uses short local Manhattan wires for nearby same-net pins and keeps only boundary/local labels for each connected component.
 - Injects optional F11 analysis text after saving the schematic, then netlists again so simulation settings are current.
 - For POP trigger devices, resolves `{TRIG_GATE}` to the internal SIMPLIS comparator event such as `X1.!D_CYCLE` before deck execution.
 
-Use `references/generated_rc_labeled.json` as the smallest connectivity smoke test. Use `references/generated_buck_open_loop_tran.json` as the current 12 V buck example with body diodes, `PWM_LS` generated from `PWM_HS` through `inv_d`, `PERIODIC_OP_V8` POP trigger, and POP followed by `.TRAN 60u 0`. The buck example includes voltage probes on `VIN`, `SW`, `VOUT`, `PWM_HS`, `PWM_LS`, and `TRIG_GATE`, plus inline current probes for input current, inductor current, output-capacitor current, and load current.
+Use `references/generated_rc_labeled.json` as the smallest connectivity smoke test. Use `references/generated_feedback_divider_hybrid.json` as the smallest hand-drawn-style routing smoke test. Use `references/generated_buck_open_loop_tran.json` as the current 12 V buck example with body diodes, `PWM_LS` generated from `PWM_HS` through `inv_d`, `PERIODIC_OP_V8` POP trigger, and POP followed by `.TRAN 60u 0`. The buck example includes voltage probes on `VIN`, `SW`, `VOUT`, `PWM_HS`, `PWM_LS`, and `TRIG_GATE`, plus inline current probes for input current, inductor current, output-capacitor current, and load current.
 
 ## Decision Tree
 
@@ -79,6 +80,7 @@ This skill is fragile and tool-version dependent. Every action must depend on ob
 - For generated POP schematics, `PreProcessNetlist` does not resolve `{TRIG_GATE}` by itself. Let `schematic_generator.py` rewrite it to the `PERIODIC_OP` internal gate before calling `RunSIMPLIS`.
 - Non-interactive schematic drawing is possible but symbol names and properties are library/version specific. Use `Inst /loc ...`, `Wire /loc ...`, and `SaveAs /force ...`.
 - For robust generated connectivity, prefer `term VALUE <netname>` labels at each device pin over long coordinate wires. `schematic_generator.py` parses `.sxslb` pin locations and places terminals at the actual transformed pin coordinates.
+- For cleaner visual schematics based on hand-drawn SIMPLIS style, set `routing.mode = "hybrid"` with conservative `max_wire_length` and `max_component_span`. Verify with `Netlist /simplis` because visual local wires only work when pin coordinates are exact.
 - For waveform debugging, prefer `probev_new` for voltage nodes and `InlineCurrentProbe` for current paths. `InlineCurrentProbe` inserts a zero-volt source in series, so split the original net into two named nets and define the current direction as `P -> N`.
 - For exported waveform data, do not hand-write `Show` lines for names like `#VOUT`, `50`, or `IN+`. Use `make-vector-export`; it emits `Vec('#VOUT')`, `Vec('50')`, and group-specific output files.
 - For fragile symbol placement, first generate a visible concept schematic, inspect it, then harden the script from real symbol names in the installed libraries.
@@ -91,4 +93,4 @@ This skill is fragile and tool-version dependent. Every action must depend on ob
 - Read `references/parameter-and-metrics.md` before wiring a real schematic's parameters and measurements into an optimization script.
 - Read `references/research-validation.md` for buck PMIC validation metrics tied to ACOT/Vramp-valley work.
 - Read `references/verified-local-84.md` for what has already been proven on this Windows SIMPLIS 8.4 installation.
-- Example generator specs live in `references/generated_rc_labeled.json`, `references/generated_buck_acot_min.json`, and `references/generated_buck_open_loop_tran.json`.
+- Example generator specs live in `references/generated_rc_labeled.json`, `references/generated_feedback_divider_hybrid.json`, `references/generated_buck_acot_min.json`, and `references/generated_buck_open_loop_tran.json`.

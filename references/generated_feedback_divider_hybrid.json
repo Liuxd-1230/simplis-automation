@@ -1,0 +1,42 @@
+{
+  "design": {
+    "name": "generated_feedback_divider_hybrid",
+    "simulator": "SIMPLIS",
+    "schematic": "generated_feedback_divider_hybrid.sxsch",
+    "netlist": "generated_feedback_divider_hybrid.net",
+    "script": "generated_feedback_divider_hybrid.sxscr"
+  },
+  "layout": {
+    "grid": 120,
+    "origin": [600, 600],
+    "groups": ["feedback"],
+    "group_spacing": 960,
+    "row_spacing": 720,
+    "col_spacing": 600
+  },
+  "routing": {
+    "mode": "hybrid",
+    "max_wire_length": 1440,
+    "max_component_span": 2160,
+    "elbow": "hv"
+  },
+  "devices": [
+    {"ref": "V1", "symbol": "dc_source", "group": "feedback", "x": 600, "y": 600, "props": {"VALUE": 12}},
+    {"ref": "RTOP", "symbol": "res", "group": "feedback", "x": 1800, "y": 600, "props": {"VALUE": "100k"}},
+    {"ref": "RBOT", "symbol": "res", "group": "feedback", "x": 1800, "y": 1320, "props": {"VALUE": "20k"}},
+    {"ref": "CFB", "symbol": "cap", "group": "feedback", "x": 2400, "y": 960, "props": {"VALUE": "10p"}}
+  ],
+  "nets": {
+    "V1": {"P": "VOUT", "N": "0"},
+    "RTOP": {"P": "VOUT", "N": "VFB"},
+    "RBOT": {"P": "VFB", "N": "0"},
+    "CFB": {"P": "VFB", "N": "0"}
+  },
+  "metrics": {
+    "vout": "VFB",
+    "target_vout": 2.0
+  },
+  "validation": {
+    "required_nets": ["VOUT", "VFB"]
+  }
+}

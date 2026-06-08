@@ -11,6 +11,7 @@
 - `scripts/simetrix_waveforms.py`：生成波形导出 `.sxscr`，并解析 SIMetrix `Show` 文本输出。
 - `scripts/schematic_generator.py`：把 JSON/YAML 配置转换成 `.sxscr`、`.sxsch`、`.net`、`.deck`。
 - `scripts/smoke_test.py`：本地验证脚本，支持 RC 小测试和 buck 完整测试。
+- `references/generated_feedback_divider_hybrid.json`：使用 hybrid 局部短线布线的小型反馈分压示例。
 - `references/generated_buck_open_loop_tran.json`：当前默认 12 V buck 示例，包含体二极管、由 `PWM_HS` 反相得到的 `PWM_LS`、POP trigger、60 us 瞬态、电压 probe 和串联电流 probe。
 - `references/`：SIMetrix/SIMPLIS 命令、DVM、优化流程、已验证本机行为等参考资料。
 
@@ -86,6 +87,17 @@ python %CODEX_HOME%\skills\simplis-automation\scripts\simplis_cli.py generate-sc
 ```text
 用 simplis-automation，把 L 改成 1u、Cout 改成 100u、负载改成 0.5ohm，然后跑 buck POP+60us。
 ```
+
+生成更接近手工画法的反馈分压小块：
+
+```powershell
+python %CODEX_HOME%\skills\simplis-automation\scripts\simplis_cli.py generate-schematic `
+  --config %CODEX_HOME%\skills\simplis-automation\references\generated_feedback_divider_hybrid.json `
+  --out-dir path\to\outputs\generated_feedback_divider_hybrid `
+  --netlist-check --timeout 180 --batch
+```
+
+当你希望图里主要使用局部短 Manhattan 线、只在模块边界放少量 `term` 标签时，在配置里设置 `routing.mode = "hybrid"`。不设置时仍使用旧的每个 pin 贴标签方式，电气连通最稳。
 
 从已有 schematic 导出 POP/AC 向量：
 
