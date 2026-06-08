@@ -1,0 +1,76 @@
+{
+  "design": {
+    "name": "generated_buck_open_loop_tran",
+    "simulator": "SIMPLIS",
+    "schematic": "generated_buck_open_loop_tran.sxsch",
+    "netlist": "generated_buck_open_loop_tran.net",
+    "script": "generated_buck_open_loop_tran.sxscr"
+  },
+  "layout": {
+    "grid": 120,
+    "origin": [-1440, -720],
+    "groups": ["input", "power_stage", "drive", "load", "probe"],
+    "group_spacing": 1920,
+    "row_spacing": 960,
+    "col_spacing": 720,
+    "stub_length": 180
+  },
+  "devices": [
+    {"ref": "VIN12", "symbol": "dc_source", "group": "input", "row": 0, "props": {"VALUE": 12}},
+    {"ref": "IPRB_VIN", "symbol": "InlineCurrentProbe", "group": "input", "row": 0, "col": 1, "props": {"REF": "IPRB_VIN", "LABEL": "IIN", "VALUE": "axisType=auto persistence=1 graphName=Buck_Current curveLabel=IIN analysis=tran|pop xLog=auto yLog=lin nowarn=true"}},
+    {"ref": "S_HS", "symbol": "simplis_prim_vcswitch", "group": "power_stage", "row": 0, "role": "high_side", "props": {"VALUE": "RON=20m ROFF=1Meg THRESHOLD=2 HYSTWD=0.1 IC='OPEN' LOGIC='POS'"}},
+    {"ref": "D_HS", "symbol": "ADI_Diode", "group": "power_stage", "row": 0, "col": 1, "orient": 0},
+    {"ref": "S_LS", "symbol": "simplis_prim_vcswitch", "group": "power_stage", "row": 1, "role": "low_side", "props": {"VALUE": "RON=20m ROFF=1Meg THRESHOLD=2 HYSTWD=0.1 IC='OPEN' LOGIC='POS'"}},
+    {"ref": "D_LS", "symbol": "ADI_Diode", "group": "power_stage", "row": 1, "col": 1, "orient": 0},
+    {"ref": "L1", "symbol": "ind", "group": "power_stage", "row": 0, "col": 3, "props": {"VALUE": "2.2u"}},
+    {"ref": "IPRB_L", "symbol": "InlineCurrentProbe", "group": "power_stage", "row": 0, "col": 4, "props": {"REF": "IPRB_L", "LABEL": "IL", "VALUE": "axisType=auto persistence=1 graphName=Buck_Current curveLabel=IL analysis=tran|pop xLog=auto yLog=lin nowarn=true"}},
+    {"ref": "VPWM_HS", "symbol": "vwave_v2", "group": "drive", "row": 0, "props": {"SIMPLIS_VALUE": "_V1=0 _V2=5 _FREQ=500k _DELAY=0 _DRATIOx100=10 _T_RISE=5n _T_FALL=5n _DAMP_COEF=0 _PWIDTH=195n _OFF_UNTIL_DELAY=0 _IDLE_IN_POP=0 _USEPHASE=0 _PHASE=0"}},
+    {"ref": "INV_LS", "symbol": "inv_d", "group": "drive", "row": 1, "props": {"VALUE": "HC04D"}},
+    {"ref": "POP_TRIG", "symbol": "PERIODIC_OP_V8", "group": "drive", "row": 2, "props": {"VREF": "2.5", "VOL": "0", "VOH": "5", "HYSTWD": "0.002", "DIVIDE_BY_2": "0", "IC": "0", "DELAY": "0", "TRIG_COND": "0_TO_1"}},
+    {"ref": "IPRB_COUT", "symbol": "InlineCurrentProbe", "group": "load", "row": 0, "props": {"REF": "IPRB_COUT", "LABEL": "ICOUT", "VALUE": "axisType=auto persistence=1 graphName=Buck_Current curveLabel=ICOUT analysis=tran|pop xLog=auto yLog=lin nowarn=true"}},
+    {"ref": "COUT", "symbol": "cap", "group": "load", "row": 0, "col": 1, "props": {"VALUE": "47u"}},
+    {"ref": "IPRB_LOAD", "symbol": "InlineCurrentProbe", "group": "load", "row": 1, "props": {"REF": "IPRB_LOAD", "LABEL": "ILOAD", "VALUE": "axisType=auto persistence=1 graphName=Buck_Current curveLabel=ILOAD analysis=tran|pop xLog=auto yLog=lin nowarn=true"}},
+    {"ref": "RLOAD", "symbol": "res", "group": "load", "row": 1, "col": 1, "props": {"VALUE": "1"}},
+    {"ref": "PRB_VIN", "symbol": "probev_new", "group": "probe", "row": 0, "props": {"REF": "PRB_VIN", "Label": "VIN", "VALUE": "axisType=auto persistence=1 graphName=Buck_Voltage curveLabel=VIN analysis=tran|pop xLog=auto yLog=auto nowarn=true"}},
+    {"ref": "PRB_SW", "symbol": "probev_new", "group": "probe", "row": 1, "props": {"REF": "PRB_SW", "Label": "SW", "VALUE": "axisType=auto persistence=1 graphName=Buck_Voltage curveLabel=SW analysis=tran|pop xLog=auto yLog=auto nowarn=true"}},
+    {"ref": "PRB_VOUT", "symbol": "probev_new", "group": "probe", "row": 2, "props": {"REF": "PRB_VOUT", "Label": "VOUT", "VALUE": "axisType=auto persistence=1 graphName=Buck_Voltage curveLabel=VOUT analysis=tran|pop xLog=auto yLog=auto nowarn=true"}},
+    {"ref": "PRB_PWM_HS", "symbol": "probev_new", "group": "probe", "row": 3, "props": {"REF": "PRB_PWM_HS", "Label": "PWM_HS", "VALUE": "axisType=digital persistence=1 graphName=Buck_Logic curveLabel=PWM_HS analysis=tran|pop xLog=auto yLog=auto nowarn=true"}},
+    {"ref": "PRB_PWM_LS", "symbol": "probev_new", "group": "probe", "row": 4, "props": {"REF": "PRB_PWM_LS", "Label": "PWM_LS", "VALUE": "axisType=digital persistence=1 graphName=Buck_Logic curveLabel=PWM_LS analysis=tran|pop xLog=auto yLog=auto nowarn=true"}},
+    {"ref": "PRB_TRIG", "symbol": "probev_new", "group": "probe", "row": 5, "props": {"REF": "PRB_TRIG", "Label": "TRIG_GATE", "VALUE": "axisType=digital persistence=1 graphName=Buck_Logic curveLabel=TRIG_GATE analysis=tran|pop xLog=auto yLog=auto nowarn=true"}}
+  ],
+  "nets": {
+    "VIN12": {"P": "VIN_SRC", "N": "0"},
+    "IPRB_VIN": {"P": "VIN_SRC", "N": "VIN"},
+    "S_HS": {"P": "VIN", "N": "SW", "CP": "PWM_HS", "CN": "0"},
+    "D_HS": {"Anode": "SW", "Cathode": "VIN"},
+    "S_LS": {"P": "SW", "N": "0", "CP": "PWM_LS", "CN": "0"},
+    "D_LS": {"Anode": "0", "Cathode": "SW"},
+    "L1": {"P": "SW", "N": "L_OUT"},
+    "IPRB_L": {"P": "L_OUT", "N": "VOUT"},
+    "VPWM_HS": {"P": "PWM_HS", "N": "0"},
+    "INV_LS": {"IN1": "PWM_HS", "OUT": "PWM_LS"},
+    "POP_TRIG": {"IN": "PWM_HS", "OUT": "TRIG_GATE"},
+    "IPRB_COUT": {"P": "VOUT", "N": "COUT_TOP"},
+    "COUT": {"P": "COUT_TOP", "N": "0"},
+    "IPRB_LOAD": {"P": "VOUT", "N": "LOAD_TOP"},
+    "RLOAD": {"P": "LOAD_TOP", "N": "0"},
+    "PRB_VIN": {"NODE": "VIN"},
+    "PRB_SW": {"NODE": "SW"},
+    "PRB_VOUT": {"NODE": "VOUT"},
+    "PRB_PWM_HS": {"NODE": "PWM_HS"},
+    "PRB_PWM_LS": {"NODE": "PWM_LS"},
+    "PRB_TRIG": {"NODE": "TRIG_GATE"}
+  },
+  "simulation": {
+    "analysis_text": ".SIMULATOR SIMPLIS\n.PRINT\n+ ALL\n.OPTIONS\n+ PSP_NPT=4001\n+ POP_ITRMAX=20\n+ POP_OUTPUT_CYCLES=3\n+ SNAPSHOT_INTVL=0\n+ MIN_AVG_TOPOLOGY_DUR=1a\n+ AVG_TOPOLOGY_DUR_MEASUREMENT_WINDOW=128\n+ NEW_ANALYSIS\n.POP\n+ TRIG_GATE={TRIG_GATE}\n+ TRIG_COND=0_TO_1\n+ MAX_PERIOD=5u\n+ CONVERGENCE=1p\n+ CYCLES_BEFORE_LAUNCH=5\n+ TD_RUN_AFTER_POP_FAILS=-1\n.TRAN 60u 0\n\n.GRAPH \":VOUT\" axisType=\"auto\" persistence=1 graphName=\"Buck POP+Tran\" curveLabel=\"VOUT\" analysis=\"tran|pop\" xLog=\"auto\" yLog=\"auto\" nowarn=true\n.GRAPH \":SW\" axisType=\"auto\" persistence=1 graphName=\"Buck POP+Tran\" curveLabel=\"SW\" analysis=\"tran|pop\" xLog=\"auto\" yLog=\"auto\" nowarn=true\n.GRAPH \":PWM_HS\" axisType=\"digital\" persistence=1 graphName=\"Buck POP+Tran\" curveLabel=\"PWM_HS\" analysis=\"tran|pop\" xLog=\"auto\" yLog=\"auto\" nowarn=true\n.GRAPH \":PWM_LS\" axisType=\"digital\" persistence=1 graphName=\"Buck POP+Tran\" curveLabel=\"PWM_LS\" analysis=\"tran|pop\" xLog=\"auto\" yLog=\"auto\" nowarn=true\n.GRAPH \":TRIG_GATE\" axisType=\"digital\" persistence=1 graphName=\"Buck POP+Tran\" curveLabel=\"TRIG_GATE\" analysis=\"tran|pop\" xLog=\"auto\" yLog=\"auto\" nowarn=true\n\n.SIMULATOR DEFAULT\n"
+  },
+  "metrics": {
+    "vin": "VIN",
+    "vout": "VOUT",
+    "sw": "SW",
+    "target_vout": 1.2
+  },
+  "validation": {
+    "required_nets": ["VIN_SRC", "VIN", "SW", "L_OUT", "VOUT", "COUT_TOP", "LOAD_TOP", "PWM_HS", "PWM_LS", "TRIG_GATE"]
+  }
+}

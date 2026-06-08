@@ -1,0 +1,52 @@
+{
+  "design": {
+    "name": "generated_buck_acot_min",
+    "simulator": "SIMPLIS",
+    "schematic": "generated_buck_acot_min.sxsch",
+    "netlist": "generated_buck_acot_min.net",
+    "script": "generated_buck_acot_min.sxscr"
+  },
+  "layout": {
+    "grid": 120,
+    "origin": [-960, -480],
+    "groups": ["input", "power_stage", "control", "load"],
+    "group_spacing": 840,
+    "row_spacing": 600
+  },
+  "devices": [
+    {"ref": "VIN12", "symbol": "dc_source", "group": "input", "row": 0, "props": {"VALUE": 12}},
+    {"ref": "S_HS", "symbol": "switch_1", "group": "power_stage", "row": 0, "role": "high_side", "props": {"VALUE": "gen_switch : RON=20m ROFF=1Meg VON=3 VOFF=2"}},
+    {"ref": "S_LS", "symbol": "switch_1", "group": "power_stage", "row": 1, "role": "low_side", "props": {"VALUE": "gen_switch : RON=20m ROFF=1Meg VON=3 VOFF=2"}},
+    {"ref": "L1", "symbol": "ind", "group": "power_stage", "row": 2, "orient": 0, "props": {"VALUE": "1u"}},
+    {"ref": "COUT", "symbol": "cap", "group": "load", "row": 0, "props": {"VALUE": "47u"}},
+    {"ref": "RLOAD", "symbol": "res", "group": "load", "row": 1, "props": {"VALUE": "1"}},
+    {"ref": "RFBT", "symbol": "res", "group": "load", "row": 2, "props": {"VALUE": "100k"}},
+    {"ref": "RFBB", "symbol": "res", "group": "load", "row": 3, "props": {"VALUE": "20k"}},
+    {"ref": "VREFNEW", "symbol": "dc_source", "group": "control", "row": 0, "props": {"VALUE": 0.8}},
+    {"ref": "CMP_ACOT", "symbol": "comp_2", "group": "control", "row": 1, "props": {"VALUE": "LP311"}},
+    {"ref": "PWM_BUF", "symbol": "vcvs_2", "group": "control", "row": 2, "props": {"VALUE": 1}}
+  ],
+  "nets": {
+    "VIN12": {"P": "VIN", "N": "0"},
+    "S_HS": {"P": "VIN", "N": "SW", "CP": "PWM_HS", "CN": "0"},
+    "S_LS": {"P": "SW", "N": "0", "CP": "PWM_LS", "CN": "0"},
+    "L1": {"P": "SW", "N": "VOUT"},
+    "COUT": {"P": "VOUT", "N": "0"},
+    "RLOAD": {"P": "VOUT", "N": "0"},
+    "RFBT": {"P": "VOUT", "N": "FB"},
+    "RFBB": {"P": "FB", "N": "0"},
+    "VREFNEW": {"P": "VREFNEW", "N": "0"},
+    "CMP_ACOT": {"inp": "VREFNEW", "inn": "FB", "out": "PWM_REQ", "vsp": "VIN", "vsn": "0", "gnd": "0"},
+    "PWM_BUF": {"CP": "PWM_REQ", "CN": "0", "P": "PWM_HS", "N": "0"}
+  },
+  "metrics": {
+    "vin": "VIN",
+    "vout": "VOUT",
+    "sw": "SW",
+    "fb": "FB",
+    "target_vout": 1.2
+  },
+  "validation": {
+    "required_nets": ["VIN", "SW", "VOUT", "FB", "VREFNEW", "PWM_REQ", "PWM_HS"]
+  }
+}

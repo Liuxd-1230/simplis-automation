@@ -1,0 +1,34 @@
+{
+  "design": {
+    "name": "generated_rc_labeled",
+    "simulator": "SIMPLIS",
+    "schematic": "generated_rc_labeled.sxsch",
+    "netlist": "generated_rc_labeled.net",
+    "script": "generated_rc_labeled.sxscr"
+  },
+  "layout": {
+    "grid": 120,
+    "origin": [-600, -360],
+    "groups": ["input", "load"],
+    "group_spacing": 720,
+    "row_spacing": 480
+  },
+  "devices": [
+    {"ref": "V1", "symbol": "dc_source", "group": "input", "row": 0, "props": {"VALUE": 5}},
+    {"ref": "R1", "symbol": "res", "group": "load", "row": 0, "props": {"VALUE": "1k"}},
+    {"ref": "C1", "symbol": "cap", "group": "load", "row": 1, "props": {"VALUE": "1u"}}
+  ],
+  "nets": {
+    "V1": {"P": "VIN", "N": "0"},
+    "R1": {"P": "VIN", "N": "VOUT"},
+    "C1": {"P": "VOUT", "N": "0"}
+  },
+  "metrics": {
+    "vin": "VIN",
+    "vout": "VOUT",
+    "target_vout": 5.0
+  },
+  "validation": {
+    "required_nets": ["VIN", "VOUT"]
+  }
+}
