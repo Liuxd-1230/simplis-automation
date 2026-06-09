@@ -8,7 +8,7 @@ These files are official SIMPLIS examples approved for inclusion in this open-so
 - `SIMPLIS_Buck_Converter/Modeling_Blocks/3p2zcompensator.sxcmp`: packaged 3p2z/type-III style compensation block for reuse and future agent tuning.
 - `SIMPLIS Buck Converter w Soft Saturation_0.sxsch`: buck converter with soft saturation behavior.
 - `SIMPLIS Buck Converter w Switching Losses.sxsch`: buck converter with switching-loss modeling.
-- `4-phase_Synchronous_Buck.sxsch`: multiphase synchronous buck example.
+- `4-phase_Synchronous_Buck.sxsch`: four-phase synchronous buck example.
 - `ZVS_Full_Bridge_w_Synchronous_Rectified_Output.sxsch`: full-bridge power-stage example.
 - `TransconductanceAmp/TransCondAmp.sxcmp`: packaged transconductance amplifier block.
 - `TransconductanceAmp/Test Gain and Iout Limit.sxsch`: test schematic for the transconductance amplifier block.

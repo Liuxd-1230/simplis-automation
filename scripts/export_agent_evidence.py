@@ -9,6 +9,11 @@ from pathlib import Path
 from statistics import mean
 from typing import Any
 
+try:
+    from simetrix_waveforms import parse_show_file
+except ModuleNotFoundError:  # pragma: no cover - exercised when imported as scripts.export_agent_evidence
+    from .simetrix_waveforms import parse_show_file
+
 
 NODE_MAP_RE = re.compile(r"^\s*\.node_map\s+(\S+)\s+(\S+)", re.IGNORECASE)
 TRIG_GATE_RE = re.compile(r"\bTRIG_GATE\b\s*=\s*(?P<value>\"[^\"]+\"|'[^']+'|\S+)", re.IGNORECASE)
@@ -272,7 +277,97 @@ def _parse_numeric_row(line: str) -> tuple[float | None, float] | None:
     return x_value, y_value
 
 
+def _looks_like_show_header(file: Path) -> bool:
+    try:
+        with file.open("r", encoding="utf-8", errors="replace") as handle:
+            header = handle.readline().split()
+    except OSError:
+        return False
+    if len(header) < 2:
+        return False
+    return _parse_numeric_row(" ".join(header[:2])) is None
+
+
+def _phase_deg(real: float, imag: float) -> float:
+    return math.degrees(math.atan2(imag, real))
+
+
+def _summarize_series(prefix: str, values: list[float], result: dict[str, Any]) -> None:
+    if not values:
+        return
+    result.update(
+        {
+            f"{prefix}_min": min(values),
+            f"{prefix}_max": max(values),
+            f"{prefix}_mean": mean(values),
+            f"{prefix}_first": values[0],
+            f"{prefix}_last": values[-1],
+        }
+    )
+
+
+def _summarize_show_data(data: dict[str, Any]) -> dict[str, Any]:
+    x_values = [value for value in data.get("x", []) if isinstance(value, (int, float)) and math.isfinite(value)]
+    y_values = data.get("y", [])
+    result: dict[str, Any] = {
+        "samples": len(y_values),
+        "skipped_lines": 0,
+        "x_name": data.get("x_name"),
+        "y_name": data.get("y_name"),
+    }
+    if x_values:
+        result.update({"x_min": min(x_values), "x_max": max(x_values)})
+    if not y_values:
+        return result
+
+    if all(isinstance(value, (int, float)) for value in y_values):
+        real_values = [float(value) for value in y_values if math.isfinite(float(value))]
+        result["kind"] = "real"
+        if real_values:
+            result.update(
+                {
+                    "min": min(real_values),
+                    "max": max(real_values),
+                    "mean": mean(real_values),
+                    "first": real_values[0],
+                    "last": real_values[-1],
+                }
+            )
+        return result
+
+    complex_values = [
+        {"real": float(value["real"]), "imag": float(value["imag"])}
+        for value in y_values
+        if isinstance(value, dict)
+        and isinstance(value.get("real"), (int, float))
+        and isinstance(value.get("imag"), (int, float))
+        and math.isfinite(float(value["real"]))
+        and math.isfinite(float(value["imag"]))
+    ]
+    result["kind"] = "complex"
+    result["samples"] = len(complex_values)
+    if not complex_values:
+        return result
+
+    real_values = [value["real"] for value in complex_values]
+    imag_values = [value["imag"] for value in complex_values]
+    magnitude_values = [math.hypot(value["real"], value["imag"]) for value in complex_values]
+    phase_values = [_phase_deg(value["real"], value["imag"]) for value in complex_values]
+    result.update({"first_complex": complex_values[0], "last_complex": complex_values[-1]})
+    _summarize_series("real", real_values, result)
+    _summarize_series("imag", imag_values, result)
+    _summarize_series("magnitude", magnitude_values, result)
+    _summarize_series("phase_deg", phase_values, result)
+    return result
+
+
 def parse_waveform_file(file: Path) -> dict[str, Any]:
+    if _looks_like_show_header(file):
+        try:
+            return _summarize_show_data(parse_show_file(file))
+        except (OSError, ValueError):
+            pass
+
     y_values: list[float] = []
     x_values: list[float] = []
     skipped_lines = 0

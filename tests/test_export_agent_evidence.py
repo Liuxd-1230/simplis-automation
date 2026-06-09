@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 import tempfile
 import unittest
 from pathlib import Path
@@ -103,15 +104,68 @@ ignored line
         self.assertEqual(report["simulator_logs"]["errors"], ["*** ERROR ***: test error"])
         self.assertEqual(report["simulator_logs"]["warnings"], ["*** Warning ***: test warning"])
 
+    def test_export_evidence_summarizes_simetrix_ac_complex_vectors(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "ac_n46.txt").write_text(
+                "freq\tN46\n"
+                "1000\t(-0.004922329565 ,-0.001443921967 )\n"
+                "1096.4\t(-0.005050021956 ,0.001142594522 )\n",
+                encoding="utf-8",
+            )
+
+            report = export_evidence(root)
+
+        vector = report["waveforms"]["vectors"]["ac_n46.txt"]
+        self.assertEqual(vector["samples"], 2)
+        self.assertEqual(vector["x_name"], "freq")
+        self.assertEqual(vector["y_name"], "N46")
+        self.assertEqual(
+            vector["first_complex"],
+            {"real": -0.004922329565, "imag": -0.001443921967},
+        )
+        self.assertEqual(
+            vector["last_complex"],
+            {"real": -0.005050021956, "imag": 0.001142594522},
+        )
+        self.assertNotIn("first", vector)
+        self.assertAlmostEqual(vector["real_mean"], -0.0049861757605)
+        self.assertAlmostEqual(vector["imag_mean"], -0.0001506637225)
+        self.assertAlmostEqual(vector["magnitude_first"], 0.005129760266716133)
+        self.assertAlmostEqual(
+            vector["phase_deg_first"],
+            math.degrees(math.atan2(-0.001443921967, -0.004922329565)),
+        )
+
+    def test_export_evidence_preserves_headerless_numeric_vectors(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "raw_vector.txt").write_text(
+                "0 0\n"
+                "1e-6 1.2\n"
+                "2e-6 1.1\n",
+                encoding="utf-8",
+            )
+
+            report = export_evidence(root)
+
+        vector = report["waveforms"]["vectors"]["raw_vector.txt"]
+        self.assertEqual(vector["samples"], 3)
+        self.assertEqual(vector["first"], 0.0)
+        self.assertEqual(vector["last"], 1.1)
+        self.assertEqual(vector["x_min"], 0.0)
+        self.assertEqual(vector["x_max"], 2e-6)
+        self.assertNotIn("x_name", vector)
+
     def test_redact_path_removes_absolute_prefixes_with_windows_or_posix_separators(self) -> None:
-        roots = [Path(r"D:\workspace\codex")]
+        roots = [Path(r"C:\projects\simplis_runs")]
 
         self.assertEqual(
-            redact_path(r"D:\workspace\codex\outputs\run_001\design.deck.err", roots=roots),
+            redact_path(r"C:\projects\simplis_runs\outputs\run_001\design.deck.err", roots=roots),
             r"<redacted>\outputs\run_001\design.deck.err",
         )
         self.assertEqual(
-            redact_path("D:/workspace/codex/outputs/run_001/design.deck.err", roots=roots),
+            redact_path("C:/projects/simplis_runs/outputs/run_001/design.deck.err", roots=roots),
             "<redacted>/outputs/run_001/design.deck.err",
         )
 
