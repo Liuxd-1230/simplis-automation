@@ -114,14 +114,16 @@ def _decode_quoted_value(value: str) -> str:
     return value.replace(r"\"", '"').replace(r"\\", "\\")
 
 
-def _file_metadata(source: Path, text: str) -> dict[str, Any]:
+def _file_metadata(source: Path, text: str, *, file_format: str = "text", size_bytes: int | None = None) -> dict[str, Any]:
     return {
         "path": str(source),
         "name": source.name,
         "kind": source.suffix.lower().lstrip("."),
         "suffix": source.suffix.lower(),
+        "format": file_format,
         "line_count": len(text.splitlines()),
         "size_chars": len(text),
+        "size_bytes": size_bytes if size_bytes is not None else len(text.encode("utf-8")),
     }
 
 
@@ -314,6 +316,45 @@ def _module_report(source: Path, symbols: Counter[str], instances: list[dict[str
     ]
 
 
+def _empty_file_report(source: Path, data: bytes, *, warning: str) -> dict[str, Any]:
+    return {
+        "file": _file_metadata(source, "", file_format="binary", size_bytes=len(data)),
+        "symbols": {},
+        "symbol_catalogs": {},
+        "instances": [],
+        "property_names": [],
+        "properties": {},
+        "wires": {
+            "count": 0,
+            "nets": {},
+            "items": [],
+            "horizontal": 0,
+            "vertical": 0,
+            "diagonal_or_unknown": 0,
+            "total_manhattan_length": 0,
+            "bbox": None,
+        },
+        "terminals": {"terms": {}, "grounds": 0},
+        "probes": [],
+        "modules": [],
+        "warnings": [warning],
+    }
+
+
+def parse_schematic_file(file: Path) -> dict[str, Any]:
+    data = file.read_bytes()
+    if b"\x00" in data:
+        return _empty_file_report(
+            file,
+            data,
+            warning=(
+                "unsupported binary SIMetrix file; save or export this .sxsch/.sxcmp as text "
+                "before using it as parsed evidence"
+            ),
+        )
+    return parse_schematic_text(data.decode("utf-8", errors="replace"), source=file)
+
+
 def _component_modules(components: list[dict[str, Any]]) -> list[dict[str, Any]]:
     modules: list[dict[str, Any]] = []
     for component in components:
@@ -464,10 +505,7 @@ def canonical_symbols_from_counts(counts: Counter[str]) -> dict[str, dict[str, A
 
 def inspect_path(path: Path) -> dict[str, Any]:
     files = discover_files(path)
-    file_reports = [
-        parse_schematic_text(file.read_text(encoding="utf-8", errors="replace"), source=file)
-        for file in files
-    ]
+    file_reports = [parse_schematic_file(file) for file in files]
 
     symbols: Counter[str] = Counter()
     symbol_files: dict[str, set[str]] = {}
@@ -521,6 +559,7 @@ def write_summary(report: dict[str, Any], path: Path) -> None:
         f"- Files: {report['totals']['files']}",
         f"- Instances: {report['totals']['instances']}",
         f"- Wires: {report['totals']['wires']}",
+        f"- Warnings: {len(report['warnings'])}",
         "",
         "## Canonical Symbols",
     ]

@@ -364,6 +364,22 @@ Property name="REF" value="R1" autopos=1 normal=Right rotated=Bottom font=Defaul
             with self.assertRaises(FileNotFoundError):
                 inspect_path(missing)
 
+    def test_binary_schematic_is_reported_as_unsupported_instead_of_empty_success(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            binary = root / "BinaryBlock.sxcmp"
+            binary.write_bytes(b"\x12\x00SIMetrix Component\x03\x00")
+
+            report = inspect_path(root)
+
+        self.assertEqual(report["totals"]["files"], 1)
+        self.assertEqual(report["totals"]["instances"], 0)
+        self.assertEqual(report["totals"]["wires"], 0)
+        self.assertEqual(report["files"][0]["file"]["format"], "binary")
+        self.assertEqual(report["files"][0]["modules"], [])
+        self.assertEqual(len(report["warnings"]), 1)
+        self.assertIn("unsupported binary", report["warnings"][0]["message"])
+
     def test_official_alias_only_roles_keep_generator_defaults_with_evidence(self) -> None:
         symbols = [
             "websim_resz1",
@@ -569,11 +585,14 @@ Property name="REF" value="{role}" autopos=1 normal=Right rotated=Bottom font=De
 
         report = inspect_path(official)
 
-        self.assertEqual(report["warnings"], [])
+        binary_warnings = [
+            warning for warning in report["warnings"] if "unsupported binary SIMetrix file" in warning["message"]
+        ]
+        self.assertEqual(len(binary_warnings), 2)
         self.assertGreater(report["totals"]["files"], 0)
         module_names = {module["name"] for module in report["modules"]}
         self.assertIn("3p2zcompensator", module_names)
-        self.assertIn("TransCondAmp", module_names)
+        self.assertNotIn("TransCondAmp", module_names)
 
 
 if __name__ == "__main__":

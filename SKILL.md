@@ -45,7 +45,7 @@ The generator:
 - Injects optional F11 analysis text after saving the schematic, then netlists again so simulation settings are current.
 - For POP trigger devices, resolves `{TRIG_GATE}` to the internal SIMPLIS comparator event such as `X1.!D_CYCLE` before deck execution.
 
-Use `profiles/` for canonical symbol names derived from official examples and verified generator defaults. Prefer profile roles over guessed symbol names. For reusable compensation or transconductance blocks, prefer official `.sxcmp` modules when they are present and verified.
+Use `profiles/` for canonical symbol names derived from official examples and verified generator defaults. Prefer profile roles over guessed symbol names. For reusable compensation or transconductance blocks, prefer official `.sxcmp` modules only when they are text-parseable or verified in the target installation.
 
 Use `references/generated_rc_labeled.json` as the smallest connectivity smoke test. Use `references/generated_feedback_divider_hybrid.json` as the smallest hand-drawn-style routing smoke test. Use `references/generated_buck_open_loop_tran.json` as the current 12 V buck example with body diodes, `PWM_LS` generated from `PWM_HS` through `inv_d`, `PERIODIC_OP_V8` POP trigger, and POP followed by `.TRAN 60u 0`. The buck example includes voltage probes on `VIN`, `SW`, `VOUT`, `PWM_HS`, `PWM_LS`, and `TRIG_GATE`, plus inline current probes for input current, inductor current, output-capacitor current, and load current.
 

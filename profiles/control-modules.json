@@ -13,10 +13,10 @@
     "transconductance_amp": {
       "preferred": "examples/official/TransconductanceAmp/TransCondAmp.sxcmp",
       "observed_symbol": "TransCondAmp",
-      "purpose": "packaged transconductance amplifier block",
+      "purpose": "official binary-format transconductance amplifier file kept as path-level evidence only",
       "observed_ports": 0,
       "observed_tunables": [],
-      "validation": "inspect the module in the target installation before exposing tunable parameters"
+      "validation": "this checked-in file is not text-parseable; convert/save as text or inspect the module in the target installation before reusing it or exposing tunable parameters"
     }
   }
 }

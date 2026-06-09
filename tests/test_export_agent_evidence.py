@@ -157,6 +157,30 @@ ignored line
         self.assertEqual(vector["x_max"], 2e-6)
         self.assertNotIn("x_name", vector)
 
+    def test_export_evidence_ignores_vector_export_status_text(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "status").mkdir()
+            (root / "status" / "vector_export_status.txt").write_text(
+                "start_vector_export=1\n"
+                "simplis_exit_code= 0\n"
+                "vector_export_done=1\n",
+                encoding="utf-8",
+            )
+            (root / "vectors").mkdir()
+            (root / "vectors" / "pop_vout.txt").write_text(
+                "time\tVOUT\n"
+                "0\t0\n"
+                "1e-6\t1.2\n",
+                encoding="utf-8",
+            )
+
+            report = export_evidence(root)
+
+        self.assertEqual(report["artifacts"]["waveforms"], [str(root / "vectors" / "pop_vout.txt")])
+        self.assertEqual(set(report["waveforms"]["vectors"]), {"pop_vout.txt"})
+        self.assertNotIn("vector_export_status.txt", report["waveforms"]["vectors"])
+
     def test_redact_path_removes_absolute_prefixes_with_windows_or_posix_separators(self) -> None:
         roots = [Path(r"C:\projects\simplis_runs")]
 

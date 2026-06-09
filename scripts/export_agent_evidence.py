@@ -24,6 +24,7 @@ BENIGN_WARNING_RE = re.compile(r"\b(no|0)\s+warnings?\b|\bwarnings?\s*[:=]\s*0\b
 LOG_SUFFIXES = {".dbg", ".err", ".health", ".log", ".lst"}
 TEXT_VECTOR_SUFFIXES = {".csv", ".txt"}
 MAX_CAPTURED_LINES = 200
+STATUS_TEXT_NAMES = {"vector_export_status.txt", "status.txt"}
 
 
 def parse_scalar(value: str) -> Any:
@@ -76,6 +77,30 @@ def _is_metrics_file(path: Path) -> bool:
     return path.suffix.lower() in {".json", ".txt"} and "metric" in name
 
 
+def _is_status_text_file(path: Path) -> bool:
+    lower_parts = {part.lower() for part in path.parts}
+    return path.name.lower() in STATUS_TEXT_NAMES or "status" in lower_parts
+
+
+def _is_potential_waveform_file(path: Path) -> bool:
+    if path.suffix.lower() not in TEXT_VECTOR_SUFFIXES or _is_status_text_file(path):
+        return False
+    lower_parts = {part.lower() for part in path.parts}
+    if "vectors" in lower_parts:
+        return True
+    if _looks_like_show_header(path):
+        return True
+    try:
+        for line in read_text(path).splitlines():
+            stripped = line.strip()
+            if not stripped or stripped.startswith(("#", ";")):
+                continue
+            return _parse_numeric_row(stripped) is not None
+    except OSError:
+        return False
+    return False
+
+
 def discover_artifacts(root: Path) -> tuple[dict[str, list[Path]], list[str]]:
     empty: dict[str, list[Path]] = {
         "schematics": [],
@@ -109,7 +134,7 @@ def discover_artifacts(root: Path) -> tuple[dict[str, list[Path]], list[str]]:
         "waveforms": [
             item
             for item in all_files
-            if item.suffix.lower() in TEXT_VECTOR_SUFFIXES and item not in metric_set
+            if item not in metric_set and _is_potential_waveform_file(item)
         ],
     }
     return {kind: _sort_paths(paths) for kind, paths in artifacts.items()}, warnings

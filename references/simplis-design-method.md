@@ -20,7 +20,7 @@ Profiles record both the canonical generator symbol and official observed aliase
 
 ## Reusable Modules
 
-Use packaged official modules directly when they match the need. The 3p2z/type-III compensation block and transconductance amplifier block are reusable modules. Inspect their properties and expose tunable numeric parameters to optimization flows instead of rebuilding them from primitive devices.
+Use packaged official modules directly only when they match the need and are text-parseable or verified in the target installation. The 3p2z/type-III compensation block is parsed with tunable properties. The checked-in transconductance amplifier files are binary-format path-level evidence; convert/save them as text or inspect them in the target installation before reusing them or exposing tunable parameters.
 
 ## Privacy Boundary
 
