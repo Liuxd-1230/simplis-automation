@@ -28,7 +28,7 @@ class SimetrixWaveformTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             script = build_vector_export_script(
-                schematic=Path(r"E:\work\VRAMPValley.sxsch"),
+                schematic=Path(r"E:\work\existing.sxsch"),
                 output_dir=root / "vectors",
                 exports=[
                     ("simplis_pop1", "#VOUT"),
@@ -38,7 +38,7 @@ class SimetrixWaveformTests(unittest.TestCase):
                 status_file=root / "status.txt",
             )
 
-        self.assertIn('OpenSchem "E:\\work\\VRAMPValley.sxsch"', script)
+        self.assertIn('OpenSchem "E:\\work\\existing.sxsch"', script)
         self.assertIn("Let echo_file = OpenEchoFile('", script)
         self.assertIn("simplis_run", script)
         self.assertIn("SetGroup simplis_pop1", script)
@@ -93,7 +93,7 @@ class SimetrixWaveformTests(unittest.TestCase):
                     str(cli),
                     "make-vector-export",
                     "--schematic",
-                    str(root / "VRAMPValley.sxsch"),
+                    str(root / "existing.sxsch"),
                     "--out-dir",
                     str(root / "vectors"),
                     "--out",
@@ -144,7 +144,7 @@ class SimetrixWaveformTests(unittest.TestCase):
                     str(helper),
                     "make-export-script",
                     "--schematic",
-                    str(root / "VRAMPValley.sxsch"),
+                    str(root / "existing.sxsch"),
                     "--out-dir",
                     str(out_dir),
                     "--script",

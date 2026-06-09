@@ -1,0 +1,51 @@
+{
+  "name": "power-stage",
+  "source": "official SIMPLIS examples inspected with scripts/inspect_schematic.py",
+  "roles": {
+    "power_switch": {
+      "preferred": "simplis_prim_vcswitch",
+      "observed_official": ["websim_pwr_nmos", "PWRNMOS_wCOSS"],
+      "validation": "verify the selected switch symbol and all pins in the configured installed .sxslb libraries before placement"
+    },
+    "body_diode": {
+      "preferred": "dio",
+      "observed_official": ["dio"],
+      "validation": "verify diode symbol pins in the configured installed .sxslb libraries before placement"
+    },
+    "inductor": {
+      "preferred": "ind",
+      "observed_official": ["websim_ind1", "websim_cind1"],
+      "validation": "verify inductor symbol pins in the configured installed .sxslb libraries before placement"
+    },
+    "capacitor": {
+      "preferred": "cap",
+      "observed_official": ["cap", "websim_cap", "websim_ecap1"],
+      "validation": "verify capacitor symbol pins in the configured installed .sxslb libraries before placement"
+    },
+    "resistor": {
+      "preferred": "res",
+      "observed_official": ["websim_resz1", "resz"],
+      "validation": "verify resistor symbol pins in the configured installed .sxslb libraries before placement"
+    },
+    "voltage_source": {
+      "preferred": "dc_source",
+      "observed_official": ["dc_source"],
+      "validation": "verify voltage source pins in the configured installed .sxslb libraries before placement"
+    },
+    "current_source": {
+      "preferred": "dc_isource",
+      "observed_official": ["iwave_v2"],
+      "validation": "verify current source pins in the configured installed .sxslb libraries before placement"
+    },
+    "ground": {
+      "preferred": "gnd",
+      "observed_official": ["gnd", "gnd2"],
+      "validation": "use a ground symbol for net 0 and verify the selected symbol exists"
+    },
+    "net_terminal": {
+      "preferred": "term",
+      "observed_official": ["term"],
+      "validation": "use VALUE as the electrical net label and verify the terminal symbol exists"
+    }
+  }
+}

@@ -4,6 +4,7 @@ __pycache__/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+.worktrees/
 
 *.sxsch
 *.sxcmp
@@ -16,4 +17,5 @@ SIMPLIS_Data/
 
 outputs/
 .codex_tmp/
+docs/superpowers/
 config/local_config.json

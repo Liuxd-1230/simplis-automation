@@ -10,7 +10,11 @@ Codex skill for automating SIMetrix/SIMPLIS 8.4 on Windows. It can create SIMPLI
 - `scripts/simplis_cli.py`: Main CLI entry point.
 - `scripts/simetrix_waveforms.py`: Waveform export-script generation and SIMetrix `Show` text parsing helpers.
 - `scripts/schematic_generator.py`: JSON/YAML to `.sxscr`, `.sxsch`, `.net`, and `.deck` generator.
+- `scripts/inspect_schematic.py`: Deterministic `.sxsch/.sxcmp` inspection for symbols, wires, modules, tunables, and canonical roles.
+- `scripts/export_agent_evidence.py`: Agent-readable simulation evidence export from generated output directories.
 - `scripts/smoke_test.py`: Local validation for RC and buck examples.
+- `examples/official/`: Official/open-source-approved SIMPLIS examples used as evidence.
+- `profiles/`: Canonical symbol and reusable module profiles derived from official examples and verified generator defaults.
 - `references/generated_feedback_divider_hybrid.json`: Small feedback-divider example that uses hybrid local-wire routing.
 - `references/generated_buck_open_loop_tran.json`: 12 V buck example with body diodes, inverter-derived `PWM_LS`, POP trigger, 60 us transient, voltage probes, and inline current probes.
 - `references/`: SIMetrix/SIMPLIS command notes, DVM notes, optimization guidance, and verified local behavior.
@@ -65,6 +69,25 @@ python %CODEX_HOME%\skills\simplis-automation\scripts\smoke_test.py --include-bu
 
 ## Example Use
 
+Inspect official examples and generate symbol evidence:
+
+```powershell
+python %CODEX_HOME%\skills\simplis-automation\scripts\simplis_cli.py inspect-schematic `
+  --input %CODEX_HOME%\skills\simplis-automation\examples\official `
+  --out reports\official_examples.json `
+  --summary-md reports\official_examples.md
+```
+
+Before interpreting a failed or suspicious simulation, export the work directory for agent analysis:
+
+```powershell
+python %CODEX_HOME%\skills\simplis-automation\scripts\simplis_cli.py export-agent-evidence `
+  --work-dir path\to\outputs\run_001 `
+  --out reports\run_001_evidence.json `
+  --summary-md reports\run_001_evidence.md `
+  --redact-paths
+```
+
 Generate and run the default probed 12 V buck:
 
 ```powershell
@@ -95,7 +118,7 @@ Export POP/AC vectors from an existing schematic:
 
 ```powershell
 python %CODEX_HOME%\skills\simplis-automation\scripts\simplis_cli.py make-vector-export `
-  --schematic path\to\VRAMPValley.sxsch `
+  --schematic path\to\existing.sxsch `
   --out-dir path\to\vectors `
   --out path\to\export_vectors.sxscr `
   --vector simplis_pop1:#VOUT `
@@ -105,6 +128,10 @@ python %CODEX_HOME%\skills\simplis-automation\scripts\simplis_cli.py make-vector
 python %CODEX_HOME%\skills\simplis-automation\scripts\simplis_cli.py run-script path\to\export_vectors.sxscr
 python %CODEX_HOME%\skills\simplis-automation\scripts\simplis_cli.py parse-show path\to\vectors\pop_vout.txt --out parsed_vectors.json
 ```
+
+## Evidence And Privacy
+
+Default device names should come from `profiles/` or fresh `inspect-schematic` evidence, not from memory. The official examples in `examples/official/` are approved for this open-source repository. Do not copy private research schematics, generated SIMPLIS output, or local absolute paths into the skill.
 
 ## Agent Install
 

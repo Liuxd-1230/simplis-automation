@@ -1,0 +1,22 @@
+{
+  "name": "control-modules",
+  "source": "official SIMPLIS examples inspected with scripts/inspect_schematic.py",
+  "modules": {
+    "compensator_3p2z": {
+      "preferred": "examples/official/SIMPLIS_Buck_Converter/Modeling_Blocks/3p2zcompensator.sxcmp",
+      "observed_symbol": "3p2zcompensator",
+      "purpose": "packaged 3p2z/type-III style compensation block",
+      "observed_ports": 4,
+      "observed_tunables": ["A0", "C2", "C3", "C4", "CMRR", "GBW", "IB", "IBOS", "IO_SNK_MAX", "IO_SRC_MAX", "IQ", "LEVEL", "R3", "R4"],
+      "validation": "inspect module properties first, then expose only safe numeric parameters to sweep or optimization flows"
+    },
+    "transconductance_amp": {
+      "preferred": "examples/official/TransconductanceAmp/TransCondAmp.sxcmp",
+      "observed_symbol": "TransCondAmp",
+      "purpose": "official binary-format transconductance amplifier file kept as path-level evidence only",
+      "observed_ports": 0,
+      "observed_tunables": [],
+      "validation": "this checked-in file is not text-parseable; convert/save as text or inspect the module in the target installation before reusing it or exposing tunable parameters"
+    }
+  }
+}

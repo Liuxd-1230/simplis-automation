@@ -10,7 +10,11 @@
 - `scripts/simplis_cli.py`：主要命令行入口。
 - `scripts/simetrix_waveforms.py`：生成波形导出 `.sxscr`，并解析 SIMetrix `Show` 文本输出。
 - `scripts/schematic_generator.py`：把 JSON/YAML 配置转换成 `.sxscr`、`.sxsch`、`.net`、`.deck`。
+- `scripts/inspect_schematic.py`：确定性解析 `.sxsch/.sxcmp`，提取 symbol、wire、模块、可调参数和 canonical roles。
+- `scripts/export_agent_evidence.py`：把生成的仿真输出目录整理成 agent 可读的 JSON/Markdown 证据包。
 - `scripts/smoke_test.py`：本地验证脚本，支持 RC 小测试和 buck 完整测试。
+- `examples/official/`：允许开源的官方 SIMPLIS 示例，用作 symbol 和模块证据。
+- `profiles/`：从官方示例和已验证 generator 默认值抽象出的 canonical symbol / 模块 profile。
 - `references/generated_feedback_divider_hybrid.json`：使用 hybrid 局部短线布线的小型反馈分压示例。
 - `references/generated_buck_open_loop_tran.json`：当前默认 12 V buck 示例，包含体二极管、由 `PWM_HS` 反相得到的 `PWM_LS`、POP trigger、60 us 瞬态、电压 probe 和串联电流 probe。
 - `references/`：SIMetrix/SIMPLIS 命令、DVM、优化流程、已验证本机行为等参考资料。
@@ -67,6 +71,25 @@ python %CODEX_HOME%\skills\simplis-automation\scripts\smoke_test.py --include-bu
 
 ## 示例
 
+先检查官方示例并生成 symbol 证据：
+
+```powershell
+python %CODEX_HOME%\skills\simplis-automation\scripts\simplis_cli.py inspect-schematic `
+  --input %CODEX_HOME%\skills\simplis-automation\examples\official `
+  --out reports\official_examples.json `
+  --summary-md reports\official_examples.md
+```
+
+在解释失败或可疑仿真前，先导出 agent 可读证据：
+
+```powershell
+python %CODEX_HOME%\skills\simplis-automation\scripts\simplis_cli.py export-agent-evidence `
+  --work-dir path\to\outputs\run_001 `
+  --out reports\run_001_evidence.json `
+  --summary-md reports\run_001_evidence.md `
+  --redact-paths
+```
+
 生成并运行默认的 12 V buck testbench：
 
 ```powershell
@@ -103,7 +126,7 @@ python %CODEX_HOME%\skills\simplis-automation\scripts\simplis_cli.py generate-sc
 
 ```powershell
 python %CODEX_HOME%\skills\simplis-automation\scripts\simplis_cli.py make-vector-export `
-  --schematic path\to\VRAMPValley.sxsch `
+  --schematic path\to\existing.sxsch `
   --out-dir path\to\vectors `
   --out path\to\export_vectors.sxscr `
   --vector simplis_pop1:#VOUT `
@@ -113,6 +136,10 @@ python %CODEX_HOME%\skills\simplis-automation\scripts\simplis_cli.py make-vector
 python %CODEX_HOME%\skills\simplis-automation\scripts\simplis_cli.py run-script path\to\export_vectors.sxscr
 python %CODEX_HOME%\skills\simplis-automation\scripts\simplis_cli.py parse-show path\to\vectors\pop_vout.txt --out parsed_vectors.json
 ```
+
+## 证据和隐私边界
+
+默认器件名必须来自 `profiles/` 或新的 `inspect-schematic` 证据，不要凭记忆编 symbol。`examples/official/` 只放允许开源的官方示例。不要把私有研究原理图、生成的 SIMPLIS 输出目录或本机绝对路径写进这个 skill。
 
 ## 让 Agent 安装
 

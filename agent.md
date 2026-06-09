@@ -43,6 +43,8 @@ if (Test-Path -LiteralPath $skillDir) {
 Test-Path (Join-Path $skillDir "SKILL.md")
 Test-Path (Join-Path $skillDir "scripts\simplis_cli.py")
 Test-Path (Join-Path $skillDir "references\generated_buck_open_loop_tran.json")
+Test-Path (Join-Path $skillDir "profiles\buck.json")
+Test-Path (Join-Path $skillDir "examples\official")
 ```
 
 4. Create or verify runtime config.
@@ -74,10 +76,20 @@ For the full buck example:
 python (Join-Path $skillDir "scripts\smoke_test.py") --include-buck-run --timeout 240
 ```
 
-6. Tell the user to restart Codex so skill metadata is reloaded.
+6. Inspect official examples and confirm profile evidence.
+
+```powershell
+python (Join-Path $skillDir "scripts\simplis_cli.py") inspect-schematic `
+  --input (Join-Path $skillDir "examples\official") `
+  --out (Join-Path $env:TEMP "simplis_official_examples.json")
+```
+
+7. Tell the user to restart Codex so skill metadata is reloaded.
 
 ## Notes
 
 - This repository intentionally does not include proprietary SIMetrix/SIMPLIS libraries or generated simulation output files.
 - Runtime paths must come from CLI flags, environment variables, or `config/local_config.json`. Do not assume installation paths.
 - Do not put generated `.sxsch`, `.net`, `.deck`, `.err`, or `SIMPLIS_Data` output inside the skill directory.
+- When selecting SIMPLIS devices, check `profiles/` and `examples/official/` first. Do not use private user schematics as public examples.
+- Before interpreting a failed or suspicious simulation, run `export-agent-evidence` and base conclusions on that report.
