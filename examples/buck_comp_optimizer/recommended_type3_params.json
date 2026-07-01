@@ -1,0 +1,57 @@
+{
+  "name": "type3_buck_12v_to_1v2_80khz",
+  "status": "recommended_starting_point",
+  "source": {
+    "method": "Type III formula from the example 3p2z compensator plus mock optimizer confirmation",
+    "real_simplis_status": "automation path now supports real vector export; rerun real optimization for final metrics in the user's Bode probe convention",
+    "best_mock_run": "run_0033"
+  },
+  "design_point": {
+    "vin_v": 12.0,
+    "vout_v": 1.2,
+    "vref_v": 0.6,
+    "fsw_hz": 500000.0,
+    "target_fc_hz": 80000.0,
+    "l_h": 6.8e-7,
+    "c_f": 2.2e-4,
+    "cout_esr_ohm": 0.004,
+    "vramp_v": 1.0
+  },
+  "pole_zero_plan": {
+    "fz1_hz": 9759.23100989196,
+    "fz2_hz": 13012.30801318928,
+    "fp2_hz": 375000.0,
+    "fp3_hz": 250000.0
+  },
+  "sim_exact_values": {
+    "Rz1": 2848.377339254746,
+    "Cz1": 5.725415525803282e-9,
+    "Rz2": 192.91508253563072,
+    "Cz2": 2.2e-9,
+    "Cp1": 2.2350261097574507e-10
+  },
+  "schematic_variable_map": {
+    "Rz1": "R5",
+    "Cz1": "C2",
+    "Rz2": "R4",
+    "Cz2": "C4",
+    "Cp1": "C3"
+  },
+  "rounded_values": {
+    "Rz1": "2.87k",
+    "Cz1": "5.6n",
+    "Rz2": "196",
+    "Cz2": "2.2n",
+    "Cp1": "220p"
+  },
+  "mock_metrics": {
+    "fc_hz": 75450.7077664761,
+    "phase_margin_deg": 59.31266452981162,
+    "gain_margin_db": 13.555577081378203,
+    "overshoot_v": 0.017598615562892453,
+    "undershoot_v": 0.014478892450313962,
+    "settling_time_s": 6.791556980125585e-6,
+    "output_ripple_v": 0.006,
+    "vc_saturated": false
+  }
+}

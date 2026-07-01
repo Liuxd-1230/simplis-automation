@@ -52,6 +52,8 @@ def group_label(group_name: str) -> str:
         return "pop"
     if "ac" in text:
         return "ac"
+    if "tran" in text:
+        return "tran"
     label = re.sub(r"[^A-Za-z0-9_]+", "_", group_name).strip("_").lower()
     return label or "group"
 
@@ -73,12 +75,13 @@ def build_vector_export_script(
         grouped.setdefault(group_name, []).append(vector_name)
 
     lines = [
-        "Set EchoOn",
+        "Unset EchoOn",
+        "ClearMessageWindow",
         "Set precision = 16",
         f"Let echo_file = OpenEchoFile({quote_simetrix_string(status_file)}, 'w')",
         "Echo start_vector_export=1",
         "Let close_result = CloseEchoFile()",
-        f"OpenSchem {quote_sxscr_path(schematic)}",
+        f"OpenSchem /cd /readonly {quote_sxscr_path(schematic)}",
         "simplis_run",
         "Let sx_exit = GetSIMPLISExitCode()",
     ]

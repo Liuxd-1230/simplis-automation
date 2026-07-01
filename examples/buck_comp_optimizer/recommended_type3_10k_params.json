@@ -1,0 +1,27 @@
+{
+  "target": {
+    "bandwidth_hz": 10000,
+    "source": "SIMPLIS_Buck_Converter.sxsch",
+    "validation": "verified by local real SIMetrix run; run directories are intentionally git-ignored"
+  },
+  "type3_compensation": {
+    "Rz1_R5_ohm": 154.0,
+    "Cz1_C2_f": 1.058e-7,
+    "Rz2_R4_ohm": 192.91508253563072,
+    "Cz2_C4_f": 2.2e-9,
+    "Cp1_C3_f": 4.134e-9
+  },
+  "nearest_common_values": {
+    "Rz1_R5": "154 ohm or 150 ohm",
+    "Cz1_C2": "100 nF or 110 nF",
+    "Rz2_R4": "196 ohm",
+    "Cz2_C4": "2.2 nF",
+    "Cp1_C3": "4.1 nF"
+  },
+  "sim_validation": {
+    "gain_at_10k_db": -0.07149071578638527,
+    "local_up_crossing_hz": 10089.298728261143,
+    "last_down_crossing_hz": 14407.469550201045,
+    "comment": "This is a 10 kHz local 0 dB tuning. The loop shape has a later LC-related bump/crossing, so a strict last-crossover bandwidth target needs further zero/pole reshaping."
+  }
+}

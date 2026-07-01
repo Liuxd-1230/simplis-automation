@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+
+runs/run_*/
+runs/script_*/
+generated/
+summary.csv
+best_params.json
+best_params_*.json
+optimization_history.json
+apply_best_result.json

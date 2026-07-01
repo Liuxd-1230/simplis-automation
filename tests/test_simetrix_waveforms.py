@@ -38,7 +38,8 @@ class SimetrixWaveformTests(unittest.TestCase):
                 status_file=root / "status.txt",
             )
 
-        self.assertIn('OpenSchem "E:\\work\\existing.sxsch"', script)
+        self.assertIn('OpenSchem /cd /readonly "E:\\work\\existing.sxsch"', script)
+        self.assertIn("Unset EchoOn", script)
         self.assertIn("Let echo_file = OpenEchoFile('", script)
         self.assertIn("simplis_run", script)
         self.assertIn("SetGroup simplis_pop1", script)
