@@ -16,6 +16,34 @@ SIMetrix.exe /com ...
 ```
 
 `/i` keeps the session interactive. For automation, omit `/i` and end the script with `Quit` after saving all outputs.
+Use `/i /s` only when intentionally sending a short recovery script to an already-open GUI session, for example `quiet-shell`.
+
+## Command Shell and Message Window Noise
+
+Official SIMetrix script docs describe `Set EchoOn` as command echo/debug output to the message window. Keep it off in generated batch scripts unless diagnosing parser behavior.
+
+Use this recovery script when the command/message window is scrolling in an already-open GUI:
+
+```text
+Unset EchoOn
+ClearMessageWindow
+CloseSimplisStatusBox
+```
+
+Generate and optionally send it with:
+
+```powershell
+python scripts\simplis_cli.py quiet-shell --out path\to\quiet_shell.sxscr --run
+```
+
+Notes:
+
+- `quiet-shell` also removes persistent `EchoOn=` from the SIMetrix user `Base.sxprj` config with a timestamped backup. This fixes startup logs such as `Running script init_phase_1` followed by every internal script line.
+- `Unset EchoOn` stops script-command echo.
+- `ClearMessageWindow` clears existing message-window text.
+- `CloseSimplisStatusBox` closes the SIMPLIS status box if present.
+- Add `--no-repair-user-config` if you only want to generate/send the transient cleanup script.
+- If a script is genuinely running/hung rather than only echoing, use `Esc` in SIMetrix first. If that fails, terminate only the batch-launched SIMetrix process.
 
 ## Schematic Creation
 
@@ -31,6 +59,8 @@ ScreenShotWindow <filename>
 OpenEchoFile
 CloseEchoFile
 Quit
+ClearMessageWindow
+CloseSimplisStatusBox
 ```
 
 Notes:
@@ -40,6 +70,7 @@ Notes:
 - `Wire /loc` draws a non-interactive wire segment.
 - Use `SaveAs /force` during automation to avoid overwrite prompts.
 - Add `Quit` for batch jobs after all files are saved; omit it only when the user wants to inspect the GUI.
+- Avoid `Set EchoOn` in reusable scripts. If temporary debug echo is needed, pair it with a documented cleanup path using `quiet-shell`.
 - For generated schematics, use `scripts/schematic_generator.py` or `simplis_cli.py generate-schematic` with a YAML/JSON spec. It emits `Inst /loc` commands for devices and `term VALUE <netname>` terminals at each parsed pin location, then optionally runs `Netlist /simplis` for connectivity validation.
 
 ## Running SIMPLIS
@@ -61,7 +92,7 @@ RunSIMPLIS /fresh design.deck
 For GUI-equivalent schematic runs:
 
 ```text
-OpenSchem "path\to\design.sxsch"
+OpenSchem /cd /readonly "path\to\design.sxsch"
 simplis_run
 Quit
 ```

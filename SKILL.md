@@ -28,6 +28,14 @@ Use this command as the first diagnostic when paths are uncertain:
 python %CODEX_HOME%\skills\simplis-automation\scripts\simplis_cli.py show-config
 ```
 
+If the SIMetrix command/message window is scrolling script lines, immediately turn off command echo and clear the window:
+
+```powershell
+python %CODEX_HOME%\skills\simplis-automation\scripts\simplis_cli.py --simetrix-exe "D:\SIMetrix830\bin64\SIMetrix.exe" quiet-shell --out path\to\quiet_shell.sxscr --run
+```
+
+Use `quiet-shell` when the command shell is scrolling script lines. It removes a persistent `EchoOn=` entry from the SIMetrix user `Base.sxprj` config with a timestamped backup, then sends `Unset EchoOn`, `ClearMessageWindow`, and `CloseSimplisStatusBox` through `/i /s` if `--run` is supplied. It does not modify schematics or circuit data. Add `--no-repair-user-config` if you only want the transient GUI cleanup script.
+
 ## Structured Schematic Generation
 
 For library-symbol schematics, use JSON/YAML specs with `generate-schematic`:
@@ -57,6 +65,8 @@ Use `references/generated_rc_labeled.json` as the smallest connectivity smoke te
 - To prepare simulation output for agent analysis, run `simplis_cli.py export-agent-evidence --work-dir <dir> --out <report.json>`.
 - To run an existing open-style schematic like the GUI Run button, generate a script with `simplis_run` after `OpenSchem`.
 - To export POP/AC vectors from an existing schematic, generate a script with `simplis_cli.py make-vector-export`, run it with `run-script`, then parse the `Show` text files with `simplis_cli.py parse-show`.
+- To tune Type II or Type III loop compensation on a parameterized schematic, use `examples/buck_comp_optimizer/buck_opt.py` and read `references/loop-compensation-optimizer.md`. Require a pre-placed SIMPLIS Bode Plot Probe; if it is missing, ask the user to place it before real AC-loop optimization.
+- To stop command shell/message-window scrolling, run `simplis_cli.py quiet-shell --out <file.sxscr> --run`. If startup itself prints `Running script init_phase_1` and every script line, confirm the command reports that `EchoOn=` was removed from the SIMetrix user config. Avoid `Set EchoOn` in generated batch scripts unless actively debugging command parsing.
 - To run a raw SIMPLIS deck, use `RunSIMPLIS`; if starting from a generated schematic netlist, use `Netlist /simplis`, then `PreProcessNetlist`, then `RunSIMPLIS`. For generated POP designs, prefer the `generate-schematic --run` flow because it resolves `{TRIG_GATE}` first.
 - To sweep a fixed grid, use `sweep_optimize.py`.
 - To iterate based on prior results, use `closed_loop_optimize.py`; it supports grid, random, and coordinate search, resumes from history, launches SIMetrix, reads metric JSON, and writes `best_candidate.json`.
@@ -90,12 +100,15 @@ This skill is fragile and tool-version dependent. Every action must depend on ob
 - For cleaner visual schematics based on hand-drawn SIMPLIS style, set `routing.mode = "hybrid"` with conservative `max_wire_length` and `max_component_span`. Verify with `Netlist /simplis` because visual local wires only work when pin coordinates are exact.
 - For waveform debugging, prefer `probev_new` for voltage nodes and `InlineCurrentProbe` for current paths. `InlineCurrentProbe` inserts a zero-volt source in series, so split the original net into two named nets and define the current direction as `P -> N`.
 - For exported waveform data, do not hand-write `Show` lines for names like `#VOUT`, `50`, or `IN+`. Use `make-vector-export`; it emits `Vec('#VOUT')`, `Vec('50')`, and group-specific output files.
+- Keep `EchoOn` disabled by default in generated scripts. If a GUI starts scrolling script lines, run `quiet-shell`; it handles both transient GUI echo and persistent `EchoOn=` in user config. If a script itself is hung, press `Esc` in SIMetrix or terminate only the SIMetrix process launched for that batch run.
+- For loop-compensation optimization, do not auto-place or rewire the Bode Plot Probe. A missing probe is a user-action blocker because probe direction determines loop sign and phase-margin convention.
 - For fragile symbol placement, first generate a visible concept schematic, inspect it, then harden the script from real symbol names in the installed libraries.
 
 ## References
 
 - Read `references/commands.md` before writing `.sxscr` scripts.
 - Read `references/dvm.md` before DVM testplan work.
+- Read `references/loop-compensation-optimizer.md` before tuning Type II/Type III compensation or Bode crossover/phase-margin targets.
 - Read `references/optimization.md` before sweep/optimizer loops.
 - Read `references/parameter-and-metrics.md` before wiring a real schematic's parameters and measurements into an optimization script.
 - Read `references/research-validation.md` for buck PMIC validation metrics tied to ACOT/Vramp-valley work.

@@ -1,0 +1,197 @@
+{
+  "simetrix_exe": "D:/SIMetrix830/bin64/SIMetrix.exe",
+  "schematic": "SIMPLIS_Buck_Converter.sxsch",
+  "compensator": "Modeling_Blocks/3p2zcompensator.sxcmp",
+  "runs_dir": "runs",
+  "timeout_s": 240,
+  "default_mode": "mock",
+  "nominal_output_v": 1.2,
+  "vc_limits": [0.05, 4.95],
+  "bode_probe": {
+    "required": true,
+    "note": "A SIMPLIS Bode Plot Probe must be pre-placed in the schematic or compensator module before real AC-loop optimization."
+  },
+  "crossover_policy": "nearest_target",
+  "vector_export": {
+    "enabled": true,
+    "ac": {
+      "group": "simplis_ac1",
+      "output": "7",
+      "input": "20"
+    },
+    "tran": {
+      "group": "simplis_tran1",
+      "vout": "7",
+      "vc": "6"
+    }
+  },
+  "load_step": {
+    "start_s": 1.0e-5,
+    "settling_band_v": 0.012,
+    "ripple_window_s": 1.0e-5
+  },
+  "targets": {
+    "fc_hz": 10000,
+    "phase_margin_deg": 60,
+    "gain_margin_db": 10,
+    "overshoot_v": 0.03,
+    "undershoot_v": 0.03,
+    "settling_time_s": 1.2e-5,
+    "output_ripple_v": 0.015
+  },
+  "weights": {
+    "fc_rel_error": 20.0,
+    "phase_margin_shortfall": 4.0,
+    "gain_margin_shortfall": 2.0,
+    "overshoot_v": 300.0,
+    "undershoot_v": 300.0,
+    "settling_time_s": 200000.0,
+    "output_ripple_v": 600.0,
+    "vc_saturation": 1000000.0,
+    "failed": 1000000000.0
+  },
+  "parameters": {
+    "Rz1": {
+      "group": "compensation",
+      "target": "compensator_alias",
+      "maps_to": "R5",
+      "initial": 356.04716740684325,
+      "bounds": [50.0, 2000.0],
+      "scale": "log",
+      "coarse": [270.0, 356.04716740684325, 510.0],
+      "step_factor": 1.35
+    },
+    "Cz1": {
+      "group": "compensation",
+      "target": "compensator_alias",
+      "maps_to": "C2",
+      "initial": 4.5803324206426255e-8,
+      "bounds": [1.0e-8, 3.3e-7],
+      "scale": "log",
+      "coarse": [2.2e-8, 4.5803324206426255e-8, 1.0e-7],
+      "step_factor": 1.35
+    },
+    "Rz2": {
+      "group": "compensation",
+      "target": "compensator_alias",
+      "maps_to": "R4",
+      "initial": 192.91508253563072,
+      "bounds": [50.0, 1000.0],
+      "scale": "log",
+      "coarse": [100.0, 192.91508253563072, 390.0],
+      "step_factor": 1.35
+    },
+    "Cz2": {
+      "group": "compensation",
+      "target": "compensator_alias",
+      "maps_to": "C4",
+      "initial": 2.2e-9,
+      "bounds": [4.7e-10, 1.0e-8],
+      "scale": "log",
+      "coarse": [1.0e-9, 2.2e-9, 4.7e-9],
+      "step_factor": 1.35
+    },
+    "Cp1": {
+      "group": "compensation",
+      "target": "compensator_alias",
+      "maps_to": "C3",
+      "initial": 1.7880208878059605e-9,
+      "bounds": [3.3e-10, 1.0e-8],
+      "scale": "log",
+      "coarse": [1.0e-9, 1.7880208878059605e-9, 3.3e-9],
+      "step_factor": 1.35
+    },
+    "Lout": {
+      "group": "circuit",
+      "target": "schematic_property",
+      "refdes": "L1",
+      "property": "L",
+      "maps_to": "L",
+      "initial": 6.8e-7,
+      "bounds": [4.7e-7, 1.5e-6],
+      "scale": "log",
+      "coarse": [4.7e-7, 6.8e-7, 1.0e-6],
+      "step_factor": 1.25
+    },
+    "Cout": {
+      "group": "circuit",
+      "target": "schematic_property",
+      "refdes": "C1",
+      "property": "C",
+      "maps_to": "C",
+      "initial": 2.2e-4,
+      "bounds": [1.0e-4, 4.7e-4],
+      "scale": "log",
+      "coarse": [1.5e-4, 2.2e-4, 3.3e-4],
+      "step_factor": 1.25
+    },
+    "CoutESR": {
+      "group": "circuit",
+      "target": "schematic_property",
+      "refdes": "C1",
+      "property": "ESR",
+      "maps_to": "ESR",
+      "initial": 0.004,
+      "bounds": [0.001, 0.02],
+      "scale": "log",
+      "coarse": [0.002, 0.004, 0.01],
+      "step_factor": 1.3
+    },
+    "VRAMP": {
+      "group": "circuit",
+      "target": "schematic_value_token",
+      "refdes": "V2",
+      "property": "SIMPLIS_VALUE",
+      "token": "_V2",
+      "maps_to": "VRAMP",
+      "initial": 1.0,
+      "bounds": [0.5, 1.8],
+      "scale": "linear",
+      "coarse": [0.8, 1.0, 1.2],
+      "step_factor": 1.2
+    },
+    "Vin": {
+      "enabled": false,
+      "group": "circuit",
+      "target": "schematic_property",
+      "refdes": "V1",
+      "property": "Value",
+      "maps_to": "VIN",
+      "initial": 12.0,
+      "bounds": [8.0, 16.0],
+      "scale": "linear",
+      "coarse": [10.0, 12.0, 14.0],
+      "step_factor": 1.1
+    },
+    "Fsw": {
+      "enabled": false,
+      "group": "circuit",
+      "target": "schematic_value_token",
+      "refdes": "V2",
+      "property": "SIMPLIS_VALUE",
+      "token": "_FREQ",
+      "maps_to": "FSW",
+      "initial": 5.0e5,
+      "bounds": [3.0e5, 8.0e5],
+      "scale": "log",
+      "coarse": [4.0e5, 5.0e5, 6.0e5],
+      "step_factor": 1.15
+    }
+  },
+  "mock_model": {
+    "center": {
+      "Rz1": 356.04716740684325,
+      "Cz1": 4.5803324206426255e-8,
+      "Rz2": 220.0,
+      "Cz2": 2.2e-9,
+      "Cp1": 1.7880208878059605e-9,
+      "Lout": 6.8e-7,
+      "Cout": 2.2e-4,
+      "CoutESR": 0.004,
+      "VRAMP": 1.0
+    },
+    "nominal_fc_hz": 10000,
+    "nominal_phase_margin_deg": 62,
+    "nominal_gain_margin_db": 14
+  }
+}
