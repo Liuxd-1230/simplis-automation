@@ -21,7 +21,7 @@ ERROR_MARKER_RE = re.compile(r"(^|\W)(\*+\s*)?errors?(\s*\*+)?(\s*:|\s|\(|$)", r
 WARNING_MARKER_RE = re.compile(r"(^|\W)(\*+\s*)?warnings?(\s*\*+)?(\s*:|\s|\(|$)", re.IGNORECASE)
 BENIGN_ERROR_RE = re.compile(r"\b(no|0)\s+errors?\b|\berrors?\s*[:=]\s*0\b", re.IGNORECASE)
 BENIGN_WARNING_RE = re.compile(r"\b(no|0)\s+warnings?\b|\bwarnings?\s*[:=]\s*0\b", re.IGNORECASE)
-LOG_SUFFIXES = {".dbg", ".err", ".health", ".log", ".lst"}
+LOG_SUFFIXES = {".dbg", ".err", ".health", ".log", ".lst", ".warn"}
 TEXT_VECTOR_SUFFIXES = {".csv", ".txt"}
 MAX_CAPTURED_LINES = 200
 STATUS_TEXT_NAMES = {"vector_export_status.txt", "status.txt"}
@@ -439,6 +439,7 @@ def parse_logs(files: list[Path]) -> dict[str, Any]:
     warning_entries: list[dict[str, Any]] = []
 
     for file in _sort_paths(files):
+        is_warn_file = file.suffix.lower() == ".warn"
         for line_number, line in enumerate(read_text(file).splitlines(), start=1):
             stripped = line.strip()
             if not stripped:
@@ -446,7 +447,7 @@ def parse_logs(files: list[Path]) -> dict[str, Any]:
             entry = {"file": str(file), "line_number": line_number, "line": stripped}
             if _is_log_error(stripped):
                 error_entries.append(entry)
-            elif _is_log_warning(stripped):
+            elif _is_log_warning(stripped) or (is_warn_file and not BENIGN_WARNING_RE.search(stripped)):
                 warning_entries.append(entry)
 
     return {

@@ -14,6 +14,7 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
+import closed_loop_optimize
 import export_agent_evidence
 import inspect_schematic
 from runtime_config import resolve_simetrix_exe, runtime_config_status
@@ -228,6 +229,20 @@ def cmd_export_agent_evidence(args: argparse.Namespace) -> int:
     return export_agent_evidence.main(argv)
 
 
+def cmd_optimize(args: argparse.Namespace) -> int:
+    if not args.mock and not args.dry_run:
+        args.simetrix_exe = str(simetrix_path(args.simetrix_exe, args.runtime_config))
+    result = closed_loop_optimize.optimize_from_spec(
+        Path(args.spec),
+        Path(args.work_dir),
+        args,
+        max_evals_override=args.max_evals,
+        fresh=args.fresh,
+    )
+    print(json.dumps(closed_loop_optimize.json_safe({"result": result}), indent=2, ensure_ascii=False, allow_nan=False))
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="SIMetrix/SIMPLIS automation helpers")
     parser.add_argument("--simetrix-exe", help="Path to SIMetrix.exe; overrides runtime config")
@@ -312,6 +327,18 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--summary-md", type=Path)
     p.add_argument("--redact-paths", action="store_true")
     p.set_defaults(func=cmd_export_agent_evidence)
+
+    p = sub.add_parser("optimize", help="Run a resumable SIMPLIS parameter optimization and write reports")
+    p.add_argument("--spec", required=True, help="JSON optimization spec")
+    p.add_argument("--work-dir", required=True, help="Directory for candidate scripts, history, reports, and charts")
+    p.add_argument("--max-evals", type=int, help="Override spec max_evals for this run")
+    p.add_argument("--timeout", type=float, default=180.0)
+    p.add_argument("--interactive", action="store_true", help="Keep SIMetrix interactive while running candidates")
+    p.add_argument("--batch", dest="interactive", action="store_false", default=False)
+    p.add_argument("--dry-run", action="store_true")
+    p.add_argument("--mock", action="store_true", help="Generate synthetic metrics for optimizer validation")
+    p.add_argument("--fresh", action="store_true", help="Remove optimizer state in the work directory before running")
+    p.set_defaults(func=cmd_optimize)
 
     args = parser.parse_args(argv)
     args.started_at = time.time()

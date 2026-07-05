@@ -78,7 +78,7 @@ def build_vector_export_script(
         f"Let echo_file = OpenEchoFile({quote_simetrix_string(status_file)}, 'w')",
         "Echo start_vector_export=1",
         "Let close_result = CloseEchoFile()",
-        f"OpenSchem {quote_sxscr_path(schematic)}",
+        f"OpenSchem /cd /readonly {quote_sxscr_path(schematic)}",
         "simplis_run",
         "Let sx_exit = GetSIMPLISExitCode()",
     ]
