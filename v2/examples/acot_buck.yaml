@@ -1,0 +1,179 @@
+schema_version: simplis-automation/v2
+description: >-
+  12 V to 1.2 V, 500 kHz synchronous-Buck topology fixture using only
+  catalog-approved ideal primitives.  It demonstrates the controlled-switch,
+  feedback, artificial-ramp, comparator, and complementary-drive boundaries.
+  It intentionally depends on the pending comparator placement contract, so it
+  must fail closed until that device is separately approved.  It is not a claim
+  that closed-loop transient performance or adaptive Ton has been proven.
+catalog_lock:
+  path: ../catalog/seed_8_3.yaml
+design:
+  name: acot_buck_topology_fixture
+pending_dependencies: [digital_comparator_grounded]
+
+parameters:
+  vin: {default: "12V", dimension: voltage, min: "8V", max: "16V"}
+  vref: {default: "1.2V", dimension: voltage, min: "0.5V", max: "2V"}
+  lout: {default: "1uH", dimension: inductance, min: "100nH", max: "10uH"}
+  cout: {default: "100uF", dimension: capacitance, min: "1uF", max: "1mF"}
+  rload: {default: "120mohm", dimension: resistance, min: "50mohm", max: "1ohm"}
+  rtop: {default: "90kohm", dimension: resistance, min: "1kohm", max: "1Mohm"}
+  rbot: {default: "10kohm", dimension: resistance, min: "1kohm", max: "1Mohm"}
+  rramp: {default: "100kohm", dimension: resistance, min: "1kohm", max: "1Mohm"}
+  rfb_sum: {default: "100kohm", dimension: resistance, min: "1kohm", max: "1Mohm"}
+  comp_delay: {default: "2ps", dimension: time, min: "0s", max: "1ns"}
+
+components:
+  - id: gnd
+    ref: GND1
+    kind: ground
+    properties: {}
+    pins: {GND: "0"}
+    group: reference
+    layout: {x: 0, y: 1680, orientation: 0}
+
+  - id: vin_source
+    ref: VIN1
+    kind: dc_voltage_source
+    properties: {VALUE: "${vin}"}
+    pins: {P: VIN, N: "0"}
+    group: input
+    layout: {x: 240, y: 0, orientation: 0}
+
+  - id: high_side
+    ref: SHS
+    kind: voltage_controlled_switch
+    properties: {RON: "1mohm", ROFF: "100Mohm", THRESHOLD: "2.5V", HYSTWD: "10mV"}
+    pins: {P: VIN, N: SW, CP: PWM_HS, CN: "0"}
+    group: power_stage
+    layout: {x: 720, y: 0, orientation: 0}
+
+  - id: low_side
+    ref: SLS
+    kind: voltage_controlled_switch
+    properties: {RON: "1mohm", ROFF: "100Mohm", THRESHOLD: "2.5V", HYSTWD: "10mV"}
+    pins: {P: "0", N: SW, CP: PWM_LS, CN: "0"}
+    group: power_stage
+    layout: {x: 720, y: 720, orientation: 180}
+
+  - id: lout
+    ref: L1
+    kind: inductor
+    properties: {VALUE: "${lout}"}
+    pins: {P: SW, N: L_OUT}
+    group: power_stage
+    layout: {x: 1200, y: 0, orientation: 0}
+
+  - id: il_probe
+    ref: IPRB_L
+    kind: current_probe
+    properties: {LABEL: IL}
+    pins: {P: L_OUT, N: VOUT}
+    group: power_stage
+    layout: {x: 1680, y: 0, orientation: 0}
+
+  - id: cout
+    ref: COUT
+    kind: capacitor
+    properties: {VALUE: "${cout}"}
+    pins: {P: VOUT, N: "0"}
+    group: output
+    layout: {x: 2160, y: 240, orientation: 0}
+
+  - id: load
+    ref: RLOAD
+    kind: resistor
+    properties: {VALUE: "${rload}"}
+    pins: {P: VOUT, N: "0"}
+    group: output
+    layout: {x: 2640, y: 240, orientation: 0}
+
+  - id: vout_probe
+    ref: PROBE_VOUT
+    kind: voltage_probe
+    properties: {Label: VOUT}
+    pins: {NODE: VOUT}
+    group: observation
+    layout: {x: 3120, y: 0, orientation: 0}
+
+  - id: rtop
+    ref: RFB_TOP
+    kind: resistor
+    properties: {VALUE: "${rtop}"}
+    pins: {P: VOUT, N: VFB}
+    group: feedback
+    layout: {x: 2400, y: 960, orientation: 0}
+
+  - id: rbot
+    ref: RFB_BOT
+    kind: resistor
+    properties: {VALUE: "${rbot}"}
+    pins: {P: VFB, N: "0"}
+    group: feedback
+    layout: {x: 2400, y: 1320, orientation: 0}
+
+  - id: ramp
+    ref: VRAMP
+    kind: ramp_voltage_source
+    properties:
+      SOURCE_MODEL: SAW_SOURCE
+      SIMPLIS_VALUE: "_V1=0 _V2=200m _FREQ=500k _DELAY=0 _OFF_UNTIL_DELAY=0 _IDLE_IN_POP=0 _USEPHASE=0 _PHASE=0"
+    pins: {P: RAMP, N: "0"}
+    group: artificial_ramp
+    layout: {x: 1200, y: 1200, orientation: 0}
+
+  - id: rramp
+    ref: R_RAMP_SUM
+    kind: resistor
+    properties: {VALUE: "${rramp}"}
+    pins: {P: RAMP, N: VCMP}
+    group: artificial_ramp
+    layout: {x: 1680, y: 1200, orientation: 0}
+
+  - id: rfb_sum
+    ref: R_FB_SUM
+    kind: resistor
+    properties: {VALUE: "${rfb_sum}"}
+    pins: {P: VFB, N: VCMP}
+    group: feedback
+    layout: {x: 1920, y: 960, orientation: 90}
+
+  - id: vref_source
+    ref: VREF1
+    kind: dc_voltage_source
+    properties: {VALUE: "${vref}"}
+    pins: {P: VREF, N: "0"}
+    group: reference
+    layout: {x: 1680, y: 1680, orientation: 0}
+
+  - id: comparator
+    ref: UCMP
+    kind: digital_comparator_grounded
+    properties: {DELAY: "${comp_delay}", HYSTWD: "2mV"}
+    pins: {INP: VREF, INN: VCMP, RTN: "0", OUT: PWM_HS, OUT_BAR: PWM_LS}
+    group: control
+    layout: {x: 2160, y: 1440, orientation: 0}
+
+  - id: sw_probe
+    ref: PROBE_SW
+    kind: voltage_probe
+    properties: {Label: SW}
+    pins: {NODE: SW}
+    group: observation
+    layout: {x: 960, y: 360, orientation: 0}
+
+nets:
+  "0":
+    endpoints: [gnd.GND, vin_source.N, high_side.CN, low_side.P, low_side.CN,
+      cout.N, load.N, rbot.N, ramp.N, vref_source.N, comparator.RTN]
+  VIN: {endpoints: [vin_source.P, high_side.P]}
+  SW: {endpoints: [high_side.N, low_side.N, lout.P, sw_probe.NODE]}
+  L_OUT: {endpoints: [lout.N, il_probe.P]}
+  VOUT: {endpoints: [il_probe.N, cout.P, load.P, vout_probe.NODE, rtop.P]}
+  VFB: {endpoints: [rtop.N, rbot.P, rfb_sum.P]}
+  RAMP: {endpoints: [ramp.P, rramp.P]}
+  VCMP: {endpoints: [rramp.N, rfb_sum.N, comparator.INN]}
+  VREF: {endpoints: [vref_source.P, comparator.INP]}
+  PWM_HS: {endpoints: [comparator.OUT, high_side.CP]}
+  PWM_LS: {endpoints: [comparator.OUT_BAR, low_side.CP]}

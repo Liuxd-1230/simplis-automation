@@ -1,0 +1,61 @@
+schema_version: simplis-automation/v2
+description: >-
+  Ground-referenced Advanced Digital Gate inverter fixture.  The DC source is
+  deliberately analog, so the example proves that RTN is explicitly present
+  at the analog/digital boundary instead of mixing a digital-only gate into an
+  analog net without a reference.
+catalog_lock:
+  path: ../catalog/seed_8_3.yaml
+design:
+  name: ideal_inverter
+
+parameters:
+  logic_high: {default: "5V", dimension: voltage, min: "0V", max: "10V"}
+  gate_delay: {default: "2ps", dimension: time, min: "0s", max: "1us"}
+
+components:
+  - id: gnd
+    ref: GND1
+    kind: ground
+    properties: {}
+    pins: {GND: "0"}
+    group: reference
+    layout: {x: 0, y: 360, orientation: 0}
+
+  - id: drive
+    ref: VDRIVE
+    kind: dc_voltage_source
+    properties: {VALUE: "${logic_high}"}
+    pins: {P: IN, N: "0"}
+    group: stimulus
+    layout: {x: 240, y: 0, orientation: 0}
+
+  - id: inverter
+    ref: UINV
+    kind: digital_inverter_grounded
+    properties: {DELAY: "${gate_delay}"}
+    pins: {IN1: IN, RTN: "0", OUT: OUT, OUT_BAR: OUT_BAR}
+    group: boundary
+    layout: {x: 720, y: 0, orientation: 0}
+
+  - id: out_probe
+    ref: PROBE_OUT
+    kind: voltage_probe
+    properties: {Label: OUT}
+    pins: {NODE: OUT}
+    group: observation
+    layout: {x: 1320, y: 0, orientation: 0}
+
+  - id: out_bar_probe
+    ref: PROBE_OUT_BAR
+    kind: voltage_probe
+    properties: {Label: OUT_BAR}
+    pins: {NODE: OUT_BAR}
+    group: observation
+    layout: {x: 1320, y: 240, orientation: 0}
+
+nets:
+  "0": {endpoints: [gnd.GND, drive.N, inverter.RTN]}
+  IN: {endpoints: [drive.P, inverter.IN1]}
+  OUT: {endpoints: [inverter.OUT, out_probe.NODE]}
+  OUT_BAR: {endpoints: [inverter.OUT_BAR, out_bar_probe.NODE]}
