@@ -4,10 +4,13 @@
 from __future__ import annotations
 
 import argparse
+import os
 import json
+import shutil
 import subprocess
 import sys
 import time
+from datetime import datetime
 from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -55,6 +58,70 @@ def run_script(args: argparse.Namespace) -> int:
 def write_text(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
+
+
+def default_user_config_project() -> Path | None:
+    appdata = os.environ.get("APPDATA")
+    if not appdata:
+        return None
+    root = Path(appdata) / "SIMetrix Technologies"
+    candidates = sorted(root.glob("SIMetrix*/config/Base.sxprj"), reverse=True)
+    return candidates[0] if candidates else None
+
+
+def repair_echo_config(config_path: Path) -> dict[str, object]:
+    result: dict[str, object] = {"config": str(config_path), "exists": config_path.exists(), "changed": False}
+    if not config_path.exists():
+        return result
+    original = config_path.read_text(encoding="utf-8", errors="replace")
+    lines = original.splitlines(keepends=True)
+    filtered = [line for line in lines if line.strip().lower() != "echoon="]
+    if filtered == lines:
+        return result
+    stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+    backup = config_path.with_name(f"{config_path.name}.codex-bak-{stamp}")
+    shutil.copy2(config_path, backup)
+    config_path.write_text("".join(filtered), encoding="utf-8")
+    result.update({"changed": True, "backup": str(backup)})
+    return result
+
+
+def quiet_shell(args: argparse.Namespace) -> int:
+    if args.repair_user_config:
+        user_config = Path(args.user_config).resolve() if args.user_config else default_user_config_project()
+        if user_config:
+            print(json.dumps({"user_config_repair": repair_echo_config(user_config)}, indent=2))
+        else:
+            print(json.dumps({"user_config_repair": {"changed": False, "reason": "no SIMetrix user config found"}}, indent=2))
+    out = Path(args.out).resolve()
+    lines = ["Unset EchoOn"]
+    if args.clear:
+        lines.append("ClearMessageWindow")
+    if args.close_status_box:
+        lines.append("CloseSimplisStatusBox")
+    if args.status_file:
+        status_file = Path(args.status_file).resolve()
+        lines.extend(
+            [
+                f"Let echo_file = OpenEchoFile({quote_simetrix_string(status_file)}, 'w')",
+                "Echo quiet_shell_done=1",
+                "Let close_result = CloseEchoFile()",
+            ]
+        )
+    write_text(out, "\n".join(lines) + "\n")
+    print(json.dumps({"script": str(out), "run": bool(args.run)}, indent=2))
+    if not args.run:
+        return 0
+    ns = argparse.Namespace(
+        simetrix_exe=args.simetrix_exe,
+        runtime_config=args.runtime_config,
+        script=str(out),
+        interactive=True,
+        dry_run=args.dry_run,
+        timeout=args.timeout,
+        expect=[str(Path(args.status_file).resolve())] if args.status_file else [],
+    )
+    return run_script(ns)
 
 
 def create_concept(args: argparse.Namespace) -> int:
@@ -260,6 +327,31 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--timeout", type=float, default=None, help="Seconds before treating SIMetrix as hung")
     p.add_argument("--expect", action="append", default=[], help="Output file that must exist after the script")
     p.set_defaults(func=run_script)
+
+    p = sub.add_parser("quiet-shell", help="Turn off SIMetrix command echo and clear the message window")
+    p.add_argument("--out", required=True, help="Output .sxscr path for the quieting script")
+    p.add_argument("--run", action="store_true", help="Send the script to an existing SIMetrix GUI session with /i")
+    p.add_argument("--dry-run", action="store_true")
+    p.add_argument("--timeout", type=float, default=15.0)
+    p.add_argument("--status-file", help="Optional file written after the quieting commands run")
+    p.add_argument(
+        "--user-config",
+        help="Optional SIMetrix user Base.sxprj path to repair if persistent EchoOn is enabled",
+    )
+    p.add_argument(
+        "--no-repair-user-config",
+        dest="repair_user_config",
+        action="store_false",
+        help="Do not remove persistent EchoOn= from the SIMetrix user config",
+    )
+    p.add_argument("--no-clear", dest="clear", action="store_false", help="Do not run ClearMessageWindow")
+    p.add_argument(
+        "--no-close-status-box",
+        dest="close_status_box",
+        action="store_false",
+        help="Do not run CloseSimplisStatusBox",
+    )
+    p.set_defaults(func=quiet_shell, clear=True, close_status_box=True, repair_user_config=True)
 
     p = sub.add_parser("create-concept", help="Create a simple proof-of-control schematic script and optionally run it")
     p.add_argument("--out-dir", required=True)

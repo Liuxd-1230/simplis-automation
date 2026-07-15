@@ -1,0 +1,106 @@
+{
+  "simetrix_exe": "D:/SIMetrix830/bin64/SIMetrix.exe",
+  "schematic": "your_converter.sxsch",
+  "compensator": "",
+  "runs_dir": "runs",
+  "timeout_s": 240,
+  "default_mode": "mock",
+  "nominal_output_v": 1.2,
+  "vc_limits": [0.05, 4.95],
+  "bode_probe": {
+    "required": true,
+    "note": "Place a SIMPLIS Bode Plot Probe in the loop before real AC-loop optimization."
+  },
+  "crossover_policy": "nearest_target",
+  "vector_export": {
+    "enabled": true,
+    "ac": {
+      "group": "simplis_ac1",
+      "output": "LOOP_OUT_VECTOR_NAME",
+      "input": "LOOP_IN_VECTOR_NAME"
+    },
+    "tran": {
+      "group": "simplis_tran1",
+      "vout": "VOUT_VECTOR_NAME",
+      "vc": "VC_VECTOR_NAME"
+    }
+  },
+  "required_metrics": [
+    "fc_hz",
+    "phase_margin_deg",
+    "gain_margin_db",
+    "overshoot_v",
+    "undershoot_v",
+    "settling_time_s",
+    "output_ripple_v"
+  ],
+  "targets": {
+    "fc_hz": 10000,
+    "fc_hz_min": 9000,
+    "fc_hz_max": 11000,
+    "phase_margin_deg": 60,
+    "gain_margin_db": 10,
+    "overshoot_v": 0.03,
+    "undershoot_v": 0.03,
+    "settling_time_s": 1.2e-5,
+    "output_ripple_v": 0.015
+  },
+  "weights": {
+    "fc_rel_error": 20.0,
+    "phase_margin_shortfall": 4.0,
+    "gain_margin_shortfall": 2.0,
+    "overshoot_v": 300.0,
+    "undershoot_v": 300.0,
+    "settling_time_s": 200000.0,
+    "output_ripple_v": 600.0,
+    "vc_saturation": 1000000.0,
+    "failed": 1000000000.0
+  },
+  "load_step": {
+    "start_s": 1.0e-5,
+    "settling_band_v": 0.012,
+    "ripple_window_s": 1.0e-5
+  },
+  "parameters": {
+    "Rz": {
+      "group": "compensation",
+      "target": "schematic_var",
+      "maps_to": "RZ",
+      "initial": 10000.0,
+      "bounds": [1000.0, 100000.0],
+      "scale": "log",
+      "coarse": [4700.0, 10000.0, 22000.0],
+      "step_factor": 1.35
+    },
+    "Cz": {
+      "group": "compensation",
+      "target": "schematic_var",
+      "maps_to": "CZ",
+      "initial": 1.0e-8,
+      "bounds": [1.0e-10, 1.0e-6],
+      "scale": "log",
+      "coarse": [2.2e-9, 1.0e-8, 4.7e-8],
+      "step_factor": 1.35
+    },
+    "Cp": {
+      "group": "compensation",
+      "target": "schematic_var",
+      "maps_to": "CP",
+      "initial": 2.2e-10,
+      "bounds": [1.0e-11, 1.0e-8],
+      "scale": "log",
+      "coarse": [4.7e-11, 2.2e-10, 1.0e-9],
+      "step_factor": 1.35
+    }
+  },
+  "mock_model": {
+    "center": {
+      "Rz": 10000.0,
+      "Cz": 1.0e-8,
+      "Cp": 2.2e-10
+    },
+    "nominal_fc_hz": 10000,
+    "nominal_phase_margin_deg": 62,
+    "nominal_gain_margin_db": 14
+  }
+}
