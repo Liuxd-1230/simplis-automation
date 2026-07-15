@@ -271,6 +271,24 @@ ignored line
         self.assertEqual(report["simulator_logs"]["warning_entries"][0]["file"], str(root / "sim.lst"))
         self.assertEqual(report["simulator_logs"]["error_entries"][0]["line_number"], 5)
 
+    def test_export_evidence_collects_simplis_warn_files(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "design.deck.warn").write_text(
+                "Periodic Operating-Pt Analysis:\n"
+                "Unable to find a periodic operating point after 20 attempts.\n"
+                "    C9,  C5\n",
+                encoding="utf-8",
+            )
+
+            report = export_evidence(root)
+
+        self.assertIn(str(root / "design.deck.warn"), report["artifacts"]["logs"])
+        self.assertIn("Periodic Operating-Pt Analysis:", report["simulator_logs"]["warnings"])
+        self.assertTrue(
+            any("C9" in entry["line"] and "C5" in entry["line"] for entry in report["simulator_logs"]["warning_entries"])
+        )
+
     def test_metric_key_collisions_are_reported(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

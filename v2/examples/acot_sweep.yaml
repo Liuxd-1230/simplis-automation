@@ -1,0 +1,17 @@
+schema_version: simplis-automation/v2/experiment
+name: acot_buck_passive_grid
+description: >-
+  Deterministic compile-plus-netlist grid for the A-COT topology fixture.  It
+  intentionally changes only approved parameter-card values and does not run
+  transient, POP, efficiency, or optimizer jobs.
+circuit: acot_buck.yaml
+max_points: 128
+grid:
+  lout:
+    values: ["680nH", "1uH", "1.5uH"]
+  cout:
+    values: ["47uF", "100uF", "220uF"]
+  rload:
+    linear: {start: "100mohm", stop: "220mohm", count: 3}
+  vin:
+    values: ["10V", "12V", "14V"]

@@ -1,0 +1,60 @@
+{
+  "strategy": "grid",
+  "max_evals": 3,
+  "seed": 7,
+  "script_template": "candidate_template.sxscr",
+  "parameters": {
+    "Rz1": [1500.0, 2848.377339254746, 4700.0],
+    "Cz1": [5.725415525803282e-9],
+    "Rz2": [192.91508253563072],
+    "Cz2": [2.2e-9],
+    "Cp1": [2.2350261097574507e-10],
+    "Lout": [6.8e-7],
+    "Cout": [2.2e-4],
+    "CoutESR": [0.004],
+    "VRAMP": [1.0]
+  },
+  "weights": {
+    "objective": 1.0
+  },
+  "constraints": {
+    "phase_margin_deg": {
+      "min": 45.0
+    },
+    "gain_margin_db": {
+      "min": 10.0
+    }
+  },
+  "mock_target": {
+    "Rz1": 2848.377339254746,
+    "Cz1": 5.725415525803282e-9,
+    "Rz2": 192.91508253563072,
+    "Cz2": 2.2e-9,
+    "Cp1": 2.2350261097574507e-10,
+    "Lout": 6.8e-7,
+    "Cout": 2.2e-4,
+    "CoutESR": 0.004,
+    "VRAMP": 1.0
+  },
+  "report": {
+    "title": "Buck 补偿器闭环优化报告",
+    "metric_labels_zh": {
+      "objective": "目标函数",
+      "pop_success": "POP 是否成功",
+      "fc_hz": "交越频率",
+      "phase_margin_deg": "相位裕度",
+      "gain_margin_db": "增益裕度",
+      "overshoot_v": "过冲",
+      "undershoot_v": "欠冲",
+      "settling_time_s": "稳定时间",
+      "output_ripple_v": "输出纹波",
+      "simplis_exit_code": "SIMPLIS 退出码"
+    },
+    "chart_metrics": [
+      "objective",
+      "fc_hz",
+      "phase_margin_deg",
+      "gain_margin_db"
+    ]
+  }
+}

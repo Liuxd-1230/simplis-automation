@@ -1,0 +1,141 @@
+schema_version: simplis-automation/v2
+schema_revision: 3
+description: >-
+  Public single-phase CCM voltage-mode A-COT golden specification: 12 V to
+  1.2 V, 500 kHz, 1 uH, 100 uF and 5 mOhm target ESR. The controller uses a
+  comparator/latch, adaptive one-shot, falling-edge reset pulse, deadtime,
+  finite reference soft-start, scaled-SW RC ripple and an explicit zero-DC AC
+  injection break. It has no slow servo and no DCM mode.
+catalog_lock: {path: ../catalog/seed_8_4.yaml}
+design: {name: acot_buck_v84_gold}
+layout:
+  mode: hybrid
+  grid: 120
+  clearance: {horizontal: 480, vertical: 360}
+  band_spacing: 1560
+  label_padding: 120
+
+parameters:
+  vin: {default: 12V, dimension: voltage, min: 8V, max: 16V}
+  vout_target: {default: 1.2V, dimension: voltage, min: 0.8V, max: 1.5V}
+  fsw_target: {default: 500kHz, dimension: frequency, min: 300kHz, max: 800kHz}
+  ton_nominal: {default: "${vout_target} / (${vin} * ${fsw_target})", dimension: time, min: 80ns, max: 500ns}
+  ton_min: {default: 80ns, dimension: time, min: 20ns, max: 300ns}
+  ton_max: {default: 500ns, dimension: time, min: 200ns, max: 1us}
+  propagation_delay: {default: 2ns, dimension: time, min: 0s, max: 20ns}
+  reset_pulse: {default: 5ns, dimension: time, min: 1ns, max: 20ns}
+  deadtime: {default: 20ns, dimension: time, min: 5ns, max: 80ns}
+  comparator_hysteresis: {default: 2mV, dimension: voltage, min: 0V, max: 20mV}
+  lout: {default: 1uH, dimension: inductance, min: 500nH, max: 2uH}
+  lout_ic: {default: 0A, dimension: current, min: -30A, max: 30A}
+  cout: {default: 100uF, dimension: capacitance, min: 47uF, max: 220uF}
+  cout_ic: {default: 0V, dimension: voltage, min: -1V, max: 2V}
+  cout_esr: {default: 5mohm, dimension: resistance, min: 1mohm, max: 20mohm}
+  rtop: {default: 90kohm, dimension: resistance, min: 20kohm, max: 500kohm}
+  rbot: {default: 10kohm, dimension: resistance, min: 2kohm, max: 100kohm}
+  vref: {default: "${vout_target} * ${rbot} / (${rtop} + ${rbot})", dimension: voltage, min: 20mV, max: 500mV}
+  vref_initial: {default: 0V, dimension: voltage, min: 0V, max: 500mV}
+  soft_start_time: {default: 150us, dimension: time, min: 100ns, max: 500us}
+  startup_reset_level: {default: 5V, dimension: voltage, min: 0V, max: 5V}
+  ripple_gain: {default: "${rbot} / (${rtop} + ${rbot})", dimension: dimensionless, min: 0.01, max: 0.5}
+  ripple_r: {default: 500kohm, dimension: resistance, min: 10kohm, max: 1Mohm}
+  ripple_c: {default: 220pF, dimension: capacitance, min: 22pF, max: 2.2nF}
+  ripple_restore_r: {default: 100kohm, dimension: resistance, min: 10kohm, max: 10Mohm}
+  ripple_offset: {default: "${ripple_gain} * (${vin} - ${vout_target}) * (${ton_nominal} - ${deadtime}) / (2 * ${ripple_r} * ${ripple_c})", dimension: voltage, min: 0V, max: 20mV}
+  ripple_ic: {default: 0V, dimension: voltage, min: -50mV, max: 50mV}
+  load_i1: {default: 5A, dimension: current, min: 1A, max: 15A}
+  load_i2: {default: 10A, dimension: current, min: 1A, max: 20A}
+  load_idle_in_pop: {default: 1, dimension: dimensionless, min: 0, max: 1}
+
+blocks:
+  - id: power
+    type: half_bridge
+    group: power
+    ports: {VIN: VIN, SW: SW, PWM_HS: PWM_HS, PWM_LS: PWM_LS, RTN: "0"}
+    parameters: {ron: 1mohm, roff: 100Mohm, diode_ron: 1mohm, diode_roff: 100Mohm, threshold: 2.5V, hysteresis: 10mV}
+    layout: {x: 3360, y: 0}
+
+  - id: feedback
+    type: feedback
+    group: feedback
+    ports: {VOUT: VOUT, DIVIDER: FB_DIV, FB: FB, RTN: "0"}
+    parameters: {rtop: "${rtop}", rbot: "${rbot}", ac_value: "AC 1"}
+    layout: {x: 2160, y: 3120}
+
+  - id: ripple
+    type: synthetic_ripple
+    group: ripple
+    ports: {SW: SW, VOUT: VOUT, FB: FB, RIPPLE: CMP_N, RTN: "0"}
+    parameters: {gain: "${ripple_gain}", ripple_r: "${ripple_r}", ripple_c: "${ripple_c}", restore_r: "${ripple_restore_r}", offset: "${ripple_offset}", initial_condition: "${ripple_ic}"}
+    layout: {x: 6480, y: 3120}
+
+  - id: control
+    type: comparator_latch
+    group: control
+    ports: {REF: CMP_P, SENSE: CMP_N, RESET: TON_DONE, Q: PWM_RAW, QN: PWM_RAW_N, RTN: "0"}
+    parameters: {hysteresis: "${comparator_hysteresis}", comparator_delay: "${propagation_delay}", latch_delay: "${propagation_delay}", initial_q: "0", dominance: R}
+    layout: {x: 10320, y: 3120}
+
+  - id: ton
+    type: adaptive_ton
+    group: timing
+    ports: {TRIG: PWM_RAW, VIN: VIN, TON_OUT: TON_OUT, TON_DONE: TON_DONE_RAW, RTN: "0"}
+    parameters: {ton: "${ton_nominal}", ton_min: "${ton_min}", ton_max: "${ton_max}", logic_delay: 2ps, reset_pulse: "${reset_pulse}"}
+    layout: {x: 15480, y: 3120}
+
+  - id: deadtime
+    type: deadtime_driver
+    group: driver
+    ports: {PWM: PWM_RAW, PWM_HS: PWM_HS, PWM_LS: PWM_LS, RTN: "0"}
+    parameters: {deadtime_rise: "${deadtime}", deadtime_fall: "${deadtime}", delay: "${propagation_delay}"}
+    layout: {x: 10320, y: 5520}
+
+components:
+  - {id: vin_source, ref: VIN1, kind: dc_voltage_source, properties: {VALUE: "${vin}"}, pins: {P: VIN_SOURCE, N: "0"}, group: input, layout: {x: 0, y: 0}}
+  - {id: iin_probe, ref: IPRB_IN, kind: current_probe, properties: {LABEL: IIN}, pins: {P: VIN_SOURCE, N: VIN}, group: input, layout: {x: 1920, y: 0}}
+  - {id: lout, ref: L1, kind: inductor, properties: {VALUE: "${lout}", IC: "${lout_ic}"}, pins: {P: SW, N: IL_TOP}, group: power, layout: {x: 7440, y: 0}}
+  - {id: il_probe, ref: IPRB_L, kind: current_probe, properties: {LABEL: IL}, pins: {P: IL_TOP, N: VOUT}, group: power, layout: {x: 9600, y: 0}}
+  - {id: icout_probe, ref: IPRB_C, kind: current_probe, properties: {LABEL: ICOUT}, pins: {P: VOUT, N: COUT_TOP}, group: output, layout: {x: 10560, y: 960}}
+  - {id: cout, ref: COUT, kind: capacitor, properties: {VALUE: "${cout}", IC: "${cout_ic}"}, pins: {P: COUT_TOP, N: COUT_ESR}, group: output, layout: {x: 12840, y: 960}}
+  - {id: cout_esr, ref: RESR, kind: resistor, properties: {VALUE: "${cout_esr}"}, pins: {P: COUT_ESR, N: "0"}, group: output, layout: {x: 16320, y: 1920}}
+  - {id: iload_probe, ref: IPRB_LOAD, kind: current_probe, properties: {LABEL: ILOAD}, pins: {P: VOUT, N: LOAD_TOP}, group: output, layout: {x: 11280, y: 0}}
+  - id: load_step
+    ref: LOAD1
+    kind: pulse_current_source
+    properties:
+      SOURCE_MODEL: SQU_SOURCE_I
+      SIMPLIS_VALUE: "_V1=${load_i1} _V2=${load_i2} _FREQ=2.5k _DELAY=200u _DRATIOx100=50 _T_RISE=1n _T_FALL=1n _DAMP_COEF=0 _PWIDTH=200u _OFF_UNTIL_DELAY=0 _IDLE_IN_POP=${load_idle_in_pop} _USEPHASE=0 _PHASE=0"
+    pins: {P: LOAD_TOP, N: "0"}
+    group: output
+    layout: {x: 15000, y: 0}
+  - {id: vref, ref: VREF1, kind: pwl_voltage_source, properties: {VALUE: "NSEG=1 X0=0 Y0=${vref_initial} X1=${soft_start_time} Y1=${vref}"}, pins: {P: CMP_P, N: "0"}, group: reference, layout: {x: 0, y: 3120}}
+  - id: startup_reset
+    ref: VRST
+    kind: pwl_voltage_source
+    properties: {VALUE: "NSEG=2 X0=0 Y0=${startup_reset_level} X1=100n Y1=${startup_reset_level} X2=102n Y2=0"}
+    pins: {P: STARTUP_RESET, N: "0"}
+    group: startup
+    layout: {x: 0, y: 8160}
+  - {id: ton_reset_diode, ref: DRT, kind: idealized_diode, pins: {P: TON_DONE_RAW, N: TON_DONE}, group: startup, layout: {x: 4800, y: 7200, orientation: N270}}
+  - {id: startup_reset_diode, ref: DRS, kind: idealized_diode, pins: {P: STARTUP_RESET, N: TON_DONE}, group: startup, layout: {x: 4800, y: 8400, orientation: N270}}
+  - {id: reset_pull_down, ref: RRST, kind: resistor, properties: {VALUE: 100kohm}, pins: {P: TON_DONE, N: "0"}, group: startup, layout: {x: 7200, y: 7680, orientation: N90}}
+  - {id: pop, ref: XPOP, kind: pop_trigger, properties: {VREF: 2.5V, TRIG_COND: 0_TO_1}, pins: {IN: PWM_HS, OUT: TRIG_GATE}, group: analysis, layout: {x: 16680, y: 0}}
+
+  # Probe gutter: independent from the power and controller bands.
+  - {id: p_trig, ref: P_TRIG, kind: voltage_probe, properties: {Label: TRIG_GATE}, pins: {NODE: TRIG_GATE}, group: observation, layout: {x: 24240, y: 0}}
+  - {id: p_vout, ref: P_VOUT, kind: voltage_probe, properties: {Label: VOUT}, pins: {NODE: VOUT}, group: observation, layout: {x: 24240, y: 960}}
+  - {id: p_vin, ref: P_VIN, kind: voltage_probe, properties: {Label: VIN}, pins: {NODE: VIN}, group: observation, layout: {x: 24240, y: 1920}}
+  - {id: p_sw, ref: P_SW, kind: voltage_probe, properties: {Label: SW}, pins: {NODE: SW}, group: observation, layout: {x: 24240, y: 2880}}
+  - {id: p_hs, ref: P_HS, kind: voltage_probe, properties: {Label: PWM_HS}, pins: {NODE: PWM_HS}, group: observation, layout: {x: 24240, y: 3840}}
+  - {id: p_ls, ref: P_LS, kind: voltage_probe, properties: {Label: PWM_LS}, pins: {NODE: PWM_LS}, group: observation, layout: {x: 24240, y: 4800}}
+  - {id: p_raw, ref: P_RAW, kind: voltage_probe, properties: {Label: PWM_RAW}, pins: {NODE: PWM_RAW}, group: observation, layout: {x: 24240, y: 5760}}
+  - {id: p_raw_n, ref: P_RAW_N, kind: voltage_probe, properties: {Label: PWM_RAW_N}, pins: {NODE: PWM_RAW_N}, group: observation, layout: {x: 24240, y: 6720}}
+  - {id: p_ripple, ref: P_RIPPLE, kind: voltage_probe, properties: {Label: RIPPLE}, pins: {NODE: CMP_N}, group: observation, layout: {x: 26640, y: 0}}
+  - {id: p_cmp_p, ref: P_CMPP, kind: voltage_probe, properties: {Label: CMP_P}, pins: {NODE: CMP_P}, group: observation, layout: {x: 26640, y: 960}}
+  - {id: p_cmp_n, ref: P_CMPN, kind: voltage_probe, properties: {Label: CMP_N}, pins: {NODE: CMP_N}, group: observation, layout: {x: 26640, y: 1920}}
+  - {id: p_ton, ref: P_TON, kind: voltage_probe, properties: {Label: TON_OUT}, pins: {NODE: TON_OUT}, group: observation, layout: {x: 26640, y: 2880}}
+  - {id: p_reset, ref: P_RESET, kind: voltage_probe, properties: {Label: TON_DONE}, pins: {NODE: TON_DONE}, group: observation, layout: {x: 26640, y: 3840}}
+  - {id: p_dsch, ref: P_DSCH, kind: voltage_probe, properties: {Label: TON_DSCH}, pins: {NODE: TON_DSCH}, group: observation, layout: {x: 26640, y: 4800}}
+  - {id: p_ramp, ref: P_RAMP, kind: voltage_probe, properties: {Label: TON_RAMP}, pins: {NODE: TON_RAMP}, group: observation, layout: {x: 26640, y: 5760}}
+  - {id: p_loop_return, ref: P_LOOP_RET, kind: voltage_probe, properties: {Label: LOOP_RETURN}, pins: {NODE: FB_DIV}, group: observation, layout: {x: 26640, y: 6720}}
+  - {id: p_loop_inject, ref: P_LOOP_INJ, kind: voltage_probe, properties: {Label: LOOP_INJECT}, pins: {NODE: FB}, group: observation, layout: {x: 26640, y: 7680}}

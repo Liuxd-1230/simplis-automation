@@ -1,0 +1,41 @@
+schema_version: simplis-automation/v2
+schema_revision: 3
+catalog_lock: {path: ../catalog/seed_8_4.yaml}
+design: {name: timing_primitives_v84_smoke}
+layout: {mode: hybrid, clearance: {horizontal: 480, vertical: 360}}
+parameters:
+  ton: {default: 200ns, dimension: time, min: 20ns, max: 1us}
+  deadtime: {default: 20ns, dimension: time, min: 2ps, max: 200ns}
+blocks:
+  - id: ton
+    type: adaptive_ton
+    ports: {TRIG: PWM, VIN: VIN, TON_OUT: TON_OUT, TON_DONE: TON_DONE, RTN: "0"}
+    parameters: {ton: "${ton}", reset_pulse: 5ns}
+    group: timing
+    layout: {x: 720, y: 720}
+  - id: deadtime
+    type: deadtime_driver
+    ports: {PWM: PWM, PWM_HS: PWM_HS, PWM_LS: PWM_LS, RTN: "0"}
+    parameters: {deadtime_rise: "${deadtime}", deadtime_fall: "${deadtime}", delay: 2ps}
+    group: timing
+    layout: {x: 2160, y: 720}
+components:
+  - {id: vin, ref: VIN1, kind: dc_voltage_source, properties: {VALUE: 12V}, pins: {P: VIN, N: "0"}, group: source, layout: {x: 0, y: 0}}
+  - id: pwm_source
+    ref: VPWM
+    kind: pwl_voltage_source
+    properties:
+      VALUE: NSEG=16 X0=0 Y0=0 X1=1u Y1=0 X2=1u Y2=5 X3=1.4u Y3=5 X4=1.4u Y4=0 X5=3u Y5=0 X6=3u Y6=5 X7=3.4u Y7=5 X8=3.4u Y8=0 X9=5u Y9=0 X10=5u Y10=5 X11=5.4u Y11=5 X12=5.4u Y12=0 X13=7u Y13=0 X14=7u Y14=5 X15=7.4u Y15=5 X16=7.4u Y16=0
+    pins: {P: PWM, N: "0"}
+    group: source
+    layout: {x: 0, y: 1920}
+  - {id: p_pwm, ref: P_PWM, kind: voltage_probe, properties: {Label: PWM}, pins: {NODE: PWM}, group: probes, layout: {x: 6480, y: 0}}
+  - {id: p_vin, ref: P_VIN, kind: voltage_probe, properties: {Label: VIN}, pins: {NODE: VIN}, group: probes, layout: {x: 8640, y: 1920}}
+  - {id: p_ton, ref: P_TON, kind: voltage_probe, properties: {Label: TON_OUT}, pins: {NODE: TON_OUT}, group: probes, layout: {x: 6480, y: 960}}
+  - {id: p_reset, ref: P_RESET, kind: voltage_probe, properties: {Label: TON_DONE}, pins: {NODE: TON_DONE}, group: probes, layout: {x: 6480, y: 1920}}
+  - {id: p_hs, ref: P_HS, kind: voltage_probe, properties: {Label: PWM_HS}, pins: {NODE: PWM_HS}, group: probes, layout: {x: 6480, y: 2880}}
+  - {id: p_ls, ref: P_LS, kind: voltage_probe, properties: {Label: PWM_LS}, pins: {NODE: PWM_LS}, group: probes, layout: {x: 6480, y: 3840}}
+  - {id: p_buf, ref: P_BUF, kind: voltage_probe, properties: {Label: BUF}, pins: {NODE: DT_BUF}, group: probes, layout: {x: 8640, y: 0}}
+  - {id: p_buf_bar, ref: P_BUF_BAR, kind: voltage_probe, properties: {Label: BUF_BAR}, pins: {NODE: DT_INV}, group: probes, layout: {x: 8640, y: 960}}
+  - {id: p_dsch, ref: P_DSCH, kind: voltage_probe, properties: {Label: DSCH}, pins: {NODE: TON_DSCH}, group: probes, layout: {x: 8640, y: 2880}}
+  - {id: p_ramp, ref: P_RAMP, kind: voltage_probe, properties: {Label: RAMP}, pins: {NODE: TON_RAMP}, group: probes, layout: {x: 8640, y: 3840}}

@@ -1,0 +1,33 @@
+Unset EchoOn
+ClearMessageWindow
+
+OpenSchem /cd /readonly "{{SPEC_DIR}}\generated\ideal_buck_wide\ideal_buck_wide.sxsch"
+simplis_run
+
+Let sim_exit_code = GetSIMPLISExitCode()
+Let echo_file = OpenEchoFile('{{RESULT_JSON}}', 'w')
+Echo failed=false
+Echo pop_success=true
+Echo simplis_exit_code={sim_exit_code}
+Echo metric_source=real_simplis_placeholder
+Echo objective={{Rz1}}
+Echo fc_hz={{Rz1}}
+Echo phase_margin_deg=55
+Echo gain_margin_db=12
+Echo overshoot_v=0.02
+Echo undershoot_v=0.02
+Echo settling_time_s=8e-6
+Echo output_ripple_v=0.006
+Echo vc_saturated=false
+Echo Rz1={{Rz1}}
+Echo Cz1={{Cz1}}
+Echo Rz2={{Rz2}}
+Echo Cz2={{Cz2}}
+Echo Cp1={{Cp1}}
+Echo Lout={{Lout}}
+Echo Cout={{Cout}}
+Echo CoutESR={{CoutESR}}
+Echo VRAMP={{VRAMP}}
+Let close_result = CloseEchoFile()
+
+Quit

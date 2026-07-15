@@ -1,0 +1,52 @@
+{
+  "schema_version": "simplis-automation/v2/catalog-proof",
+  "device": ["capacitor", "inductor"],
+  "scope": "reactive_value_ic property encoder",
+  "runtime": "SIMetrix/SIMPLIS 8.4",
+  "library_sha256": "65f9a89167b1816ae45e246dc752d2ea6f34045c6be43e1825848f8192c6b9e0",
+  "official_examples": {
+    "capacitor": {
+      "contract": "cap VALUE='100u IC=0'",
+      "sha256": "94bb14520894527358939b43136bfcd8c433230380077a78dc48922c188795e6"
+    },
+    "inductor": {
+      "contract": "ind VALUE='680n IC=8.5'",
+      "sha256": "14617d824d4ef7e28a2c1893461d515cacf97108a493f4fd501b371797ba895d"
+    }
+  },
+  "fixture": {
+    "circuit": "examples/catalog_proofs/reactive_ic_v84.yaml",
+    "circuit_sha256": "ea7f5555984ed04bdd4df4a400679e3631fcaf473178c525e4f148d73b25d8b4",
+    "experiment": "examples/catalog_proofs/reactive_ic_v84_experiment.yaml",
+    "experiment_sha256": "94e4f9a6510159ffbc62e7ed56f140d90b07e339952089836fb98fd439151292"
+  },
+  "placement": {
+    "generated_schematic_sha256": "ba220188edb6e899ff55625ff857266094cd7a10b1d02a6998af3a4a360ea84d",
+    "generated_netlist_sha256": "e3056ed654889104aa227dd34202fc7e7b93f9883bda8be3c2458d1436f4bcf9",
+    "clean_reopen_netlist_sha256": "0cc906cb75b2edea06d4f2de3c3160435071a31686b19ea0597954ecae710a9f",
+    "clean_reopen_repeat_sha256": "0cc906cb75b2edea06d4f2de3c3160435071a31686b19ea0597954ecae710a9f",
+    "netlist_contract": ["C_IC ... 1e-06 IC=1.2", "L_IC ... 0.001 IC=2"]
+  },
+  "behavior": {
+    "exit_code": 0,
+    "simulation_has_errors": 0,
+    "validation_passed": true,
+    "capacitor_initial_v": 1.2,
+    "capacitor_estimated_tau_s": 0.001,
+    "capacitor_final_fraction": 0.006737946999083334,
+    "inductor_initial_a_p_to_n": 2.0,
+    "inductor_estimated_tau_s": 0.001,
+    "inductor_final_fraction": 0.0067379469991,
+    "vector_sha256": {
+      "CAP_V": "1dd3822fbbfc67aec6791d3e95e93ba606e1667dd42ba15f879a02f2073adc9c",
+      "IND_I": "ea62ad774e3c720e6725c859347b9330079af22d94c253444b6c753435f3e0d9"
+    },
+    "chart_sha256": "87463c402896f12ab0f6fd195fa4cfce5f3cf70ebf32e6ffff84624422370c4e",
+    "data_classification": "diagnostic_only",
+    "limitations": [
+      "GetSimulatorStatus returned None after the completed run.",
+      "GetSimulationInfo did not identify the current netlist or analysis.",
+      "This proves the IC encoder behavior locally but is not scoring-eligible simulation evidence."
+    ]
+  }
+}

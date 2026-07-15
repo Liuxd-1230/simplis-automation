@@ -1,0 +1,469 @@
+schema_version: simplis-automation/v2/catalog
+catalog_id: local-simetrix-8.3-ideal-seed
+title: Local SIMetrix/SIMPLIS 8.3 evidence-backed ideal-device seed
+purpose: >-
+  Small approved catalog for declarative, editable SIMPLIS schematics.  It is
+  intentionally conservative: a role is pending until the local symbol,
+  pin order, property contract, and SIMPLIS behavior have been established.
+
+runtime:
+  product: SIMetrix/SIMPLIS
+  version: "8.3"
+  executable: D:\\SIMetrix830\\bin64\\SIMetrix.exe
+  symbol_library: D:\\SIMetrix830\\support\\symbollibs
+  symbol_library_dir: D:\\SIMetrix830\\support\\symbollibs
+  symbol_libraries:
+    - path: D:\\SIMetrix830\\support\\symbollibs\\passives.sxslb
+      sha256: b67b7788514235605d0d5e1d7fa7698178738c068139e42c458121d056fa40f8
+    - path: D:\\SIMetrix830\\support\\symbollibs\\sources.sxslb
+      sha256: 891cfcd46f58bfb8fff71d505596f7ba6b94955a9dca3a687b42cd605d67300f
+    - path: D:\\SIMetrix830\\support\\symbollibs\\simplis.sxslb
+      sha256: fb4c6219656ddcab42bfe4c53890c73569a3253ed8880067ba4cad79fbacaa2c
+    - path: D:\\SIMetrix830\\support\\symbollibs\\connection.sxslb
+      sha256: 9fcee5f4afbbd83ec9be17588c2c845c04c18c171f491782b659dfb5f6111770
+    - path: D:\\SIMetrix830\\support\\symbollibs\\system.sxslb
+      sha256: ec38cfbb0e14a9775f6019c2f181e599906a7a6e6ecad116b96d04522d2b4324
+    - path: D:\\SIMetrix830\\support\\symbollibs\\mixed_mode.sxslb
+      sha256: ffa1ccbf2980239d07dd3e754c567fb760425b0b40cca7c4fdaed163459a900c
+    - path: D:\\SIMetrix830\\support\\symbollibs\\semiconductors.sxslb
+      sha256: a5778c4411843ab43555c57a236b798f345816c506a7d0a8b0e14455bd333d41
+    - path: D:\\SIMetrix830\\support\\symbollibs\\simplis_analog_functions.sxslb
+      sha256: e6451da314c5adf2edf57f9eab9bc3245725a331972a6b83612a67868425a04a
+
+# These hashes are observations from this machine, not portable vendor release
+# hashes.  A changed local installation must be imported and approved again.
+symbol_libraries:
+  - path: D:\\SIMetrix830\\support\\symbollibs\\passives.sxslb
+    sha256: b67b7788514235605d0d5e1d7fa7698178738c068139e42c458121d056fa40f8
+  - path: D:\\SIMetrix830\\support\\symbollibs\\sources.sxslb
+    sha256: 891cfcd46f58bfb8fff71d505596f7ba6b94955a9dca3a687b42cd605d67300f
+  - path: D:\\SIMetrix830\\support\\symbollibs\\simplis.sxslb
+    sha256: fb4c6219656ddcab42bfe4c53890c73569a3253ed8880067ba4cad79fbacaa2c
+  - path: D:\\SIMetrix830\\support\\symbollibs\\connection.sxslb
+    sha256: 9fcee5f4afbbd83ec9be17588c2c845c04c18c171f491782b659dfb5f6111770
+  - path: D:\\SIMetrix830\\support\\symbollibs\\system.sxslb
+    sha256: ec38cfbb0e14a9775f6019c2f181e599906a7a6e6ecad116b96d04522d2b4324
+  - path: D:\\SIMetrix830\\support\\symbollibs\\mixed_mode.sxslb
+    sha256: ffa1ccbf2980239d07dd3e754c567fb760425b0b40cca7c4fdaed163459a900c
+  - path: D:\\SIMetrix830\\support\\symbollibs\\semiconductors.sxslb
+    sha256: a5778c4411843ab43555c57a236b798f345816c506a7d0a8b0e14455bd333d41
+  - path: D:\\SIMetrix830\\support\\symbollibs\\simplis_analog_functions.sxslb
+    sha256: e6451da314c5adf2edf57f9eab9bc3245725a331972a6b83612a67868425a04a
+model_libraries:
+  - path: D:\\SIMetrix830\\support\\models\\SIMPLIS_DIGI1.lb
+    sha256: 073836571353c918f11f2ca00ccf21825b6d8a184b22405fff673006b4c2868f
+  - path: D:\\SIMetrix830\\support\\models\\simplis_sources.lb
+    sha256: b8121f0258e9bd0118ee1e78947ee496a882edab490e8d539c180332c17bd256
+
+devices:
+  - kind: resistor
+    approval: approved
+    role: ideal_resistor
+    ideality: ideal
+    symbol: {library: passives.sxslb, name: res}
+    ref_prefix: R
+    pins:
+      - {name: P, index: 1, domain: analog}
+      - {name: N, index: 2, domain: analog}
+    properties:
+      VALUE: {dimension: resistance, default: "1kohm", required: true, min: "0ohm"}
+    evidence: "passives.sxslb: res; MODEL=R; P=1, N=2."
+
+  - kind: capacitor
+    approval: approved
+    role: ideal_capacitor
+    ideality: ideal
+    symbol: {library: passives.sxslb, name: cap}
+    ref_prefix: C
+    pins:
+      - {name: P, index: 1, domain: analog}
+      - {name: N, index: 2, domain: analog}
+    properties:
+      VALUE: {dimension: capacitance, default: "1nF", required: true, min: "0F"}
+    evidence: "passives.sxslb: cap; MODEL=C; SIMPLIS_TEMPLATE=<ref> <nodelist> %VALUE%."
+
+  - kind: inductor
+    approval: approved
+    role: ideal_inductor
+    ideality: ideal
+    symbol: {library: passives.sxslb, name: ind}
+    ref_prefix: L
+    pins:
+      - {name: P, index: 1, domain: analog}
+      - {name: N, index: 2, domain: analog}
+    properties:
+      VALUE: {dimension: inductance, default: "1uH", required: true, min: "0H"}
+    evidence: "passives.sxslb: ind; MODEL=L; SIMPLIS_TEMPLATE=<ref> <nodelist> %VALUE%."
+
+  - kind: dc_voltage_source
+    approval: approved
+    role: ideal_dc_source
+    ideality: ideal
+    symbol: {library: sources.sxslb, name: dc_source}
+    ref_prefix: V
+    pins:
+      - {name: P, index: 1, domain: analog}
+      - {name: N, index: 2, domain: analog}
+    properties:
+      VALUE: {dimension: voltage, default: "5V", required: true}
+    evidence: "sources.sxslb: dc_source; MODEL=V; P=1, N=2."
+
+  - kind: pulse_voltage_source
+    approval: approved
+    role: ideal_pulse_source
+    ideality: ideal
+    symbol: {library: sources.sxslb, name: vwave_v2}
+    model: {library: simplis_sources.lb, name: PUL_SOURCE}
+    ref_prefix: V
+    pins:
+      - {name: P, index: 1, domain: analog}
+      - {name: N, index: 2, domain: analog}
+    properties:
+      SOURCE_MODEL: {type: enum, value_type: enum, enum: [PUL_SOURCE], default: PUL_SOURCE}
+      SIMPLIS_VALUE:
+        type: raw_model_vars
+        raw: true
+        default: "_V1=0 _V2=1 _FREQ=100k _DELAY=0 _T_RISE=0 _T_FALL=0 _PWIDTH=5u _OFF_UNTIL_DELAY=0 _IDLE_IN_POP=0 _USEPHASE=0 _PHASE=0"
+        required: true
+    evidence: >-
+      sources.sxslb: vwave_v2 (P=1, N=2, SOURCE_MODEL and SIMPLIS_VALUE);
+      simplis_sources.lb: PUL_SOURCE argument names observed locally.
+
+  - kind: ramp_voltage_source
+    approval: approved
+    role: ideal_ramp_source
+    ideality: ideal
+    symbol: {library: sources.sxslb, name: vwave_v2}
+    model: {library: simplis_sources.lb, name: SAW_SOURCE}
+    ref_prefix: V
+    pins:
+      - {name: P, index: 1, domain: analog}
+      - {name: N, index: 2, domain: analog}
+    properties:
+      SOURCE_MODEL: {type: enum, value_type: enum, enum: [SAW_SOURCE], default: SAW_SOURCE}
+      SIMPLIS_VALUE:
+        type: raw_model_vars
+        raw: true
+        default: "_V1=0 _V2=1 _FREQ=100k _DELAY=0 _OFF_UNTIL_DELAY=0 _IDLE_IN_POP=0 _USEPHASE=0 _PHASE=0"
+        required: true
+    evidence: >-
+      sources.sxslb: vwave_v2 (P=1, N=2, SOURCE_MODEL and SIMPLIS_VALUE);
+      simplis_sources.lb: SAW_SOURCE argument names observed locally.
+
+  - kind: voltage_controlled_switch
+    approval: approved
+    role: ideal_voltage_controlled_switch
+    ideality: ideal
+    symbol: {library: simplis.sxslb, name: simplis_prim_vcswitch}
+    model: {name: SIMPLIS_VC_SWITCH}
+    ref_prefix: S
+    pins:
+      - {name: P, index: 1, domain: analog}
+      - {name: N, index: 2, domain: analog}
+      - {name: CP, index: 3, domain: analog}
+      - {name: CN, index: 4, domain: analog}
+    properties:
+      RON: {dimension: resistance, default: "1ohm", min: "0ohm"}
+      ROFF: {dimension: resistance, default: "1Mohm", min: "0ohm"}
+      THRESHOLD: {dimension: voltage, default: "2V"}
+      HYSTWD: {dimension: voltage, default: "0.1V", min: "0V"}
+      IC: {type: enum, value_type: enum, enum: [Open, Closed], default: Open}
+      LOGIC: {type: enum, value_type: enum, enum: [POS, NEG], default: POS}
+    evidence: >-
+      simplis.sxslb: simplis_prim_vcswitch; P=1, N=2, CP=3, CN=4;
+      PARAM_MODEL_NAME=SIMPLIS_VC_SWITCH and all listed property defaults.
+
+  - kind: ground
+    approval: approved
+    role: ground_reference
+    ideality: ideal
+    symbol: {library: connection.sxslb, name: gnd}
+    ref_prefix: GND
+    pins:
+      - {name: GND, index: 1, domain: analog}
+    properties:
+      VALUE: {type: enum, value_type: enum, enum: ["0"], default: "0"}
+    evidence: "connection.sxslb: gnd; GND=1; fixed VALUE=0."
+
+  - kind: voltage_probe
+    approval: approved
+    role: voltage_probe
+    ideality: ideal
+    symbol: {library: connection.sxslb, name: probev_new}
+    ref_prefix: Probe
+    pins:
+      - {name: NODE, index: 1, domain: analog}
+    properties:
+      Label: {type: text, value_type: string, default: ""}
+      VALUE: {type: text, value_type: string, default: ""}
+    evidence: "connection.sxslb: probev_new; NODE=1; PROBETYPE=V."
+
+  - kind: current_probe
+    approval: approved
+    role: current_probe
+    ideality: ideal
+    symbol: {library: connection.sxslb, name: InlineCurrentProbe}
+    ref_prefix: IPRB
+    pins:
+      - {name: P, index: 1, domain: analog}
+      - {name: N, index: 2, domain: analog}
+    properties:
+      LABEL: {type: text, value_type: string, default: ""}
+      VALUE: {type: text, value_type: string, default: ""}
+    evidence: "connection.sxslb: InlineCurrentProbe; P=1, N=2; ProbeType=I."
+
+  - kind: digital_buffer
+    approval: approved
+    role: ideal_digital_buffer
+    ideality: ideal
+    symbol: {library: system.sxslb, name: display_D_BUFFER}
+    model: {library: SIMPLIS_DIGI1.lb, name: SIMPLIS_DIGI1_BUF_N}
+    ref_prefix: U
+    pins:
+      - {name: OUT, index: 1, domain: digital}
+      - {name: OUT_BAR, index: 2, domain: digital}
+      - {name: IN1, index: 3, domain: digital}
+    properties:
+      IC: {type: enum, value_type: enum, enum: ["0", "1"], default: "0"}
+      RIN: {dimension: resistance, default: "10Mohm", min: "0ohm"}
+      ROUT: {dimension: resistance, default: "10ohm", min: "0ohm"}
+      TH: {dimension: voltage, default: "2.5V"}
+      HYSTWD: {dimension: voltage, default: "1V", min: "0V"}
+      VOL: {dimension: voltage, default: "0V"}
+      VOH: {dimension: voltage, default: "5V"}
+      DELAY: {dimension: time, default: "2ps", min: "0s"}
+    evidence: >-
+      system.sxslb: display_D_BUFFER (OUT=1, OUT_BAR=2, IN1=3);
+      SIMPLIS_DIGI1.lb: SIMPLIS_DIGI1_BUF_N.  A real local transient run
+      observed the 2 ps default delay and complementary outputs.
+    placement_properties:
+      SIMULATOR: SIMPLIS
+      PARAMSSCRIPT: no_params
+      MODEL: X
+      VALUESCRIPT: edit_parameterised_multi_prop_subckt
+      PARAM_MODEL_NAME: SIMPLIS_DIGI1_BUF_N
+      SIMPLIS_TEMPLATE: "<ref> <nodelist> %PARAM_MODEL_NAME% vars: IC=%IC% RIN=%RIN% ROUT=%ROUT% HYSTWD=%HYSTWD% VOL=%VOL% VOH=%VOH% DELAY=%DELAY% TH=%TH%"
+      INIT_SCRIPT: simplis_back_annotate_digital_devices
+
+  - kind: digital_inverter_grounded
+    approval: approved
+    role: analog_digital_boundary_inverter
+    ideality: ideal
+    symbol: {library: system.sxslb, name: display_BUFFER}
+    model: {library: SIMPLIS_DIGI1.lb, name: SIMPLIS_DIGI1_BUF_Y}
+    ref_prefix: U
+    pins:
+      - {name: OUT, index: 1, domain: analog}
+      - {name: OUT_BAR, index: 2, domain: analog}
+      - {name: RTN, index: 3, domain: analog}
+      - {name: IN1, index: 4, domain: analog}
+    properties:
+      IC: {type: enum, value_type: enum, enum: ["0", "1"], default: "0"}
+      RIN: {dimension: resistance, default: "10Mohm", min: "0ohm"}
+      ROUT: {dimension: resistance, default: "10ohm", min: "0ohm"}
+      TH: {dimension: voltage, default: "2.5V"}
+      HYSTWD: {dimension: voltage, default: "1V", min: "0V"}
+      VOL: {dimension: voltage, default: "0V"}
+      VOH: {dimension: voltage, default: "5V"}
+      DELAY: {dimension: time, default: "2ps", min: "0s"}
+    evidence: >-
+      system.sxslb: display_BUFFER (OUT=1, OUT_BAR=2, RTN=3, IN1=4);
+      SIMPLIS_DIGI1.lb: SIMPLIS_DIGI1_BUF_Y.  Locally netlisted with RTN=0.
+    placement_properties:
+      SIMULATOR: SIMPLIS
+      PARAMSSCRIPT: no_params
+      MODEL: X
+      VALUESCRIPT: edit_parameterised_multi_prop_subckt
+      PARAM_MODEL_NAME: SIMPLIS_DIGI1_BUF_Y
+      SIMPLIS_TEMPLATE: "<ref> <nodelist> %PARAM_MODEL_NAME% vars: IC=%IC% RIN=%RIN% ROUT=%ROUT% HYSTWD=%HYSTWD% VOL=%VOL% VOH=%VOH% DELAY=%DELAY% TH=%TH%"
+      INIT_SCRIPT: simplis_back_annotate_digital_devices
+
+  - kind: digital_comparator_grounded
+    approval: pending
+    role: analog_to_digital_comparator
+    ideality: unresolved
+    symbol: {library: system.sxslb, name: display_D_COMPARATOR}
+    model: {library: SIMPLIS_DIGI1.lb, name: SIMPLIS_DIGI1_COMP_Y}
+    ref_prefix: U
+    pins:
+      - {name: OUT, index: 1, domain: analog}
+      - {name: OUT_BAR, index: 2, domain: analog}
+      - {name: RTN, index: 3, domain: analog}
+      - {name: INP, index: 4, domain: analog}
+      - {name: INN, index: 5, domain: analog}
+    properties:
+      DELAY: {dimension: time, default: "2ps", min: "0s"}
+      RIN: {dimension: resistance, default: "10Mohm", min: "0ohm"}
+      ROUT: {dimension: resistance, default: "10ohm", min: "0ohm"}
+      HYSTWD: {dimension: voltage, default: "2mV", min: "0V"}
+      VOL: {dimension: voltage, default: "0V"}
+      VOH: {dimension: voltage, default: "5V"}
+      IC: {type: enum, value_type: enum, enum: ["0", "1"], default: "0"}
+    evidence: >-
+      system.sxslb: display_D_COMPARATOR (OUT=1, OUT_BAR=2, RTN=3,
+      INP=4, INN=5); SIMPLIS_DIGI1.lb: SIMPLIS_DIGI1_COMP_Y.
+    pending_reason: >-
+      Symbol and subcircuit pin maps agree, but there is no v1-verified
+      placement/model-binding script for display_D_COMPARATOR in this catalog.
+      Do not approve it until a real 8.3 schematic is saved and netlisted.
+
+  - kind: digital_pulse
+    approval: approved
+    role: ideal_digital_pulse_source
+    ideality: ideal
+    symbol: {library: system.sxslb, name: display_D_PULSE}
+    model: {library: SIMPLIS_DIGI1.lb, name: SIMPLIS_DIGI1_D_PULSE_N_N}
+    ref_prefix: U
+    pins:
+      - {name: OUT, index: 1, domain: digital}
+    properties:
+      PERIOD: {dimension: time, default: "100ns", min: "0s"}
+      WIDTH: {dimension: time, default: "50ns", min: "0s"}
+      DELAY: {dimension: time, default: "0s", min: "0s"}
+      ROUT: {dimension: resistance, default: "10ohm", min: "0ohm"}
+      VOL: {dimension: voltage, default: "0V"}
+      VOH: {dimension: voltage, default: "5V"}
+    placement_properties:
+      SIMULATOR: SIMPLIS
+      PARAMSSCRIPT: no_params
+      MODEL: X
+      VALUESCRIPT: simplis_edit_pulse
+      PARAM_MODEL_NAME: SIMPLIS_DIGI1_D_PULSE_N_N
+      SIMPLIS_TEMPLATE: "<ref> <nodelist> %PARAM_MODEL_NAME% vars: PERIOD=%PERIOD% WIDTH=%WIDTH% DELAY=%DELAY% ROUT=%ROUT% VOL=%VOL% VOH=%VOH% COMP=%COMP% GNDREF=%GNDREF%"
+      INIT_SCRIPT: simplis_back_annotate_digital_devices
+      COMP: "'N'"
+      GNDREF: "'N'"
+    evidence: >-
+      system.sxslb: display_D_PULSE (OUT=1); SIMPLIS_DIGI1.lb:
+      SIMPLIS_DIGI1_D_PULSE_N_N.  This is digital-only; do not attach it
+      directly to an analog-domain net.
+
+  - kind: latch
+    approval: approved
+    role: ideal_level_sensitive_latch
+    ideality: ideal
+    symbol: {library: simplis.sxslb, name: simplis_prim_latch}
+    ref_prefix: U
+    pins:
+      - {name: Q, index: 1, domain: analog}
+      - {name: DATA, index: 2, domain: analog}
+      - {name: EN, index: 3, domain: analog}
+    properties:
+      RIN: {dimension: resistance, default: "10Mohm", min: "0ohm"}
+      ROUT: {dimension: resistance, default: "100ohm", min: "0ohm"}
+      TH: {dimension: voltage, default: "2V"}
+      HYSTWD: {dimension: voltage, default: "0.1V", min: "0V"}
+      VOL: {dimension: voltage, default: "0V"}
+      VOH: {dimension: voltage, default: "5V"}
+      ENABLE_LEVEL: {type: enum, value_type: enum, enum: ["0", "1"], default: "1"}
+      IC: {type: enum, value_type: enum, enum: ["0", "1"], default: "0"}
+    evidence: >-
+      simplis.sxslb: simplis_prim_latch; Q=1, DATA=2, EN=3;
+      SIMPLIS_TEMPLATE defines a native SIMPLIS LATCH model.
+
+  # Candidate records intentionally retain observed local facts but cannot be
+  # used by compile/verify until `catalog approve` supplies a valid ideality
+  # claim and a tested placement/netlist contract.
+  - kind: ideal_diode
+    approval: pending
+    role: ideal_diode
+    ideality: unresolved
+    symbol: {library: semiconductors.sxslb, name: dio}
+    ref_prefix: D
+    pins:
+      - {name: P, index: 1, domain: analog}
+      - {name: N, index: 2, domain: analog}
+    properties:
+      VALUE: {type: model_name, value_type: string, default: D1N4148}
+    pending_reason: >-
+      The observed `dio` symbol is a junction-diode model (MODEL=D), not an
+      established ideal SIMPLIS primitive.  Do not substitute it for an ideal
+      diode without a separately approved model contract.
+
+  - kind: ideal_opamp
+    approval: pending
+    role: ideal_opamp_or_ota
+    ideality: unresolved
+    symbol: {library: simplis_analog_functions.sxslb, name: SIMPLIS_OP_AMP_PULL_DOWN}
+    model: {name: SIMPLIS_OP_AMP1A_BB}
+    ref_prefix: U
+    pins:
+      - {name: INP, index: 1, domain: analog}
+      - {name: INN, index: 2, domain: analog}
+      - {name: VSP, index: 3, domain: analog}
+      - {name: VSN, index: 4, domain: analog}
+      - {name: OUT, index: 5, domain: analog}
+      - {name: OUT_LIMIT, index: 6, domain: analog}
+    properties:
+      A0: {dimension: dimensionless, default: "100k"}
+      GBW: {dimension: frequency, default: "1MHz"}
+      RIN: {dimension: resistance, default: "1Mohm"}
+      ROUT: {dimension: resistance, default: "100ohm"}
+    pending_reason: >-
+      Symbol pins and selected properties are observed, but this is a BB model
+      and has not been approved as a fully ideal op-amp/OTA primitive.
+
+  - kind: analog_to_digital_adapter
+    approval: pending
+    role: analog_digital_boundary
+    ideality: unresolved
+    symbol: {library: mixed_mode.sxslb, name: a_d}
+    ref_prefix: U
+    pins:
+      - {name: IN, index: 1, domain: analog}
+      - {name: OUT, index: 2, domain: digital}
+    properties:
+      VALUE: {type: model_name, value_type: string, default: UNIV_adc}
+    pending_reason: >-
+      The local mixed-mode symbol is observed, but its SIMPLIS netlist and
+      ground-reference behavior have not been verified for this catalog.
+
+  - kind: digital_to_analog_adapter
+    approval: pending
+    role: digital_analog_boundary
+    ideality: unresolved
+    symbol: {library: mixed_mode.sxslb, name: d_a}
+    ref_prefix: U
+    pins:
+      - {name: IN, index: 1, domain: digital}
+      - {name: OUT, index: 2, domain: analog}
+    properties:
+      VALUE: {type: model_name, value_type: string, default: UNIV_dac}
+    pending_reason: >-
+      The local mixed-mode symbol is observed, but its SIMPLIS netlist and
+      ground-reference behavior have not been verified for this catalog.
+
+  - kind: digital_and2_grounded
+    approval: pending
+    role: ideal_logic_gate
+    ideality: unresolved
+    symbol: {library: system.sxslb, name: display_D_AND}
+    model: {library: SIMPLIS_DIGI1.lb, name: SIMPLIS_DIGI1_AND2_Y}
+    ref_prefix: U
+    pins:
+      - {name: OUT, index: 1, domain: analog}
+      - {name: OUT_BAR, index: 2, domain: analog}
+      - {name: IN1, index: 3, domain: analog}
+      - {name: IN2, index: 4, domain: analog}
+      - {name: RTN, index: 5, domain: analog}
+    pending_reason: >-
+      The model's two-input pin map is known, but the observed display_D_AND
+      symbol exposes four inputs and requires a runtime placement/configuration
+      proof before this shape can be approved.
+
+  - kind: sr_latch_grounded
+    approval: pending
+    role: ideal_sr_latch
+    ideality: unresolved
+    symbol: {library: system.sxslb, name: display_D_SRLATCH}
+    model: {library: SIMPLIS_DIGI1.lb, name: SIMPLIS_DIGI1_SRLATCH_Y}
+    ref_prefix: U
+    pins:
+      - {name: Q, index: 1, domain: analog}
+      - {name: QN, index: 2, domain: analog}
+      - {name: S, index: 3, domain: analog}
+      - {name: R, index: 4, domain: analog}
+      - {name: RTN, index: 5, domain: analog}
+    pending_reason: >-
+      The model declares Q/QN/RTN/S/R, while the observed display symbol lacks
+      RTN.  Approve only after a concrete configurable placement is netlisted.

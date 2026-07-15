@@ -1,0 +1,34 @@
+{
+  "schema_version": "simplis-automation/v2/catalog-proof",
+  "device": "digital_comparator_grounded",
+  "runtime": "SIMetrix/SIMPLIS 8.4",
+  "library_sha256": "16b4059c2383e53a8d7dadd8b6445d162eb28fc3f27ce58de22e1eb40dc7d9c5",
+  "model_library_sha256": "073836571353c918f11f2ca00ccf21825b6d8a184b22405fff673006b4c2868f",
+  "official_example_sha256": "5588c403126913dbdc4466dcede7d7d3d5a36301d5aefabb5aec283c91790345",
+  "placement": {
+    "symbol": "display_D_COMPARATOR",
+    "generated_schematic_sha256": "24fd3594db6406b981d5ab48b84d8c8abb0612406636323589159df86db887df",
+    "generated_netlist_sha256": "d3c8c19b1a60f69f7206a68fe6fecc687420ec53b629f85b638e369194d8603b",
+    "clean_reopen_netlist_sha256": "e7a41e84523ac0aab4b53763169c929fc043432ca8ad105dee6fd65096a460ff",
+    "netlist_model": "SIMPLIS_DIGI1_COMP_Y"
+  },
+  "pins": ["OUT", "OUT_BAR", "RTN", "INP", "INN"],
+  "behavior": {
+    "source": "installed official comparator example",
+    "exit_code": 0,
+    "simulation_has_errors": 0,
+    "output_samples": 6,
+    "output_min": 0.0,
+    "output_max": 1.0,
+    "input_samples": 1005,
+    "input_min": 0.0,
+    "input_max": 5.0,
+    "reference": 2.5,
+    "vector_sha256": {
+      "INP": "50742eb8b8a4bff9a103541d202736c6cd27bd5500c163021a6ee27a3c0cb27c",
+      "OUT": "cbf39adee5288f91f1b8929a2a196b598eb2b064002ecf492aeb3deccc3fe3f9",
+      "INN": "9f112da5f7e47bc2b887d8515dbc372db8c72c99e11ed4ee83f211c5b807eb41"
+    },
+    "note": "GetSimulatorStatus returned None for this SIMPLIS run, so these vectors prove the catalog device behavior only and are not scoring-eligible experiment data."
+  }
+}

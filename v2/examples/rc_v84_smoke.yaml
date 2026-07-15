@@ -1,0 +1,14 @@
+schema_version: simplis-automation/v2
+schema_revision: 3
+catalog_lock: {path: ../catalog/seed_8_4.yaml}
+design: {name: rc_v84_smoke}
+layout: {mode: hybrid, clearance: {horizontal: 480, vertical: 360}}
+parameters:
+  vin: {default: 5V, dimension: voltage, min: 0V, max: 20V}
+  resistance: {default: 1kohm, dimension: resistance, min: 1ohm, max: 1Mohm}
+  capacitance: {default: 1nF, dimension: capacitance, min: 1pF, max: 1uF}
+components:
+  - {id: source, ref: V1, kind: dc_voltage_source, properties: {VALUE: "${vin}"}, pins: {P: VIN, N: "0"}, group: rc, layout: {x: 0, y: 0}}
+  - {id: resistor, ref: R1, kind: resistor, properties: {VALUE: "${resistance}"}, pins: {P: VIN, N: VOUT}, group: rc, layout: {x: 2160, y: 0}}
+  - {id: capacitor, ref: C1, kind: capacitor, properties: {VALUE: "${capacitance}"}, pins: {P: VOUT, N: "0"}, group: rc, layout: {x: 4320, y: 0}}
+  - {id: probe, ref: P1, kind: voltage_probe, properties: {Label: VOUT}, pins: {NODE: VOUT}, group: rc, layout: {x: 6480, y: 0}}

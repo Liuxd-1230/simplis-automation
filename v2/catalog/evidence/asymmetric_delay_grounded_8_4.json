@@ -1,0 +1,32 @@
+{
+  "schema_version": "simplis-automation/v2/catalog-proof",
+  "device": "asymmetric_delay_grounded",
+  "runtime": "SIMetrix/SIMPLIS 8.4",
+  "library_sha256": "16b4059c2383e53a8d7dadd8b6445d162eb28fc3f27ce58de22e1eb40dc7d9c5",
+  "model_library_sha256": "073836571353c918f11f2ca00ccf21825b6d8a184b22405fff673006b4c2868f",
+  "placement": {
+    "symbol": "display_D_ASYMMETRIC_DELAY",
+    "generated_schematic_sha256": "c00002003d213bcb5db987365ca13a719a40eade4a266b2f62211e70e44b96d0",
+    "generated_netlist_sha256": "8c09fcb88416a251c1a71c091537962981271b80a57b5c800e9ae47b7d23b357",
+    "clean_reopen_netlist_sha256": "1ff1996d646e534b81f0561cfaee7076b1310d16073710e1f23716ec4758c4b1",
+    "repeated_reopen_netlist_sha256": "1ff1996d646e534b81f0561cfaee7076b1310d16073710e1f23716ec4758c4b1",
+    "netlist_model": "SIMPLIS_DIGI1_D_ASYMMETRIC_DELAY_Y"
+  },
+  "pins": ["OUT", "IN1"],
+  "behavior": {
+    "configured_rise_delay_s": 2e-8,
+    "configured_fall_delay_s": 2e-12,
+    "measured_hs_rise_delay_s": 1.999999999999986e-8,
+    "measured_ls_rise_delay_s": 2.0000000000000073e-8,
+    "hs_output_samples": 18,
+    "ls_output_samples": 18,
+    "overlap_samples": 0,
+    "exit_code": 0,
+    "simulation_has_errors": 0,
+    "vector_sha256": {
+      "PWM_HS": "6eed44b392e341ea8b1b9954aeae6d614842996a6c4da52fe4d983530446ae57",
+      "PWM_LS": "33b8730933063c24d8ca3fd4095e1a10a83378d74942852be34c7f9a17777814"
+    },
+    "note": "GetSimulatorStatus returned None. These vectors prove catalog-device timing behavior only and are not scoring-eligible experiment data."
+  }
+}

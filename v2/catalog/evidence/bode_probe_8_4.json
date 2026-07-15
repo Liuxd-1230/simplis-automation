@@ -1,0 +1,34 @@
+{
+  "schema_version": "simplis-automation/v2/catalog-proof",
+  "device": "bode_probe",
+  "runtime": "SIMetrix/SIMPLIS 8.4",
+  "library_sha256": "9fcee5f4afbbd83ec9be17588c2c845c04c18c171f491782b659dfb5f6111770",
+  "fixture": {
+    "circuit": "examples/catalog_proofs/analog_primitives_v84.yaml",
+    "circuit_sha256": "a0c66634d238cc4c6d1d33aa731907df94b698139493b7faedca6f4510b2bb37",
+    "experiment_sha256": "227e98a6338bcf46d714081f46468d304000dbaab8f4b24da46e6ea007d0408e"
+  },
+  "placement": {
+    "symbol": "Bode_Probe2",
+    "generated_schematic_sha256": "f5d0b0e27de3bf4f47866d318d5ad2dbc2e0b909d6fa5bf49d9112d3905daba4",
+    "generated_netlist_sha256": "5e0c7c2ebff60c8c0dc374f14093112287ba0334f13fec7254321f1af8ec3474",
+    "clean_reopen_netlist_sha256": "86bffbedcee3bf3dca0a74b31c97770c67c42a7c88b60712a79537200868c57a",
+    "visual": {"method": "computer_use", "width": 1920, "height": 1032, "verdict": "pass", "persistent_image": false},
+    "netlist_directives": [".PRINT V(#AC_OUT)", ".PRINT V(#AC_IN)", ".GRAPH db(:#AC_OUT/:#AC_IN)", ".GRAPH ph(:#AC_OUT/:#AC_IN)"]
+  },
+  "pins": ["OUT", "IN"],
+  "behavior": {
+    "exit_code": 0,
+    "simulation_has_errors": 0,
+    "analysis": "ac",
+    "raw_complex_samples": 31,
+    "frequency_min_hz": 1000,
+    "frequency_max_hz": 1000000,
+    "out_over_in_mean_magnitude": 0.5,
+    "maximum_gain_error_pct": 0.0,
+    "ac_input_vector_sha256": "24e26cc95a1cbb984e4f3e83dc8b79cbd1bc74748e7fd5b28184d10c218ed9f6",
+    "ac_output_vector_sha256": "e6d696eca4fc61dd86d5e9d23eaa20aabb164b3c31330a0bd4e5e8c9e648d7fd",
+    "chart_sha256": "48d1733578fb2b7f4c4edfdf89e0d118e8e0dd559abf6f67b095fb75be68689a",
+    "note": "The protected TEXT property is not written. Installed default =OUT/IN directives and explicit raw-vector ratio provide the proof."
+  }
+}

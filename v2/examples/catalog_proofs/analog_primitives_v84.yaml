@@ -1,0 +1,66 @@
+schema_version: simplis-automation/v2
+schema_revision: 3
+description: >-
+  Public catalog-proof fixture for the 8.4 VCVS, VCCS, VPWLR idealized
+  diode, zero-DC AC source and two-node Bode probe. This is evidence-only
+  until every named pending device receives all six approval proofs.
+catalog_lock: {path: ../../catalog/seed_8_4.yaml}
+design: {name: analog_primitives_v84_proof}
+layout:
+  mode: hybrid
+  grid: 120
+  clearance: {horizontal: 480, vertical: 360}
+  band_spacing: 2400
+
+parameters: {}
+components:
+  - id: control
+    ref: VCTRL
+    kind: pwl_voltage_source
+    properties:
+      VALUE: "NSEG=5 X0=0 Y0=0 X1=1u Y1=0 X2=1u Y2=1 X3=2u Y3=1 X4=2u Y4=-1 X5=3u Y5=-1"
+    pins: {P: CTRL, N: "0"}
+    group: control
+    layout: {x: 0, y: 0}
+  - {id: vcvs, ref: E1, kind: vcvs, properties: {VALUE: 2}, pins: {P: VCVS_OUT, N: "0", CP: CTRL, CN: "0"}, group: vcvs, layout: {x: 2160, y: 0}}
+  - {id: vcvs_load, ref: RE, kind: resistor, properties: {VALUE: 1kohm}, pins: {P: VCVS_OUT, N: "0"}, group: vcvs, layout: {x: 4320, y: 0}}
+  - {id: p_control, ref: P_CTRL, kind: voltage_probe, properties: {Label: CTRL}, pins: {NODE: CTRL}, group: observation, layout: {x: 6480, y: 0}}
+  - {id: p_vcvs, ref: P_E, kind: voltage_probe, properties: {Label: VCVS_OUT}, pins: {NODE: VCVS_OUT}, group: observation, layout: {x: 8640, y: 0}}
+
+  - {id: vccs, ref: G1, kind: vccs, properties: {VALUE: 2mS}, pins: {P: VCCS_OUT, N: "0", CP: CTRL, CN: "0"}, group: vccs, layout: {x: 2160, y: 2400}}
+  - {id: vccs_load, ref: RG, kind: resistor, properties: {VALUE: 1kohm}, pins: {P: VCCS_OUT, N: "0"}, group: vccs, layout: {x: 4320, y: 2400}}
+  - {id: p_vccs, ref: P_G, kind: voltage_probe, properties: {Label: VCCS_OUT}, pins: {NODE: VCCS_OUT}, group: observation, layout: {x: 8640, y: 2400}}
+
+  - id: diode_drive
+    ref: VD
+    kind: pwl_voltage_source
+    properties:
+      VALUE: "NSEG=3 X0=0 Y0=-1 X1=1u Y1=-1 X2=1u Y2=1 X3=3u Y3=1"
+    pins: {P: DIODE_IN, N: "0"}
+    group: diode
+    layout: {x: 0, y: 4800}
+  - {id: diode_series, ref: RD, kind: resistor, properties: {VALUE: 1kohm}, pins: {P: DIODE_IN, N: DIODE_OUT}, group: diode, layout: {x: 2160, y: 4800}}
+  - {id: diode, ref: D1, kind: idealized_diode, properties: {RON: 1mohm, ROFF: 100Mohm}, pins: {P: DIODE_OUT, N: "0"}, group: diode, layout: {x: 4320, y: 4800}}
+  - {id: p_diode_in, ref: P_DIN, kind: voltage_probe, properties: {Label: DIODE_IN}, pins: {NODE: DIODE_IN}, group: observation, layout: {x: 6480, y: 4800}}
+  - {id: p_diode_out, ref: P_DOUT, kind: voltage_probe, properties: {Label: DIODE_OUT}, pins: {NODE: DIODE_OUT}, group: observation, layout: {x: 8640, y: 4800}}
+
+  - {id: ac_drive, ref: VAC, kind: ac_injection_source, properties: {VALUE: "AC 1"}, pins: {P: AC_IN, N: "0"}, group: ac, layout: {x: 0, y: 7200}}
+  - {id: ac_top, ref: RAC1, kind: resistor, properties: {VALUE: 1kohm}, pins: {P: AC_IN, N: AC_OUT}, group: ac, layout: {x: 2160, y: 7200}}
+  - {id: ac_bottom, ref: RAC2, kind: resistor, properties: {VALUE: 1kohm}, pins: {P: AC_OUT, N: "0"}, group: ac, layout: {x: 4320, y: 7200}}
+  - {id: bode, ref: PBODE, kind: bode_probe, pins: {OUT: AC_OUT, IN: AC_IN}, group: ac, layout: {x: 6480, y: 7200}}
+  - {id: p_ac_in, ref: P_ACIN, kind: voltage_probe, properties: {Label: AC_IN}, pins: {NODE: AC_IN}, group: observation, layout: {x: 8640, y: 7200}}
+  - {id: p_ac_out, ref: P_ACOUT, kind: voltage_probe, properties: {Label: AC_OUT}, pins: {NODE: AC_OUT}, group: observation, layout: {x: 10800, y: 7200}}
+
+  # SIMPLIS small-signal AC always follows POP. Keep its periodic trigger in
+  # an independent analysis gutter so it does not alter the proof networks.
+  - id: pop_clock
+    ref: VPOP
+    kind: pulse_voltage_source
+    properties:
+      SOURCE_MODEL: SQU_SOURCE
+      SIMPLIS_VALUE: "_V1=0 _V2=5 _FREQ=1Meg _DELAY=0 _DRATIOx100=50 _T_RISE=1n _T_FALL=1n _DAMP_COEF=0 _PWIDTH=500n _OFF_UNTIL_DELAY=0 _IDLE_IN_POP=0 _USEPHASE=0 _PHASE=0"
+    pins: {P: POP_CLK, N: "0"}
+    group: analysis
+    layout: {x: 0, y: 9600}
+  - {id: pop, ref: XPOP, kind: pop_trigger, properties: {VREF: 2.5V, TRIG_COND: 0_TO_1}, pins: {IN: POP_CLK, OUT: TRIG_GATE}, group: analysis, layout: {x: 2160, y: 9600}}
+  - {id: p_trig, ref: P_TRIG, kind: voltage_probe, properties: {Label: TRIG_GATE}, pins: {NODE: TRIG_GATE}, group: observation, layout: {x: 4320, y: 9600}}

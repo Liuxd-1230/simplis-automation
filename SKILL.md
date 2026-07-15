@@ -83,11 +83,43 @@ This skill is fragile and tool-version dependent. Every action must depend on ob
 - Before claiming POP works, verify `{TRIG_GATE}` was resolved to an internal event such as `X1.!D_CYCLE` in the netlist/deck.
 - Before claiming probes work, verify `.PRINT V(...)` or `.PRINT I(...)` lines exist in the generated deck.
 - Before claiming waveform export works, verify the data group with `VectorsInGroup(...)`, use `SetGroup`, and reference special vector names with `Vec('...')`.
+- Before claiming POP is valid, export and inspect time-domain vectors for the real switching state. A missing `.deck.err` is not enough: check key digital/control nodes such as `FSW`, `CLK`, duty, `VOUT`, `FB`, and `VC` for expected edges, frequency, DC level, and ripple.
+- Before claiming AC loop stability, verify POP waveform sanity first, then export the actual Bode expression from the deck such as `db(:#FB/:120)` and `ph(:#FB/:120)`. Do not assume stale probe node numbers.
 - Before choosing default devices, inspect official examples or read `profiles/`; do not invent symbol names.
 - Before suggesting simulation-driven circuit changes, read an `export-agent-evidence` report.
 - Do not invent SIMPLIS symbol names, pin names, command syntax, measurement functions, DVM file names, or waveform names. Search installed libraries/docs/examples or inspect generated artifacts first.
 - Do not copy private research schematics into this skill. Only official/open-source-approved examples belong under `examples/official/`.
 - If a step cannot be verified, say exactly what evidence is missing and what file/path/config is needed.
+
+## SIMPLIS Error Modal Handling
+
+When SIMetrix shows a modal dialog such as `Error detected during the execution of simplis.exe`, do not treat the SIMetrix process return code as the result. The dialog usually points to the real evidence file under the schematic's `SIMPLIS_Data` directory.
+
+Required loop after every run that may fail or block:
+
+1. Capture `GetSIMPLISExitCode()` into a status file, but do not rely on it alone.
+2. Inspect generated `SIMPLIS_Data/*.deck.err`, `*.deck.warn`, `*.deck.health`, and `*.deck.dbg` files.
+3. Run `simplis_cli.py export-agent-evidence --work-dir <SIMPLIS_Data> --out <evidence.json> --summary-md <evidence.md>` before diagnosing.
+4. If a GUI modal is present, use Windows Computer Use to snapshot the modal/status window, then dismiss it only after recording the referenced file path.
+5. Diagnose from the file evidence first. For POP failures, check `.deck.warn` and `.deck.health` for non-converging state references such as capacitor or inductor designators, then tune those state variables, initial conditions, startup timing, or loop parameters one change at a time.
+
+## Closed-Loop Tuning Discipline
+
+Do not sweep compensation parameters blindly. For buck or PMIC loops, first identify whether the comparator is valley-mode, peak-mode, average-mode, or another sampled structure. Determine the comparator collision point, ramp/ripple amplitude, and the expected `VC` DC value before changing the type-II network. Then derive candidate zero, pole, and gain values from the baseline plant response near the target crossover.
+
+Treat initial conditions as part of the design state. `*.deck.init` can seed a new run, but only back-annotate independent energy-storage elements. Do not bulk-copy all `C*` and `L*` values: sampled/held internal capacitors or mirrored external capacitors can violate KVL/KCL at `t=0` if only one side is changed. After any IC edit, run a baseline candidate and check `.deck.err` for `Error Message ID: 5013`.
+
+Parameter candidates must pass this ladder before being considered usable:
+
+1. SIMPLIS files contain no blocking `.deck.err` and POP convergence is credible.
+2. POP vectors show real switching behavior, not latched logic or a static false operating point.
+3. DC values (`VOUT`, `FB`, `VC`, ramp/collision point) match the intended control law.
+4. AC Bode vectors meet the target crossover and phase margin.
+5. TRAN is enabled and checked only after POP and AC are valid.
+
+## Artifact Hygiene
+
+Open existing user schematics as read-only for measurement and vector export: `OpenSchem /cd /readonly "...sxsch"`. Keep every candidate in its own work directory so `SIMPLIS_Data` files do not overwrite previous evidence. Generated read-only runs can leave read-only waveform files behind; clear the attribute before deleting a candidate directory on Windows. Never modify the user's original `Downloads` schematic unless explicitly asked.
 
 ## Important Constraints
 
@@ -113,6 +145,7 @@ This skill is fragile and tool-version dependent. Every action must depend on ob
 - Read `references/parameter-and-metrics.md` before wiring a real schematic's parameters and measurements into an optimization script.
 - Read `references/research-validation.md` for buck PMIC validation metrics tied to ACOT/Vramp-valley work.
 - Read `references/simplis-design-method.md` before deriving new schematic-generation behavior from examples.
+- Read `references/simplis-automation-skill-guide.zh-CN.md` for a Chinese, user-facing operating guide and current capability boundaries.
 - Read `references/verified-local-84.md` for what has already been proven on this Windows SIMPLIS 8.4 installation.
 - Canonical symbol and module profiles live in `profiles/`.
 - Example generator specs live in `references/generated_rc_labeled.json`, `references/generated_feedback_divider_hybrid.json`, `references/generated_buck_acot_min.json`, and `references/generated_buck_open_loop_tran.json`.
