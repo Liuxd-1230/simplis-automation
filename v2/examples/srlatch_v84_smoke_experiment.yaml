@@ -1,0 +1,17 @@
+schema_version: simplis-automation/v2/experiment
+name: srlatch_v84_behavior_proof
+circuit: srlatch_v84_smoke.yaml
+analyses:
+  - type: startup
+    analysis: tran
+    behavior: sr_latch
+    group: simplis_tran1
+    directives: [.TRAN 20u 0]
+    vectors: {S: "#SET_CMD", R: "#RESET_CMD", Q: "#Q", QN: "#QN"}
+    checks: {initial_q: 0}
+execution:
+  startup_timeout_s: 15
+  stall_timeout_s: 60
+  hard_timeout_s: 120
+  poll_interval_s: 2
+  warning_allowlist: []

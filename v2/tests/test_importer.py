@@ -235,6 +235,17 @@ Property name="netname" value="OUT" autopos=1 normal=Right rotated=Bottom font=D
             with self.assertRaises(ImportBlockedError):
                 promote_parameter(imported, "R1", "UNSUPPORTED", "bad", "dimensionless", "0", "1", root / "blocked.yaml")
 
+    def test_import_converts_supported_f11_directives_to_experiment(self) -> None:
+        text = SIMPLE_SXSCH + '\nText value=".simulator SIMPLIS\\n.pop TRIG_GATE={TRIG_GATE}\\n.tran 10u 0\\n.simulator DEFAULT\\n.VAR TON=200n"\n'
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            out = root / "draft.yaml"
+            result = import_schematic(self._write(root, "analysis.sxsch", text), CATALOG, out)
+            experiment = load_yaml(root / "draft.experiment.yaml")
+        self.assertIn("experiment", result["metadata"])
+        self.assertEqual({item["type"] for item in experiment["analyses"]}, {"pop_ac", "startup"})
+        self.assertEqual(experiment["imported_variables"]["TON"], "200n")
+
 
 if __name__ == "__main__":  # pragma: no cover
     unittest.main()

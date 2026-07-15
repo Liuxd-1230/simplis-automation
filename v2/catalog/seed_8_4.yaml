@@ -1,0 +1,565 @@
+schema_version: simplis-automation/v2/catalog
+catalog_id: local-simplis-8.4-locked-seed
+title: Locked SIMetrix/SIMPLIS 8.4 device seed
+purpose: >-
+  Local evidence inventory for generation and import. Static library primitives
+  remain approved from their native SIMPLIS contracts. Dynamic DIGI1/Logic BB
+  records remain pending until the embedded-clone, clean-reopen, netlist and
+  behavioral proof suite has produced artifacts for this exact installation.
+
+runtime:
+  product: SIMetrix/SIMPLIS
+  version: "8.4"
+  executable: D:\Simplis8.4\bin64\SIMetrix.exe
+  symbol_library_dir: D:\Simplis8.4\support\symbollibs
+  symbol_libraries:
+    - {path: passives.sxslb, sha256: 65f9a89167b1816ae45e246dc752d2ea6f34045c6be43e1825848f8192c6b9e0}
+    - {path: sources.sxslb, sha256: 1a8def4926637d79fe0fb175bb273d8a2aad5ae54afc463ab1df455ec0a5402f}
+    - {path: simplis.sxslb, sha256: fb4c6219656ddcab42bfe4c53890c73569a3253ed8880067ba4cad79fbacaa2c}
+    - {path: connection.sxslb, sha256: 9fcee5f4afbbd83ec9be17588c2c845c04c18c171f491782b659dfb5f6111770}
+    - {path: system.sxslb, sha256: 16b4059c2383e53a8d7dadd8b6445d162eb28fc3f27ce58de22e1eb40dc7d9c5}
+    - {path: mixed_mode.sxslb, sha256: ffa1ccbf2980239d07dd3e754c567fb760425b0b40cca7c4fdaed163459a900c}
+    - {path: semiconductors.sxslb, sha256: a5778c4411843ab43555c57a236b798f345816c506a7d0a8b0e14455bd333d41}
+    - {path: simplis_analog_functions.sxslb, sha256: e6451da314c5adf2edf57f9eab9bc3245725a331972a6b83612a67868425a04a}
+  model_libraries:
+    - {path: D:\Simplis8.4\support\models\SIMPLIS_DIGI1.lb, sha256: 073836571353c918f11f2ca00ccf21825b6d8a184b22405fff673006b4c2868f}
+    - {path: D:\Simplis8.4\support\models\Logic_BB.cat, sha256: 206b756535cdd60d993aeff425c32d9a678047148297e338aef1e75beee2ac5a}
+    - {path: D:\Simplis8.4\support\models\SIMPLIS_logic_gates_BB.lb, sha256: 98610879a672644eee3672c1f41025e2e81c330ec715e86411c17fded09f254e}
+
+devices:
+  - kind: resistor
+    approval: approved
+    role: ideal_resistor
+    ideality: ideal
+    symbol: {library: passives.sxslb, name: res}
+    pins: [{name: P, index: 1, domain: analog}, {name: N, index: 2, domain: analog}]
+    properties:
+      VALUE: {dimension: resistance, default: 1kohm, required: true, min: 0ohm}
+    evidence: {source: passives.sxslb, library_sha256: 65f9a89167b1816ae45e246dc752d2ea6f34045c6be43e1825848f8192c6b9e0, native_model: R}
+
+  - kind: capacitor
+    approval: approved
+    role: ideal_capacitor
+    ideality: ideal
+    symbol: {library: passives.sxslb, name: cap}
+    property_encoder: reactive_value_ic
+    pins: [{name: P, index: 1, domain: analog}, {name: N, index: 2, domain: analog}]
+    properties:
+      VALUE: {dimension: capacitance, default: 1nF, required: true, min: 0F}
+      IC: {dimension: voltage, virtual: true}
+    evidence:
+      source: passives.sxslb
+      library_sha256: 65f9a89167b1816ae45e246dc752d2ea6f34045c6be43e1825848f8192c6b9e0
+      native_model: C
+      official_example: "SIMPLIS/Analysis Modes/example1.sxsch: cap VALUE='100u IC=0'"
+      property_behavior_evidence: catalog/evidence/reactive_ic_8_4.json
+
+  - kind: inductor
+    approval: approved
+    role: ideal_inductor
+    ideality: ideal
+    symbol: {library: passives.sxslb, name: ind}
+    property_encoder: reactive_value_ic
+    pins: [{name: P, index: 1, domain: analog}, {name: N, index: 2, domain: analog}]
+    properties:
+      VALUE: {dimension: inductance, default: 1uH, required: true, min: 0H}
+      IC: {dimension: current, virtual: true}
+    evidence:
+      source: passives.sxslb
+      library_sha256: 65f9a89167b1816ae45e246dc752d2ea6f34045c6be43e1825848f8192c6b9e0
+      native_model: L
+      official_example: "SIMPLIS/Advanced SIMPLIS Training/Applications/7.10_driver_example_efficiency.sxsch: ind VALUE='680n IC=8.5'"
+      property_behavior_evidence: catalog/evidence/reactive_ic_8_4.json
+
+  - kind: dc_voltage_source
+    approval: approved
+    role: ideal_dc_voltage_source
+    ideality: ideal
+    symbol: {library: sources.sxslb, name: dc_source}
+    pins: [{name: P, index: 1, domain: analog}, {name: N, index: 2, domain: analog}]
+    properties:
+      VALUE: {dimension: voltage, default: 0V, required: true}
+    evidence: {source: sources.sxslb, library_sha256: 1a8def4926637d79fe0fb175bb273d8a2aad5ae54afc463ab1df455ec0a5402f}
+
+  - kind: pulse_current_source
+    approval: approved
+    role: load_step_current_sink
+    ideality: ideal
+    symbol: {library: sources.sxslb, name: iwave_v2}
+    pins: [{name: P, index: 1, domain: analog}, {name: N, index: 2, domain: analog}]
+    properties:
+      SOURCE_MODEL: {value_type: string, raw: true, default: SQU_SOURCE_I, required: true}
+      SIMPLIS_VALUE: {value_type: string, raw: true, default: "_V1=5 _V2=10 _FREQ=2.5k _DELAY=200u _DRATIOx100=50 _T_RISE=1n _T_FALL=1n _DAMP_COEF=0 _PWIDTH=200u _OFF_UNTIL_DELAY=0 _IDLE_IN_POP=1 _USEPHASE=0 _PHASE=0", required: true}
+    evidence:
+      source: sources.sxslb
+      library_sha256: 1a8def4926637d79fe0fb175bb273d8a2aad5ae54afc463ab1df455ec0a5402f
+      pop_load_contract: "Hold V1 during POP with IDLE_IN_POP=YES; retain the V1-to-V2 step in TRAN."
+      official_example: "SIMPLIS/Analog Devices/Switching Regulators load fixtures use IDLE_IN_POP=YES."
+
+  - kind: ramp_voltage_source
+    approval: approved
+    role: synthetic_ripple_source
+    ideality: ideal
+    symbol: {library: sources.sxslb, name: vwave_v2}
+    pins: [{name: P, index: 1, domain: analog}, {name: N, index: 2, domain: analog}]
+    properties:
+      SOURCE_MODEL: {value_type: string, raw: true, default: SAW_SOURCE, required: true}
+      SIMPLIS_VALUE: {value_type: string, raw: true, default: "_V1=0 _V2=50m _FREQ=500k", required: true}
+    evidence: {source: sources.sxslb, library_sha256: 1a8def4926637d79fe0fb175bb273d8a2aad5ae54afc463ab1df455ec0a5402f}
+
+  - kind: pulse_voltage_source
+    approval: approved
+    role: ideal_pulse_source
+    ideality: ideal
+    symbol: {library: sources.sxslb, name: vwave_v2}
+    pins: [{name: P, index: 1, domain: analog}, {name: N, index: 2, domain: analog}]
+    properties:
+      SOURCE_MODEL: {value_type: string, raw: true, default: SQU_SOURCE, required: true}
+      SIMPLIS_VALUE: {value_type: string, raw: true, default: "_V1=0 _V2=5 _FREQ=1k _DELAY=0 _DRATIOx100=10 _T_RISE=1n _T_FALL=1n _DAMP_COEF=0 _PWIDTH=100u _OFF_UNTIL_DELAY=0 _IDLE_IN_POP=0 _USEPHASE=0 _PHASE=0", required: true}
+    evidence: {source: sources.sxslb, library_sha256: 1a8def4926637d79fe0fb175bb273d8a2aad5ae54afc463ab1df455ec0a5402f}
+
+  - kind: pwl_voltage_source
+    approval: approved
+    role: deterministic_edge_stimulus
+    ideality: ideal
+    symbol: {library: sources.sxslb, name: vpwl, sha256: 1a8def4926637d79fe0fb175bb273d8a2aad5ae54afc463ab1df455ec0a5402f}
+    pins: [{name: P, index: 1, domain: analog}, {name: N, index: 2, domain: analog}]
+    properties:
+      VALUE: {value_type: string, raw: true, default: "NSEG=4 X0=0 Y0=0 X1=1u Y1=0 X2=1u Y2=5 X3=2u Y3=5 X4=2u Y4=0", required: true}
+    evidence:
+      source: sources.sxslb
+      library_sha256: 1a8def4926637d79fe0fb175bb273d8a2aad5ae54afc463ab1df455ec0a5402f
+      official_example: "SIMPLIS/Analog Functions/simplis_069_simplis_one_shot.sxsch"
+      native_model: PWL
+
+  - kind: voltage_controlled_switch
+    approval: approved
+    role: ideal_voltage_controlled_switch
+    ideality: ideal
+    symbol: {library: simplis.sxslb, name: simplis_prim_vcswitch}
+    property_encoder: simplis_vc_switch_vars
+    pins:
+      - {name: P, index: 1, domain: analog}
+      - {name: N, index: 2, domain: analog}
+      - {name: CP, index: 3, domain: analog}
+      - {name: CN, index: 4, domain: analog}
+    properties:
+      RON: {dimension: resistance, default: 1mohm, min: 1uohm, required: true}
+      ROFF: {dimension: resistance, default: 100Mohm, min: 1kohm, required: true}
+      THRESHOLD: {dimension: voltage, default: 2.5V}
+      HYSTWD: {dimension: voltage, default: 10mV, min: 0V}
+      IC: {value_type: enum, enum: [Open, Closed], default: Open}
+      LOGIC: {value_type: enum, enum: [POS, NEG], default: POS}
+    evidence: {source: simplis.sxslb, library_sha256: fb4c6219656ddcab42bfe4c53890c73569a3253ed8880067ba4cad79fbacaa2c, native_model: SIMPLIS_VC_SWITCH}
+
+  - kind: vcvs
+    approval: approved
+    role: ideal_behavioral_voltage_amplifier
+    ideality: ideal_native
+    symbol: {library: sources.sxslb, name: vcvs_2, sha256: 1a8def4926637d79fe0fb175bb273d8a2aad5ae54afc463ab1df455ec0a5402f}
+    pins:
+      - {name: P, index: 1, domain: analog}
+      - {name: N, index: 2, domain: analog}
+      - {name: CP, index: 3, domain: analog}
+      - {name: CN, index: 4, domain: analog}
+    properties:
+      VALUE: {dimension: dimensionless, default: 1, required: true}
+    evidence:
+      source: sources.sxslb
+      library_sha256: 1a8def4926637d79fe0fb175bb273d8a2aad5ae54afc463ab1df455ec0a5402f
+      native_model: E
+      summary: catalog/evidence/vcvs_8_4.json
+      proofs:
+        library_hash: {passed: true, sha256: 1a8def4926637d79fe0fb175bb273d8a2aad5ae54afc463ab1df455ec0a5402f}
+        pin_contract: {passed: true, details: "P N CP CN; installed pin order and generated E line agree"}
+        gui_placement: {passed: true, sha256: f5d0b0e27de3bf4f47866d318d5ad2dbc2e0b909d6fa5bf49d9112d3905daba4}
+        clean_reopen: {passed: true, sha256: 86bffbedcee3bf3dca0a74b31c97770c67c42a7c88b60712a79537200868c57a}
+        netlist: {passed: true, sha256: 5e0c7c2ebff60c8c0dc374f14093112287ba0334f13fec7254321f1af8ec3474}
+        behavior_test: {passed: true, details: "+2.0 signed voltage gain over 670 driven samples; exit=0; no errors"}
+
+  - kind: vccs
+    approval: approved
+    role: ideal_behavioral_transconductance_amplifier
+    ideality: ideal_native
+    symbol: {library: sources.sxslb, name: vccs_2, sha256: 1a8def4926637d79fe0fb175bb273d8a2aad5ae54afc463ab1df455ec0a5402f}
+    pins:
+      - {name: P, index: 1, domain: analog}
+      - {name: N, index: 2, domain: analog}
+      - {name: CP, index: 3, domain: analog}
+      - {name: CN, index: 4, domain: analog}
+    properties:
+      VALUE: {dimension: conductance, default: 1mS, required: true}
+    evidence:
+      source: sources.sxslb
+      library_sha256: 1a8def4926637d79fe0fb175bb273d8a2aad5ae54afc463ab1df455ec0a5402f
+      native_model: G
+      summary: catalog/evidence/vccs_8_4.json
+      proofs:
+        library_hash: {passed: true, sha256: 1a8def4926637d79fe0fb175bb273d8a2aad5ae54afc463ab1df455ec0a5402f}
+        pin_contract: {passed: true, details: "P N CP CN; installed pin order and generated G line agree"}
+        gui_placement: {passed: true, sha256: f5d0b0e27de3bf4f47866d318d5ad2dbc2e0b909d6fa5bf49d9112d3905daba4}
+        clean_reopen: {passed: true, sha256: 86bffbedcee3bf3dca0a74b31c97770c67c42a7c88b60712a79537200868c57a}
+        netlist: {passed: true, sha256: 5e0c7c2ebff60c8c0dc374f14093112287ba0334f13fec7254321f1af8ec3474}
+        behavior_test: {passed: true, details: "2 mS into 1 kohm gives -2.0 signed voltage gain over 670 samples; exit=0; no errors"}
+
+  - kind: idealized_diode
+    approval: approved
+    role: zero_drop_vpwlr_body_diode
+    ideality: ideal_native
+    symbol: {library: simplis.sxslb, name: simplis_pwlr_box, sha256: fb4c6219656ddcab42bfe4c53890c73569a3253ed8880067ba4cad79fbacaa2c}
+    pins: [{name: P, index: 1, domain: analog}, {name: N, index: 2, domain: analog}]
+    property_encoder: vpwlr_ideal_diode
+    properties:
+      RON: {dimension: resistance, default: 1mohm, min: 1uohm, required: true, virtual: true}
+      ROFF: {dimension: resistance, default: 100Mohm, min: 1kohm, required: true, virtual: true}
+      IC: {dimension: dimensionless, default: 1}
+    evidence:
+      source: simplis.sxslb
+      library_sha256: fb4c6219656ddcab42bfe4c53890c73569a3253ed8880067ba4cad79fbacaa2c
+      native_model: VPWLR
+      summary: catalog/evidence/idealized_diode_8_4.json
+      proofs:
+        library_hash: {passed: true, sha256: fb4c6219656ddcab42bfe4c53890c73569a3253ed8880067ba4cad79fbacaa2c}
+        pin_contract: {passed: true, details: "P N; forward direction P to N and generated VPWLR node order agree"}
+        gui_placement: {passed: true, sha256: f5d0b0e27de3bf4f47866d318d5ad2dbc2e0b909d6fa5bf49d9112d3905daba4}
+        clean_reopen: {passed: true, sha256: 86bffbedcee3bf3dca0a74b31c97770c67c42a7c88b60712a79537200868c57a}
+        netlist: {passed: true, sha256: 5e0c7c2ebff60c8c0dc374f14093112287ba0334f13fec7254321f1af8ec3474}
+        behavior_test: {passed: true, details: "reverse tracking error <10 uV and forward clamp <1 uV; exit=0; no errors"}
+
+  - kind: ac_injection_source
+    approval: approved
+    role: zero_dc_ac_loop_injection
+    ideality: ideal_native
+    symbol: {library: sources.sxslb, name: ac_source, sha256: 1a8def4926637d79fe0fb175bb273d8a2aad5ae54afc463ab1df455ec0a5402f}
+    pins: [{name: P, index: 1, domain: analog}, {name: N, index: 2, domain: analog}]
+    properties:
+      VALUE: {value_type: string, raw: true, default: "AC 1", required: true}
+    evidence:
+      source: sources.sxslb
+      library_sha256: 1a8def4926637d79fe0fb175bb273d8a2aad5ae54afc463ab1df455ec0a5402f
+      native_model: V
+      summary: catalog/evidence/ac_injection_source_8_4.json
+      proofs:
+        library_hash: {passed: true, sha256: 1a8def4926637d79fe0fb175bb273d8a2aad5ae54afc463ab1df455ec0a5402f}
+        pin_contract: {passed: true, details: "P N; generated VAC line is zero-DC AC 1"}
+        gui_placement: {passed: true, sha256: f5d0b0e27de3bf4f47866d318d5ad2dbc2e0b909d6fa5bf49d9112d3905daba4}
+        clean_reopen: {passed: true, sha256: 86bffbedcee3bf3dca0a74b31c97770c67c42a7c88b60712a79537200868c57a}
+        netlist: {passed: true, sha256: 5e0c7c2ebff60c8c0dc374f14093112287ba0334f13fec7254321f1af8ec3474}
+        behavior_test: {passed: true, details: "transient DC=0 and raw complex AC input magnitude=1 across 31 points; exit=0; no errors"}
+
+  - kind: bode_probe
+    approval: approved
+    role: two_node_bode_probe
+    ideality: ideal_native
+    netlist_presence: directive
+    symbol: {library: connection.sxslb, name: Bode_Probe2, sha256: 9fcee5f4afbbd83ec9be17588c2c845c04c18c171f491782b659dfb5f6111770}
+    pins: [{name: OUT, index: 1, domain: analog}, {name: IN, index: 2, domain: analog}]
+    properties: {}
+    evidence:
+      source: connection.sxslb
+      library_sha256: 9fcee5f4afbbd83ec9be17588c2c845c04c18c171f491782b659dfb5f6111770
+      native_model: probe
+      summary: catalog/evidence/bode_probe_8_4.json
+      proofs:
+        library_hash: {passed: true, sha256: 9fcee5f4afbbd83ec9be17588c2c845c04c18c171f491782b659dfb5f6111770}
+        pin_contract: {passed: true, details: "OUT IN; protected TEXT remains untouched and default =OUT/IN is retained"}
+        gui_placement: {passed: true, sha256: f5d0b0e27de3bf4f47866d318d5ad2dbc2e0b909d6fa5bf49d9112d3905daba4}
+        clean_reopen: {passed: true, sha256: 86bffbedcee3bf3dca0a74b31c97770c67c42a7c88b60712a79537200868c57a}
+        netlist: {passed: true, sha256: 5e0c7c2ebff60c8c0dc374f14093112287ba0334f13fec7254321f1af8ec3474}
+        behavior_test: {passed: true, details: "31 raw complex points give AC_OUT/AC_IN=0.5; .PRINT and db/ph .GRAPH directives present; exit=0; no errors"}
+
+  - kind: digital_and2_grounded
+    approval: approved
+    role: grounded_digi1_and2
+    ideality: ideal_native
+    placement_adapter: embedded_clone
+    symbol:
+      name: SIMPLIS_DIGI1_AND_2I0_Y
+      source: 'D:\Simplis8.4\support\examples\SIMPLIS\DVM Tutorial\LLC\Modeling Blocks\LLC_Modulator_Open_Loop.sxcmp'
+      source_sha256: aac734850a42d9ecd81ee588981c81599a08e8a4dd4e3d4bb9a7b52cede83441
+    pins:
+      - {name: OUT, index: 1, domain: analog}
+      - {name: OUT_BAR, index: 2, domain: analog}
+      - {name: RTN, index: 3, domain: analog}
+      - {name: IN1, index: 4, domain: analog}
+      - {name: IN2, index: 5, domain: analog}
+    properties:
+      IC: {value_type: enum, enum: ["0", "1"], default: "0"}
+      RIN: {dimension: resistance, default: 10Mohm}
+      ROUT: {dimension: resistance, default: 10ohm}
+      HYSTWD: {dimension: voltage, default: 1V}
+      VOL: {dimension: voltage, default: 0V}
+      VOH: {dimension: voltage, default: 5V}
+      DELAY: {dimension: time, default: 2ps}
+      TH: {dimension: voltage, default: 2.5V}
+    evidence:
+      source: official embedded symbol
+      source_sha256: aac734850a42d9ecd81ee588981c81599a08e8a4dd4e3d4bb9a7b52cede83441
+      native_model: SIMPLIS_DIGI1_AND2_Y
+      summary: catalog/evidence/digital_and2_grounded_8_4.json
+      proofs:
+        library_hash: {passed: true, sha256: aac734850a42d9ecd81ee588981c81599a08e8a4dd4e3d4bb9a7b52cede83441}
+        pin_contract: {passed: true, details: "OUT OUT_BAR RTN IN1 IN2; official embedded order and generated native model line agree"}
+        gui_placement: {passed: true, sha256: aed4f20761de643af0c0f3c059cc9b98b778bbf1934775e7bada6c350e396267}
+        clean_reopen: {passed: true, sha256: 71203a6e29eddb793ccc1a7bbea4108501ccf581dd46a8041ad4fde303b119f4}
+        netlist: {passed: true, sha256: 92d82a875551196f8b464809c16fc0681ad7df3b16104ac447fc8bc90fa0d949}
+        behavior_test: {passed: true, details: "00 10 11 01 all covered; 997 checked samples with zero OUT or OUT_BAR mismatches; exit=0; no errors"}
+
+  - kind: digital_or2
+    approval: pending
+    role: proof_queue_or2
+    ideality: pending_review
+    symbol: {library: system.sxslb, name: display_D_OR, sha256: 16b4059c2383e53a8d7dadd8b6445d162eb28fc3f27ce58de22e1eb40dc7d9c5}
+    pins: [{name: OUT, index: 1, domain: analog}, {name: OUT_BAR, index: 2, domain: analog}, {name: IN1, index: 3, domain: analog}, {name: IN2, index: 4, domain: analog}]
+    properties: {}
+
+  - kind: digital_xor2
+    approval: pending
+    role: proof_queue_xor2
+    ideality: pending_review
+    symbol: {library: system.sxslb, name: display_D_XOR, sha256: 16b4059c2383e53a8d7dadd8b6445d162eb28fc3f27ce58de22e1eb40dc7d9c5}
+    pins: [{name: OUT, index: 1, domain: analog}, {name: OUT_BAR, index: 2, domain: analog}, {name: IN1, index: 3, domain: analog}, {name: IN2, index: 4, domain: analog}]
+    properties: {}
+
+  - kind: summer2
+    approval: pending
+    role: proof_queue_summer2
+    ideality: pending_review
+    symbol: {library: simplis_analog_functions.sxslb, name: SIMPLIS_SUMMER2, sha256: e6451da314c5adf2edf57f9eab9bc3245725a331972a6b83612a67868425a04a}
+    pins: [{name: OUT, index: 1, domain: analog}, {name: RTN, index: 2, domain: analog}, {name: IN1, index: 3, domain: analog}, {name: IN2, index: 4, domain: analog}]
+    properties: {}
+
+  - kind: ccvs_import_boundary
+    approval: import_only
+    role: discovered_current_controlled_voltage_source
+    ideality: unknown
+    symbol: {library: sources.sxslb, name: ccvs_2, sha256: 1a8def4926637d79fe0fb175bb273d8a2aad5ae54afc463ab1df455ec0a5402f}
+    pins: [{name: P, index: 1, domain: analog}, {name: N, index: 2, domain: analog}]
+    properties: {VALUE: {value_type: string, raw: true, default: "Vcont 1"}}
+
+  - kind: cccs_import_boundary
+    approval: import_only
+    role: discovered_current_controlled_current_source
+    ideality: unknown
+    symbol: {library: sources.sxslb, name: cccs_2, sha256: 1a8def4926637d79fe0fb175bb273d8a2aad5ae54afc463ab1df455ec0a5402f}
+    pins: [{name: P, index: 1, domain: analog}, {name: N, index: 2, domain: analog}]
+    properties: {VALUE: {value_type: string, raw: true, default: "Vcont 1"}}
+
+  - kind: ground
+    approval: approved
+    role: ground_reference
+    ideality: ideal
+    symbol: {library: connection.sxslb, name: gnd}
+    pins: [{name: GND, index: 1, domain: analog}]
+    properties: {VALUE: {value_type: enum, enum: ["0"], default: "0"}}
+    evidence: {source: connection.sxslb, library_sha256: 9fcee5f4afbbd83ec9be17588c2c845c04c18c171f491782b659dfb5f6111770}
+
+  - kind: voltage_probe
+    approval: approved
+    role: voltage_probe
+    ideality: ideal
+    symbol: {library: connection.sxslb, name: probev_new}
+    pins: [{name: NODE, index: 1, domain: analog}]
+    properties: {Label: {value_type: string, raw: true, default: ""}}
+    evidence: {source: connection.sxslb, library_sha256: 9fcee5f4afbbd83ec9be17588c2c845c04c18c171f491782b659dfb5f6111770}
+
+  - kind: current_probe
+    approval: approved
+    role: current_probe
+    ideality: ideal
+    symbol: {library: connection.sxslb, name: InlineCurrentProbe}
+    pins: [{name: P, index: 1, domain: analog}, {name: N, index: 2, domain: analog}]
+    properties: {LABEL: {value_type: string, raw: true, default: ""}}
+    evidence: {source: connection.sxslb, library_sha256: 9fcee5f4afbbd83ec9be17588c2c845c04c18c171f491782b659dfb5f6111770}
+
+  - kind: pop_trigger
+    approval: approved
+    role: periodic_operating_point_trigger
+    ideality: ideal
+    symbol: {library: simplis.sxslb, name: PERIODIC_OP_V8}
+    pins: [{name: IN, index: 1, domain: analog}, {name: OUT, index: 2, domain: analog}]
+    properties:
+      VREF: {dimension: voltage, default: 2.5V}
+      VOL: {dimension: voltage, default: 0V}
+      VOH: {dimension: voltage, default: 5V}
+      HYSTWD: {dimension: voltage, default: 2mV}
+      DIVIDE_BY_2: {value_type: enum, enum: ["0", "1"], default: "0"}
+      IC: {value_type: enum, enum: ["0", "1"], default: "0"}
+      DELAY: {dimension: time, default: 0s}
+      TRIG_COND: {value_type: enum, enum: [0_TO_1, 1_TO_0], default: 0_TO_1}
+    evidence: {source: simplis.sxslb, library_sha256: fb4c6219656ddcab42bfe4c53890c73569a3253ed8880067ba4cad79fbacaa2c, native_model: PERIODIC_OP}
+
+  - kind: digital_comparator_grounded
+    approval: approved
+    role: analog_to_digital_comparator
+    ideality: ideal_native
+    symbol:
+      name: display_D_COMPARATOR
+      library: system.sxslb
+      sha256: 16b4059c2383e53a8d7dadd8b6445d162eb28fc3f27ce58de22e1eb40dc7d9c5
+    placement_adapter: display_symbol_binding
+    pins:
+      - {name: OUT, index: 1, domain: analog}
+      - {name: OUT_BAR, index: 2, domain: analog}
+      - {name: RTN, index: 3, domain: analog}
+      - {name: INP, index: 4, domain: analog}
+      - {name: INN, index: 5, domain: analog}
+    properties:
+      IC: {value_type: enum, enum: ["0", "1"], default: "0"}
+      RIN: {dimension: resistance, default: 10Mohm}
+      ROUT: {dimension: resistance, default: 10ohm}
+      HYSTWD: {dimension: voltage, default: 2mV}
+      VOL: {dimension: voltage, default: 0V}
+      VOH: {dimension: voltage, default: 5V}
+      DELAY: {dimension: time, default: 2ps}
+    placement_properties:
+      SIMULATOR: SIMPLIS
+      PARAMSSCRIPT: no_params
+      MODEL: X
+      VALUESCRIPT: edit_parameterised_multi_prop_subckt
+      PARAM_MODEL_NAME: SIMPLIS_DIGI1_COMP_Y
+      SIMPLIS_TEMPLATE: "<ref> <nodelist> %PARAM_MODEL_NAME% vars: IC=%IC% RIN=%RIN% ROUT=%ROUT% HYSTWD=%HYSTWD% VOL=%VOL% VOH=%VOH% DELAY=%DELAY%"
+      INIT_SCRIPT: simplis_back_annotate_digital_devices
+    evidence:
+      summary: catalog/evidence/digital_comparator_grounded_8_4.json
+      proofs:
+        library_hash: {passed: true, sha256: 16b4059c2383e53a8d7dadd8b6445d162eb28fc3f27ce58de22e1eb40dc7d9c5}
+        pin_contract: {passed: true, details: "OUT OUT_BAR RTN INP INN"}
+        gui_placement: {passed: true, sha256: 24fd3594db6406b981d5ab48b84d8c8abb0612406636323589159df86db887df}
+        clean_reopen: {passed: true, sha256: e7a41e84523ac0aab4b53763169c929fc043432ca8ad105dee6fd65096a460ff}
+        netlist: {passed: true, sha256: d3c8c19b1a60f69f7206a68fe6fecc687420ec53b629f85b638e369194d8603b}
+        behavior_test: {passed: true, details: "0/1 output transition against 0..5 V ramp and 2.5 V reference; exit=0; no errors"}
+
+  - kind: sr_latch_grounded
+    approval: approved
+    role: ideal_sr_latch
+    ideality: ideal_native
+    symbol: {name: display_D_SRLATCH, library: system.sxslb, sha256: 16b4059c2383e53a8d7dadd8b6445d162eb28fc3f27ce58de22e1eb40dc7d9c5}
+    placement_adapter: display_symbol_binding
+    pins:
+      - {name: Q, index: 1, domain: analog}
+      - {name: QN, index: 2, domain: analog}
+      - {name: S, index: 3, domain: analog}
+      - {name: R, index: 4, domain: analog}
+    properties:
+      OUT_DELAY: {dimension: time, default: 20ps}
+      IC: {value_type: enum, enum: ["0", "1"], default: "0"}
+      RIN: {dimension: resistance, default: 10Mohm}
+      ROUT: {dimension: resistance, default: 10ohm}
+      TH: {dimension: voltage, default: 2.5V}
+      HYSTWD: {dimension: voltage, default: 1V}
+      VOL: {dimension: voltage, default: 0V}
+      VOH: {dimension: voltage, default: 5V}
+      SET_RESET_LEVEL: {value_type: enum, enum: ["0", "1"], default: "1"}
+      DOM: {value_type: enum, enum: [S, R, NONE], default: NONE}
+    placement_properties:
+      SIMULATOR: SIMPLIS
+      MODEL: X
+      PARAM_MODEL_NAME: SIMPLIS_DIGI1_SRLATCH_Y
+      SIMPLIS_TEMPLATE: "<ref> <node[1]> <node[2]> 0 <node[3]> <node[4]> %PARAM_MODEL_NAME% vars: OUT_DELAY=%OUT_DELAY% IC=%IC% RIN=%RIN% ROUT=%ROUT% TH=%TH% HYSTWD=%HYSTWD% VOL=%VOL% VOH=%VOH% SET_RESET_LEVEL=%SET_RESET_LEVEL% DOM='%DOM%' ENABLE='N' GNDREF='Y'"
+    evidence:
+      summary: catalog/evidence/sr_latch_grounded_8_4.json
+      proofs:
+        library_hash: {passed: true, sha256: 16b4059c2383e53a8d7dadd8b6445d162eb28fc3f27ce58de22e1eb40dc7d9c5}
+        pin_contract: {passed: true, details: "Q QN S R; explicit grounded template inserts node 0"}
+        gui_placement: {passed: true, sha256: d451c6d8faa127f3fd107103bb21ee33f1cb94e0633fc4db57d984f93f0510ce}
+        clean_reopen: {passed: true, sha256: 90859a0442e807a523bdf6e7ebdda80822219bc1cbd5beca929da247b6952d6b}
+        netlist: {passed: true, sha256: b1835ddf53efbcc8eab86aa1b9af31ebbc4596ce3628c10c5742cb64a1282055}
+        behavior_test: {passed: true, details: "Q/QN complementary set/reset transitions at each S/R stimulus plus 20 ps delay; exit=0; no errors"}
+
+  - kind: native_oneshot
+    approval: approved
+    role: calculated_adaptive_ton_oneshot
+    ideality: ideal_native
+    symbol: {name: SIMPLIS_1SHOT, library: simplis_analog_functions.sxslb, sha256: e6451da314c5adf2edf57f9eab9bc3245725a331972a6b83612a67868425a04a}
+    pins:
+      - {name: IN, index: 1, domain: analog}
+      - {name: RTN, index: 2, domain: analog}
+      - {name: OUT, index: 3, domain: analog}
+      - {name: DSCH, index: 4, domain: analog}
+      - {name: RAMP, index: 5, domain: analog}
+    properties:
+      TH: {dimension: time, default: 200ns, min: 20ns, max: 1us}
+    evidence:
+      summary: catalog/evidence/native_oneshot_8_4.json
+      proofs:
+        library_hash: {passed: true, sha256: e6451da314c5adf2edf57f9eab9bc3245725a331972a6b83612a67868425a04a}
+        pin_contract: {passed: true, details: "IN RTN OUT DSCH RAMP; official order and generated netlist order agree"}
+        gui_placement: {passed: true, sha256: c00002003d213bcb5db987365ca13a719a40eade4a266b2f62211e70e44b96d0}
+        clean_reopen: {passed: true, sha256: 1ff1996d646e534b81f0561cfaee7076b1310d16073710e1f23716ec4758c4b1}
+        netlist: {passed: true, sha256: 8c09fcb88416a251c1a71c091537962981271b80a57b5c800e9ae47b7d23b357}
+        behavior_test: {passed: true, details: "four 200 ns pulses; active RAMP and DSCH; exit=0; no errors"}
+
+  - kind: digital_buffer_grounded
+    approval: approved
+    role: complementary_digital_buffer
+    ideality: ideal_native
+    symbol: {name: display_D_BUFFER, library: system.sxslb, sha256: 16b4059c2383e53a8d7dadd8b6445d162eb28fc3f27ce58de22e1eb40dc7d9c5}
+    placement_adapter: display_symbol_binding
+    pins:
+      - {name: OUT, index: 1, domain: analog}
+      - {name: OUT_BAR, index: 2, domain: analog}
+      - {name: IN1, index: 3, domain: analog}
+    properties:
+      IC: {value_type: enum, enum: ["0", "1"], default: "0"}
+      RIN: {dimension: resistance, default: 10Mohm}
+      ROUT: {dimension: resistance, default: 10ohm}
+      HYSTWD: {dimension: voltage, default: 1V}
+      VOL: {dimension: voltage, default: 0V}
+      VOH: {dimension: voltage, default: 5V}
+      DELAY: {dimension: time, default: 2ps}
+      TH: {dimension: voltage, default: 2.5V}
+    placement_properties:
+      SIMULATOR: SIMPLIS
+      PARAMSSCRIPT: no_params
+      MODEL: X
+      VALUESCRIPT: edit_parameterised_multi_prop_subckt
+      PARAM_MODEL_NAME: SIMPLIS_DIGI1_BUF_Y
+      SIMPLIS_TEMPLATE: "<ref> <node[1]> <node[2]> 0 <node[3]> %PARAM_MODEL_NAME% vars: IC=%IC% RIN=%RIN% ROUT=%ROUT% HYSTWD=%HYSTWD% VOL=%VOL% VOH=%VOH% DELAY=%DELAY% TH=%TH%"
+      INIT_SCRIPT: simplis_back_annotate_digital_devices
+    evidence:
+      summary: catalog/evidence/digital_buffer_grounded_8_4.json
+      proofs:
+        library_hash: {passed: true, sha256: 16b4059c2383e53a8d7dadd8b6445d162eb28fc3f27ce58de22e1eb40dc7d9c5}
+        pin_contract: {passed: true, details: "OUT OUT_BAR IN1; explicit grounded template inserts node 0"}
+        gui_placement: {passed: true, sha256: c00002003d213bcb5db987365ca13a719a40eade4a266b2f62211e70e44b96d0}
+        clean_reopen: {passed: true, sha256: 1ff1996d646e534b81f0561cfaee7076b1310d16073710e1f23716ec4758c4b1}
+        netlist: {passed: true, sha256: 8c09fcb88416a251c1a71c091537962981271b80a57b5c800e9ae47b7d23b357}
+        behavior_test: {passed: true, details: "direct/inverse outputs toggle with 2 ps delay and remain complementary; exit=0; no errors"}
+
+  - kind: asymmetric_delay_grounded
+    approval: approved
+    role: digital_asymmetric_delay
+    ideality: ideal_native
+    symbol: {name: display_D_ASYMMETRIC_DELAY, library: system.sxslb, sha256: 16b4059c2383e53a8d7dadd8b6445d162eb28fc3f27ce58de22e1eb40dc7d9c5}
+    placement_adapter: display_symbol_binding
+    pins:
+      - {name: OUT, index: 1, domain: analog}
+      - {name: IN1, index: 2, domain: analog}
+    properties:
+      IC: {value_type: enum, enum: ["0", "1"], default: "0"}
+      RIN: {dimension: resistance, default: 10Mohm}
+      ROUT: {dimension: resistance, default: 10ohm}
+      TH: {dimension: voltage, default: 2.5V}
+      HYSTWD: {dimension: voltage, default: 1V}
+      VOL: {dimension: voltage, default: 0V}
+      VOH: {dimension: voltage, default: 5V}
+      RISE_DELAY: {dimension: time, default: 20ns}
+      FALL_DELAY: {dimension: time, default: 2ps, min: 2ps}
+    placement_properties:
+      SIMULATOR: SIMPLIS
+      PARAMSSCRIPT: no_params
+      MODEL: X
+      VALUESCRIPT: simplis_edit_asymmetric_delay
+      PARAM_MODEL_NAME: SIMPLIS_DIGI1_D_ASYMMETRIC_DELAY_Y
+      SIMPLIS_TEMPLATE: "<ref> <node[1]> 0 <node[2]> %PARAM_MODEL_NAME% vars: IC=%IC% RIN=%RIN% ROUT=%ROUT% TH=%TH% HYSTWD=%HYSTWD% VOL=%VOL% VOH=%VOH% RISE_DELAY=%RISE_DELAY% FALL_DELAY=%FALL_DELAY% GNDREF='Y'"
+      INIT_SCRIPT: simplis_back_annotate_digital_devices
+    evidence:
+      summary: catalog/evidence/asymmetric_delay_grounded_8_4.json
+      proofs:
+        library_hash: {passed: true, sha256: 16b4059c2383e53a8d7dadd8b6445d162eb28fc3f27ce58de22e1eb40dc7d9c5}
+        pin_contract: {passed: true, details: "OUT IN1; explicit grounded template inserts node 0"}
+        gui_placement: {passed: true, sha256: c00002003d213bcb5db987365ca13a719a40eade4a266b2f62211e70e44b96d0}
+        clean_reopen: {passed: true, sha256: 1ff1996d646e534b81f0561cfaee7076b1310d16073710e1f23716ec4758c4b1}
+        netlist: {passed: true, sha256: 8c09fcb88416a251c1a71c091537962981271b80a57b5c800e9ae47b7d23b357}
+        behavior_test: {passed: true, details: "HS/LS rise delays measure 20 ns with 2 ps falling delay and zero overlap; exit=0; no errors"}

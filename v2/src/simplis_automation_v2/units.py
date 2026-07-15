@@ -26,6 +26,7 @@ DIMENSIONS: dict[str, Dimension] = {
     "time": (0, 0, 1),
     "frequency": (0, 0, -1),
     "resistance": (1, -1, 0),
+    "conductance": (-1, 1, 0),
     "capacitance": (-1, 1, 1),
     "inductance": (1, -1, 1),
 }
@@ -38,6 +39,7 @@ UNIT_DIMENSIONS: dict[str, Dimension] = {
     "Hz": DIMENSIONS["frequency"],
     "ohm": DIMENSIONS["resistance"],
     "Ω": DIMENSIONS["resistance"],
+    "S": DIMENSIONS["conductance"],
     "F": DIMENSIONS["capacitance"],
     "H": DIMENSIONS["inductance"],
 }

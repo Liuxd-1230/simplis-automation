@@ -1,0 +1,20 @@
+schema_version: simplis-automation/v2/experiment
+name: timing_primitives_v84_behavior_proof
+circuit: timing_primitives_v84_smoke.yaml
+analyses:
+  - type: startup
+    analysis: tran
+    behavior: timing_primitives
+    group: simplis_tran1
+    directives: [.TRAN 10u 0]
+    vectors:
+      TON_OUT: "#TON_OUT"
+      PWM_HS: "#PWM_HS"
+      PWM_LS: "#PWM_LS"
+      PWM: "#PWM"
+      BUF: "#DT_BUF"
+      BUF_BAR: "#DT_INV"
+      RAMP: "#TON_RAMP"
+      DSCH: "#TON_DSCH"
+    checks: {ton_s: 2.0e-7, ton_tolerance_pct: 2, deadtime_s: 2.0e-8, deadtime_tolerance_pct: 2}
+execution: {startup_timeout_s: 15, stall_timeout_s: 30, hard_timeout_s: 120, poll_interval_s: 2, warning_allowlist: []}

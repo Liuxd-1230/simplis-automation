@@ -1,0 +1,47 @@
+schema_version: simplis-automation/v2/experiment
+name: analog_primitives_v84_catalog_proof
+circuit: analog_primitives_v84.yaml
+analyses:
+  - type: catalog_proof
+    analysis: tran
+    behavior: catalog_analog_primitives
+    group: simplis_tran1
+    directives: [.TRAN 3u 0]
+    vectors:
+      CTRL: "#CTRL"
+      VCVS_OUT: "#VCVS_OUT"
+      VCCS_OUT: "#VCCS_OUT"
+      DIODE_IN: "#DIODE_IN"
+      DIODE_OUT: "#DIODE_OUT"
+      AC_IN_DC: "#AC_IN"
+      AC_OUT_DC: "#AC_OUT"
+    checks:
+      vcvs_gain: 2
+      vccs_voltage_gain: -2
+      gain_tolerance_pct: 2
+      diode_off_tracking_tolerance_v: 0.02
+      diode_on_clamp_max_v: 0.02
+  - type: catalog_proof
+    analysis: ac
+    behavior: catalog_ac_probe
+    group: simplis_ac1
+    directives:
+      - .POP
+      - "+ TRIG_GATE={TRIG_GATE}"
+      - "+ TRIG_COND=0_TO_1"
+      - "+ MAX_PERIOD=2u"
+      - "+ CONVERGENCE=1p"
+      - "+ CYCLES_BEFORE_LAUNCH=2"
+      - "+ TD_RUN_AFTER_POP_FAILS=-1"
+      - .AC DEC 10 1k 1Meg
+    vectors:
+      AC_IN: "#AC_IN"
+      AC_OUT: "#AC_OUT"
+    checks: {expected_gain: 0.5, expected_input_magnitude: 1, gain_tolerance_pct: 2}
+execution:
+  startup_timeout_s: 15
+  stall_timeout_s: 60
+  hard_timeout_s: 180
+  poll_interval_s: 2
+  transient_sample_points: 1001
+  warning_allowlist: []

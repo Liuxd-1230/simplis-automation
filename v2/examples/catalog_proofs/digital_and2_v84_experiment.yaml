@@ -1,0 +1,22 @@
+schema_version: simplis-automation/v2/experiment
+name: digital_and2_v84_catalog_proof
+circuit: digital_and2_v84.yaml
+analyses:
+  - type: catalog_proof
+    analysis: tran
+    behavior: catalog_and2
+    group: simplis_tran1
+    directives: [.TRAN 5u 0]
+    vectors:
+      A: "#A"
+      B: "#B"
+      OUT: "#AND_OUT"
+      OUT_BAR: "#AND_OUT_BAR"
+    checks: {logic_threshold: 2.5, max_mismatch_ratio: 0.02}
+execution:
+  startup_timeout_s: 15
+  stall_timeout_s: 60
+  hard_timeout_s: 180
+  poll_interval_s: 2
+  transient_sample_points: 1001
+  warning_allowlist: []

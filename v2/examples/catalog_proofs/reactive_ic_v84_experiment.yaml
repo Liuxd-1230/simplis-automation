@@ -1,0 +1,28 @@
+schema_version: simplis-automation/v2/experiment
+name: reactive_ic_v84_behavior_proof
+circuit: reactive_ic_v84.yaml
+analyses:
+  - type: catalog_proof
+    analysis: tran
+    behavior: catalog_reactive_ic
+    group: simplis_tran1
+    directives: [.TRAN 5m 0]
+    vectors:
+      CAP_V: "#CAP_IC"
+      IND_I: "IPRB_LIC#P"
+    checks:
+      capacitor_initial_v: 1.2
+      inductor_initial_a: 2
+      capacitor_tau_s: 1.0e-3
+      inductor_tau_s: 1.0e-3
+      initial_tolerance_pct: 3
+      tau_tolerance_pct: 10
+      final_fraction_max: 0.02
+      monotonic_rise_fraction_max: 0.01
+execution:
+  startup_timeout_s: 15
+  stall_timeout_s: 60
+  hard_timeout_s: 180
+  poll_interval_s: 2
+  transient_sample_points: 1001
+  warning_allowlist: []

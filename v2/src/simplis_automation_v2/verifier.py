@@ -15,9 +15,10 @@ import time
 from pathlib import Path
 from typing import Any, Callable, Mapping
 
-from .catalog import load_catalog
+from .catalog import BANNED_WRAPPERS, load_catalog
 from .io import load_yaml, sha256_file, write_json
 from .runtime import resolve_runtime
+from .watchdog import WatchdogConfig, run_script_with_watchdog
 
 
 MANIFEST_SCHEMA = "simplis-automation/v2/build-manifest"
@@ -192,6 +193,45 @@ def _invoke_runner(
     return result
 
 
+def _invoke_watchdog(
+    executable: Path,
+    script: Path,
+    *,
+    status_file: Path,
+    message_log: Path,
+    work_dir: Path,
+    timeout: float | None,
+    stage: str,
+) -> dict[str, Any]:
+    hard_timeout = float(timeout or 90.0)
+    raw = run_script_with_watchdog(
+        simetrix_exe=executable,
+        script=script,
+        status_file=status_file,
+        work_dir=work_dir,
+        job_id=f"verify-{stage}-{int(time.time() * 1000)}",
+        message_log=message_log,
+        assess_completion=False,
+        config=WatchdogConfig(
+            poll_interval=2.0,
+            launch_timeout=min(15.0, hard_timeout),
+            stall_timeout=min(60.0, hard_timeout),
+            hard_timeout=hard_timeout,
+        ),
+    )
+    classification = str(raw.get("classification", "watchdog_failed"))
+    timed_out = classification in {"launch_timeout", "hard_timeout", "stalled_in_progress", "stalled_unresponsive"}
+    return {
+        "returncode": 0 if raw.get("ok") else (124 if timed_out else 1),
+        "stdout": "",
+        "stderr": "",
+        "timed_out": timed_out,
+        "command": [str(executable), "/s", str(script)],
+        "script": str(script),
+        "watchdog": raw,
+    }
+
+
 def _write_runner_logs(directory: Path, stage: str, result: Mapping[str, Any]) -> dict[str, str]:
     directory.mkdir(parents=True, exist_ok=True)
     stdout_path = directory / f"{stage}.stdout.log"
@@ -290,7 +330,9 @@ def _validate_expected_netlist(netlist: Path, expected: Any) -> list[dict[str, A
             if not isinstance(component, Mapping):
                 continue
             ref = component.get("ref") or component.get("id")
-            if ref and not re.search(rf"(?i)(?<![A-Za-z0-9_]){re.escape(str(ref))}(?![A-Za-z0-9_])", text):
+            presence = str(component.get("netlist_presence", "instance")).casefold()
+            suffix = r"(?:\b|_)" if presence == "directive" else r"(?![A-Za-z0-9_])"
+            if ref and not re.search(rf"(?i)(?<![A-Za-z0-9_]){re.escape(str(ref))}{suffix}", text):
                 errors.append(
                     _diagnostic(
                         "netlist_component_missing",
@@ -311,6 +353,53 @@ def _validate_expected_netlist(netlist: Path, expected: Any) -> list[dict[str, A
                         net=name,
                     )
                 )
+    return errors
+
+
+def _validate_saved_routing(schematic: Path, expected: Any) -> list[dict[str, Any]]:
+    if not isinstance(expected, Mapping) or not isinstance(expected.get("routing"), Mapping):
+        return []
+    routing = expected["routing"]
+    local = routing.get("local_wires", {})
+    if not isinstance(local, Mapping) or not local:
+        return []
+    text = schematic.read_text(encoding="utf-8", errors="replace")
+    errors: list[dict[str, Any]] = []
+    if ".Wire" not in text or ".EndWire" not in text:
+        return [_diagnostic("saved_wire_objects_missing", "SIMetrix did not save complete wire objects for local routing")]
+    refs = {
+        str(component.get("id")): str(component.get("ref", component.get("id")))
+        for component in expected.get("components", [])
+        if isinstance(component, Mapping)
+    }
+    coordinates = routing.get("endpoint_coordinates", {}) if isinstance(routing.get("endpoint_coordinates"), Mapping) else {}
+    wire_endpoints: set[tuple[int, int]] = set()
+    for match in re.finditer(r"(?im)^Wire\s+[^\r\n]*\bx1=(-?\d+)\s+y1=(-?\d+)\s+x2=(-?\d+)\s+y2=(-?\d+)", text):
+        wire_endpoints.add((int(match.group(1)), int(match.group(2))))
+        wire_endpoints.add((int(match.group(3)), int(match.group(4))))
+    for net, endpoints in local.items():
+        for endpoint in endpoints if isinstance(endpoints, list) else []:
+            if "." not in str(endpoint):
+                continue
+            component_id, pin = str(endpoint).rsplit(".", 1)
+            ref = refs.get(component_id, component_id)
+            coordinate = coordinates.get(str(endpoint))
+            coordinate_attached = isinstance(coordinate, list) and len(coordinate) == 2 and (int(coordinate[0]), int(coordinate[1])) in wire_endpoints
+            branch_attached = bool(re.search(rf"(?i)(?:[+\-~!]*:)?{re.escape(ref)}#{re.escape(pin)}(?:\b|\")", text))
+            if not branch_attached and not coordinate_attached:
+                errors.append(_diagnostic("wire_branch_unattached", "Saved local wire lacks branch attachment evidence", net=net, endpoint=endpoint, expected_branch=f"{ref}#{pin}"))
+    return errors
+
+
+def _banned_wrapper_errors(paths: Mapping[str, Path]) -> list[dict[str, Any]]:
+    errors: list[dict[str, Any]] = []
+    for name, path in paths.items():
+        if not path.is_file():
+            continue
+        text = path.read_text(encoding="utf-8", errors="replace")
+        found = sorted(token for token in BANNED_WRAPPERS if re.search(rf"(?i)(?<![A-Za-z0-9_]){re.escape(token)}(?![A-Za-z0-9_])", text))
+        if found:
+            errors.append(_diagnostic("banned_wrapper_present", "Generated artifact contains a disallowed wrapper model", artifact=name, path=str(path), tokens=found))
     return errors
 
 
@@ -432,10 +521,22 @@ def verify_manifest(
         base=build_dir,
         fallback_base=manifest_dir,
     )
+    create_status = _resolve_path(
+        _artifact_value(artifacts_raw, "status", "status_file"),
+        base=build_dir,
+        fallback_base=manifest_dir,
+    ) or build_dir / "create-status.txt"
+    create_message = _resolve_path(
+        _artifact_value(artifacts_raw, "message_log", "messages"),
+        base=build_dir,
+        fallback_base=manifest_dir,
+    ) or build_dir / "create-message.log"
     result["artifacts"] = {
         "script": str(script) if script else None,
         "schematic": str(schematic) if schematic else None,
         "netlist": str(netlist) if netlist else None,
+        "create_status": str(create_status),
+        "create_message_log": str(create_message),
     }
     for name, path, suffix in (("script", script, ".sxscr"), ("schematic", schematic, ".sxsch"), ("netlist", netlist, ".net")):
         if path is None:
@@ -489,15 +590,26 @@ def verify_manifest(
 
     verification_dir.mkdir(parents=True, exist_ok=True)
     started_at = time.time()
-    create_result = _invoke_runner(
-        executable,
-        script,
-        timeout=timeout,
-        interactive=interactive,
-        stage="create_schematic",
-        runner=supplied_runner,
-    )
-    if supplied_runner is None and not create_result.get("timed_out"):
+    if supplied_runner is None:
+        create_result = _invoke_watchdog(
+            executable,
+            script,
+            status_file=create_status,
+            message_log=create_message,
+            work_dir=build_dir,
+            timeout=timeout,
+            stage="create_schematic",
+        )
+    else:
+        create_result = _invoke_runner(
+            executable,
+            script,
+            timeout=timeout,
+            interactive=interactive,
+            stage="create_schematic",
+            runner=supplied_runner,
+        )
+    if supplied_runner is None and create_result.get("returncode") == 0:
         _wait_for_nonempty((schematic,), timeout=min(30.0, float(timeout or 30.0)))
     create_logs = _write_runner_logs(verification_dir, "create_schematic", create_result)
     create_errors = _error_text_messages(str(create_result.get("stdout", "")), create_logs["stdout"])
@@ -523,17 +635,28 @@ def verify_manifest(
         return result
 
     netlist_status = verification_dir / "netlist-status.txt"
+    netlist_message = verification_dir / "netlist-message.log"
     netlist_script = verification_dir / "verify-netlist.sxscr"
     try:
         netlist_script.write_text(
             "\n".join(
                 (
+                    "Set EchoOn",
+                    "Let v2_startup_settle = Sleep(3)",
+                    f"RedirectMessages dup {_quote_sxscr(netlist_message)}",
+                    f"Let v2_echo = OpenEchoFile({_quote_simetrix_string(netlist_status)}, 'w')",
+                    "Echo script_started=true",
+                    "Let v2_close = CloseEchoFile()",
                     f"OpenSchem {_quote_sxscr(schematic)}",
                     f"Netlist /simplis {_quote_sxscr(netlist)}",
-                    f"Let v2_echo = OpenEchoFile({_quote_simetrix_string(netlist_status)}, 'w')",
-                    "Echo completion_token=true",
+                    f"Let v2_echo = OpenEchoFile({_quote_simetrix_string(netlist_status)}, 'a')",
                     "Echo netlist_completed=true",
+                    # Watchdog completion is terminal; all specific evidence
+                    # must be persisted before this final token.
+                    "Echo completion_token=true",
                     "Let v2_close = CloseEchoFile()",
+                    "RedirectMessages flush",
+                    "RedirectMessages off",
                     "Quit",
                     "",
                 )
@@ -545,15 +668,26 @@ def verify_manifest(
         _write_reports(status_path, evidence_path, result)
         return result
 
-    netlist_result = _invoke_runner(
-        executable,
-        netlist_script,
-        timeout=timeout,
-        interactive=interactive,
-        stage="netlist",
-        runner=supplied_runner,
-    )
-    if supplied_runner is None and not netlist_result.get("timed_out"):
+    if supplied_runner is None:
+        netlist_result = _invoke_watchdog(
+            executable,
+            netlist_script,
+            status_file=netlist_status,
+            message_log=netlist_message,
+            work_dir=verification_dir,
+            timeout=timeout,
+            stage="netlist",
+        )
+    else:
+        netlist_result = _invoke_runner(
+            executable,
+            netlist_script,
+            timeout=timeout,
+            interactive=interactive,
+            stage="netlist",
+            runner=supplied_runner,
+        )
+    if supplied_runner is None and netlist_result.get("returncode") == 0:
         _wait_for_nonempty((netlist, netlist_status), timeout=min(30.0, float(timeout or 30.0)))
     netlist_logs = _write_runner_logs(verification_dir, "netlist", netlist_result)
     netlist_errors = _error_text_messages(str(netlist_result.get("stdout", "")), netlist_logs["stdout"])
@@ -576,6 +710,9 @@ def verify_manifest(
         netlist_text = netlist.read_text(encoding="utf-8", errors="replace")
         netlist_errors.extend(_error_text_messages(netlist_text, str(netlist)))
         netlist_errors.extend(_validate_expected_netlist(netlist, manifest.get("expected")))
+    if _is_nonempty(schematic):
+        netlist_errors.extend(_validate_saved_routing(schematic, manifest.get("expected")))
+    netlist_errors.extend(_banned_wrapper_errors({"script": script, "schematic": schematic, "netlist": netlist}))
     result["stages"]["netlist"] = {
         "status": "passed" if not netlist_errors else "failed",
         "process": netlist_result,

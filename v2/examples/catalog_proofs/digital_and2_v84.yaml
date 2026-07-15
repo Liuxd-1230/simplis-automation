@@ -1,0 +1,43 @@
+schema_version: simplis-automation/v2
+schema_revision: 3
+description: >-
+  Public truth-table fixture for the grounded SIMPLIS DIGI1 two-input AND
+  gate. The embedded symbol remains pending until this fixture passes all six
+  catalog proofs on SIMPLIS 8.4.
+catalog_lock: {path: ../../catalog/seed_8_4.yaml}
+design: {name: digital_and2_v84_proof}
+layout:
+  mode: hybrid
+  grid: 120
+  clearance: {horizontal: 480, vertical: 360}
+  band_spacing: 2400
+
+parameters: {}
+components:
+  - id: input_a
+    ref: VA
+    kind: pwl_voltage_source
+    properties:
+      VALUE: "NSEG=5 X0=0 Y0=0 X1=1u Y1=0 X2=1u Y2=5 X3=3u Y3=5 X4=3u Y4=0 X5=5u Y5=0"
+    pins: {P: A, N: "0"}
+    group: stimulus
+    layout: {x: 0, y: 0}
+  - id: input_b
+    ref: VB
+    kind: pwl_voltage_source
+    properties:
+      VALUE: "NSEG=5 X0=0 Y0=0 X1=2u Y1=0 X2=2u Y2=5 X3=4u Y3=5 X4=4u Y4=0 X5=5u Y5=0"
+    pins: {P: B, N: "0"}
+    group: stimulus
+    layout: {x: 0, y: 2400}
+  - id: and2
+    ref: U_AND
+    kind: digital_and2_grounded
+    properties: {DELAY: 2ps}
+    pins: {OUT: AND_OUT, OUT_BAR: AND_OUT_BAR, RTN: "0", IN1: A, IN2: B}
+    group: logic
+    layout: {x: 4320, y: 1200}
+  - {id: p_a, ref: P_A, kind: voltage_probe, properties: {Label: A}, pins: {NODE: A}, group: observation, layout: {x: 6480, y: 0}}
+  - {id: p_b, ref: P_B, kind: voltage_probe, properties: {Label: B}, pins: {NODE: B}, group: observation, layout: {x: 6480, y: 1200}}
+  - {id: p_out, ref: P_OUT, kind: voltage_probe, properties: {Label: AND_OUT}, pins: {NODE: AND_OUT}, group: observation, layout: {x: 8640, y: 0}}
+  - {id: p_out_bar, ref: P_OUT_BAR, kind: voltage_probe, properties: {Label: AND_OUT_BAR}, pins: {NODE: AND_OUT_BAR}, group: observation, layout: {x: 8640, y: 1200}}

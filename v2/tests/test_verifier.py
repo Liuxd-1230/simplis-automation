@@ -13,10 +13,22 @@ if str(V2_ROOT / "src") not in sys.path:
 
 from simplis_automation_v2.catalog import load_catalog
 from simplis_automation_v2.io import sha256_file
-from simplis_automation_v2.verifier import MANIFEST_SCHEMA, verify_manifest
+from simplis_automation_v2.verifier import MANIFEST_SCHEMA, _validate_expected_netlist, verify_manifest
 
 
 class VerifierTests(unittest.TestCase):
+    def test_directive_only_probe_is_verified_by_its_generated_directive(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            netlist = Path(temporary) / "probe.net"
+            netlist.write_text('.PRINT V(#OUT)\n.GRAPH "db(:#OUT/:#IN)" colourname=PBODE_bode_color\n', encoding="utf-8")
+            expected = {
+                "components": [
+                    {"id": "bode", "ref": "PBODE", "netlist_presence": "directive", "pins": {"OUT": "OUT", "IN": "IN"}}
+                ],
+                "nets": {"OUT": ["bode.OUT"], "IN": ["bode.IN"]},
+            }
+            self.assertEqual(_validate_expected_netlist(netlist, expected), [])
+
     def _fixture(self, root: Path, *, opaque: bool = False) -> tuple[Path, dict[str, object], Path, Path]:
         executable = root / "SIMetrix830" / "bin64" / "SIMetrix.exe"
         symbols = root / "SIMetrix830" / "support" / "symbollibs"
@@ -88,6 +100,10 @@ class VerifierTests(unittest.TestCase):
             self.assertEqual(result["stages"]["netlist"]["status"], "passed")
             self.assertEqual(len(calls), 2)
             self.assertTrue(all(call[-1].endswith(".sxscr") for call in calls))
+            netlist_script = (manifest.parent / "verification" / "verify-netlist.sxscr").read_text(encoding="utf-8")
+            self.assertIn("RedirectMessages dup", netlist_script)
+            self.assertIn("Echo script_started=true", netlist_script)
+            self.assertLess(netlist_script.index("Echo netlist_completed=true"), netlist_script.index("Echo completion_token=true"))
             self.assertTrue((manifest.parent / "verification-status.json").is_file())
             self.assertTrue((manifest.parent / "verification-evidence.json").is_file())
 

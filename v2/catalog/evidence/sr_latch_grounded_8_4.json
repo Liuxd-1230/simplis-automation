@@ -1,0 +1,34 @@
+{
+  "schema_version": "simplis-automation/v2/catalog-proof",
+  "device": "sr_latch_grounded",
+  "runtime": "SIMetrix/SIMPLIS 8.4",
+  "library_sha256": "16b4059c2383e53a8d7dadd8b6445d162eb28fc3f27ce58de22e1eb40dc7d9c5",
+  "model_library_sha256": "073836571353c918f11f2ca00ccf21825b6d8a184b22405fff673006b4c2868f",
+  "placement": {
+    "symbol": "display_D_SRLATCH",
+    "generated_schematic_sha256": "d451c6d8faa127f3fd107103bb21ee33f1cb94e0633fc4db57d984f93f0510ce",
+    "generated_netlist_sha256": "b1835ddf53efbcc8eab86aa1b9af31ebbc4596ce3628c10c5742cb64a1282055",
+    "clean_reopen_netlist_sha256": "90859a0442e807a523bdf6e7ebdda80822219bc1cbd5beca929da247b6952d6b",
+    "netlist_model": "SIMPLIS_DIGI1_SRLATCH_Y"
+  },
+  "pins": ["Q", "QN", "S", "R"],
+  "behavior": {
+    "stimulus": "S pulse at 1 us and 11 us; R pulse at 6 us and 16 us; both declared in the generated SIMPLIS netlist",
+    "exit_code": 0,
+    "simulation_has_errors": 0,
+    "q_samples": 10,
+    "qn_samples": 10,
+    "q_min": 0.0,
+    "q_max": 1.0,
+    "qn_min": 0.0,
+    "qn_max": 1.0,
+    "outputs_complementary": true,
+    "observed_transitions_s": [0.00000100002, 0.00000600002, 0.00001100002, 0.00001600002],
+    "configured_output_delay_s": 2e-11,
+    "vector_sha256": {
+      "Q": "87177de2653166feaffc7fc902faea366b993361e2714a6d24784f0c029590ba",
+      "QN": "bc772f11b92dc48a5c82b09795090417dcf9836f70d62afbf46ed61bf46cc352"
+    },
+    "note": "GetSimulatorStatus returned None. These vectors prove catalog-device set/reset behavior only and are not scoring-eligible experiment data."
+  }
+}

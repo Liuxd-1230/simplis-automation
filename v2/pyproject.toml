@@ -7,7 +7,7 @@ name = "simplis-automation-v2"
 version = "0.1.0"
 description = "Evidence-first SIMetrix/SIMPLIS circuit compiler"
 requires-python = ">=3.10"
-dependencies = ["PyYAML>=6.0"]
+dependencies = ["PyYAML>=6.0", "matplotlib>=3.8"]
 
 [project.scripts]
 simplis-v2 = "simplis_automation_v2.cli:main"

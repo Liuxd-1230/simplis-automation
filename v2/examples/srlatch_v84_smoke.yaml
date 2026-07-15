@@ -1,0 +1,37 @@
+schema_version: simplis-automation/v2
+schema_revision: 3
+catalog_lock: {path: ../catalog/seed_8_4.yaml}
+design: {name: srlatch_v84_smoke}
+layout: {mode: hybrid, clearance: {horizontal: 480, vertical: 360}}
+components:
+  - id: set_source
+    ref: VSET
+    kind: pulse_voltage_source
+    properties:
+      SOURCE_MODEL: SQU_SOURCE
+      SIMPLIS_VALUE: _V1=0 _V2=5 _FREQ=100k _DELAY=1u _DRATIOx100=10 _T_RISE=1n _T_FALL=1n _DAMP_COEF=0 _PWIDTH=1u _OFF_UNTIL_DELAY=0 _IDLE_IN_POP=0 _USEPHASE=0 _PHASE=0
+    pins: {P: SET_SRC, N: "0"}
+    group: latch
+    layout: {x: 0, y: 0}
+  - id: reset_source
+    ref: VRESET
+    kind: pulse_voltage_source
+    properties:
+      SOURCE_MODEL: SQU_SOURCE
+      SIMPLIS_VALUE: _V1=0 _V2=5 _FREQ=100k _DELAY=6u _DRATIOx100=10 _T_RISE=1n _T_FALL=1n _DAMP_COEF=0 _PWIDTH=1u _OFF_UNTIL_DELAY=0 _IDLE_IN_POP=0 _USEPHASE=0 _PHASE=0
+    pins: {P: RESET_SRC, N: "0"}
+    group: latch
+    layout: {x: 0, y: 2640}
+  - {id: set_isolation, ref: RSET, kind: resistor, properties: {VALUE: 1ohm}, pins: {P: SET_SRC, N: SET_CMD}, group: latch, layout: {x: 2160, y: 0}}
+  - {id: reset_isolation, ref: RRESET, kind: resistor, properties: {VALUE: 1ohm}, pins: {P: RESET_SRC, N: RESET_CMD}, group: latch, layout: {x: 2160, y: 2640}}
+  - id: latch
+    ref: U1
+    kind: sr_latch_grounded
+    properties: {OUT_DELAY: 20ps, IC: "0", DOM: NONE}
+    pins: {Q: Q, QN: QN, S: SET_CMD, R: RESET_CMD}
+    group: latch
+    layout: {x: 4800, y: 1320}
+  - {id: probe_s, ref: PS, kind: voltage_probe, properties: {Label: SET_CMD}, pins: {NODE: SET_CMD}, group: probes, layout: {x: 7680, y: 0}}
+  - {id: probe_r, ref: PR, kind: voltage_probe, properties: {Label: RESET_CMD}, pins: {NODE: RESET_CMD}, group: probes, layout: {x: 7680, y: 960}}
+  - {id: probe_q, ref: PQ, kind: voltage_probe, properties: {Label: Q}, pins: {NODE: Q}, group: probes, layout: {x: 7680, y: 1920}}
+  - {id: probe_qn, ref: PQN, kind: voltage_probe, properties: {Label: QN}, pins: {NODE: QN}, group: probes, layout: {x: 7680, y: 2880}}

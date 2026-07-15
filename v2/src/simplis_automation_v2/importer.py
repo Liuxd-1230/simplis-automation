@@ -39,6 +39,7 @@ _PARAMETER_NAME_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 _COORDINATE_KEYS = {"x", "y", "x1", "y1", "x2", "y2"}
 _STRUCTURAL_PROPERTIES = {"ref"}
 _OPAQUE_SUFFIXES = {".sxcmp", ".sub", ".lib", ".mod", ".dll"}
+_ANALYSIS_DIRECTIVE_RE = re.compile(r"^\s*\.(AC|POP|TRAN|OPTIONS|VAR)\b(.*)$", re.IGNORECASE)
 
 
 def _decode_quoted(value: str) -> str:
@@ -97,6 +98,43 @@ def _read_text(path: Path) -> str:
             control_characters=controls,
         )
     return text
+
+
+def extract_f11_experiment(text: str, *, circuit_path: str, name: str) -> dict[str, Any] | None:
+    """Convert supported F11 directives into a structured experiment draft."""
+
+    expanded = text.replace(r"\n", "\n").replace(r"\r", "")
+    directives: list[dict[str, Any]] = []
+    for line_number, line in enumerate(expanded.splitlines(), 1):
+        match = _ANALYSIS_DIRECTIVE_RE.match(line)
+        if not match:
+            continue
+        kind = match.group(1).upper()
+        arguments = match.group(2).strip().rstrip('"')
+        directives.append({"kind": kind, "arguments": arguments, "line": line_number, "raw": f".{kind} {arguments}".rstrip()})
+    if not directives:
+        return None
+    analyses: list[dict[str, Any]] = []
+    kinds = {item["kind"] for item in directives}
+    if "POP" in kinds or "AC" in kinds:
+        analyses.append({"type": "pop_ac", "analysis": "ac" if "AC" in kinds else "pop", "directives": [item for item in directives if item["kind"] in {"POP", "AC", "OPTIONS"}], "group": "simplis_ac1" if "AC" in kinds else "simplis_pop1", "vectors": {}})
+    if "TRAN" in kinds:
+        analyses.append({"type": "startup", "analysis": "tran", "directives": [item for item in directives if item["kind"] in {"TRAN", "OPTIONS"}], "group": "simplis_tran1", "vectors": {}})
+    variables: dict[str, str] = {}
+    for item in directives:
+        if item["kind"] != "VAR" or "=" not in item["arguments"]:
+            continue
+        key, value = item["arguments"].split("=", 1)
+        variables[key.strip()] = value.strip()
+    return {
+        "schema_version": "simplis-automation/v2/experiment",
+        "name": f"{name}_imported_analysis",
+        "circuit": circuit_path,
+        "analyses": analyses,
+        "imported_variables": variables,
+        "execution": {"startup_timeout_s": 15, "stall_timeout_s": 60, "hard_timeout_s": 240, "poll_interval_s": 2, "warning_allowlist": []},
+        "metadata": {"imported_f11": True, "directives": directives},
+    }
 
 
 def _parse_instances_and_wires(text: str) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]]:
@@ -523,6 +561,9 @@ def _build_components(
                 "expected_pins": [str(pin.get("name")) for pin in _catalog_pins(device)] if approved else [],
             },
         }
+        if not approved:
+            component["opaque_boundary"] = True
+            component["roundtrip_only"] = True
         if device and isinstance(device.get("symbol"), dict) and device["symbol"].get("library"):
             component["native"]["library"] = device["symbol"]["library"]
         components.append(component)
@@ -871,6 +912,7 @@ def import_schematic(input_path: str | Path, catalog: dict[str, Any], out_path: 
                 has_topology_issues=bool(topology_issues),
             ),
             "source": {"path": str(source), "sha256": sha256_file(source), "format": "text-sxsch"},
+            "roundtrip": {"eligible": True, "mode": "source_preserving_saveas", "opaque_devices_allowed": True},
             "diagnostics": {
                 "parser": parser_diagnostics,
                 "catalog_candidates": candidates,
@@ -879,6 +921,13 @@ def import_schematic(input_path: str | Path, catalog: dict[str, Any], out_path: 
         },
     }
     write_yaml(out_path, draft)
+    experiment = extract_f11_experiment(text, circuit_path=str(Path(out_path).resolve()), name=source.stem or "imported_schematic")
+    if experiment:
+        experiment_path = Path(out_path).with_name(Path(out_path).stem + ".experiment.yaml")
+        write_yaml(experiment_path, experiment)
+        draft["metadata"]["experiment"] = str(experiment_path.resolve())
+        # Rewrite the circuit draft once so the link itself is preserved.
+        write_yaml(out_path, draft)
     return draft
 
 

@@ -33,3 +33,17 @@ Do not commit `config/local_config.json`, private schematics, local absolute pat
 
 
 DO NOT send optional commentary
+
+## Agent skills
+
+### Issue tracker
+
+Issues and PRDs are tracked in GitHub Issues for `Liuxd-1230/simplis-automation`. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Use the five canonical triage labels defined for this repository. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+This is a single-context repository using root-level domain documentation. See `docs/agents/domain.md`.

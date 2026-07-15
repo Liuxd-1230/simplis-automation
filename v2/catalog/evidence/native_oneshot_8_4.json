@@ -1,0 +1,35 @@
+{
+  "schema_version": "simplis-automation/v2/catalog-proof",
+  "device": "native_oneshot",
+  "runtime": "SIMetrix/SIMPLIS 8.4",
+  "library_sha256": "e6451da314c5adf2edf57f9eab9bc3245725a331972a6b83612a67868425a04a",
+  "official_example_sha256": "bebb123ad7b67bf4ecfce301c1b0435661d4688bf870ecdefa4c067729448230",
+  "placement": {
+    "symbol": "SIMPLIS_1SHOT",
+    "generated_schematic_sha256": "c00002003d213bcb5db987365ca13a719a40eade4a266b2f62211e70e44b96d0",
+    "generated_netlist_sha256": "8c09fcb88416a251c1a71c091537962981271b80a57b5c800e9ae47b7d23b357",
+    "clean_reopen_netlist_sha256": "1ff1996d646e534b81f0561cfaee7076b1310d16073710e1f23716ec4758c4b1",
+    "repeated_reopen_netlist_sha256": "1ff1996d646e534b81f0561cfaee7076b1310d16073710e1f23716ec4758c4b1",
+    "netlist_model": "SIMPLIS_1SHOT_BB"
+  },
+  "pins": ["IN", "RTN", "OUT", "DSCH", "RAMP"],
+  "behavior": {
+    "stimulus": "Four 0 V to 5 V PWL rising edges at 1, 3, 5 and 7 us",
+    "configured_duration_s": 2e-7,
+    "measured_mean_duration_s": 1.9999999999999983e-7,
+    "pulse_count": 4,
+    "output_samples": 10017,
+    "ramp_samples": 10017,
+    "discharge_samples": 10017,
+    "ramp_peak_to_peak": 1.0000000000005103,
+    "discharge_peak_to_peak": 5.0,
+    "exit_code": 0,
+    "simulation_has_errors": 0,
+    "vector_sha256": {
+      "OUT": "e5662b86f16ea6e19c53e2a4b13f775195eab9800ff8f8388679e90ac4735f19",
+      "RAMP": "12e4b4b4d4d23b812ad447b4927890d3b7f13c708a4fa67aa615c77dd0f29bc6",
+      "DSCH": "a426c4ce1097d2ef7fa2a267ff98540150fa78d657104a8f31f919a6d5ce29d0"
+    },
+    "note": "PSP_NPT=10001 is required to retain continuous SIMPLIS vectors. GetSimulatorStatus returned None, so these vectors prove catalog-device behavior only and are not scoring-eligible experiment data."
+  }
+}

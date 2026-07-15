@@ -1,0 +1,32 @@
+schema_version: simplis-automation/v2
+schema_revision: 3
+description: >-
+  Public SIMPLIS 8.4 fixture proving that generated capacitor-voltage and
+  inductor-current initial conditions retain their declared P-to-N sign and
+  decay with the expected RC/RL time constant.
+catalog_lock: {path: ../../catalog/seed_8_4.yaml}
+design: {name: reactive_ic_v84_proof}
+layout:
+  mode: hybrid
+  grid: 120
+  clearance: {horizontal: 480, vertical: 360}
+  band_spacing: 2400
+
+parameters:
+  cap_value: {default: 1uF, dimension: capacitance, min: 100nF, max: 10uF}
+  cap_resistance: {default: 1kohm, dimension: resistance, min: 100ohm, max: 10kohm}
+  cap_initial: {default: 1.2V, dimension: voltage, min: -5V, max: 5V}
+  ind_value: {default: 1mH, dimension: inductance, min: 100uH, max: 10mH}
+  ind_resistance: {default: 1ohm, dimension: resistance, min: 100mohm, max: 10ohm}
+  ind_initial: {default: 2A, dimension: current, min: -10A, max: 10A}
+
+components:
+  - {id: cap, ref: C_IC, kind: capacitor, properties: {VALUE: "${cap_value}", IC: "${cap_initial}"}, pins: {P: CAP_IC, N: "0"}, group: capacitor, layout: {x: 0, y: 0}}
+  - {id: cap_decay, ref: R_C_DECAY, kind: resistor, properties: {VALUE: "${cap_resistance}"}, pins: {P: CAP_IC, N: "0"}, group: capacitor, layout: {x: 2160, y: 0}}
+  - {id: p_cap, ref: P_CAP_IC, kind: voltage_probe, properties: {Label: CAP_IC}, pins: {NODE: CAP_IC}, group: observation, layout: {x: 4320, y: 0}}
+
+  - {id: ind, ref: L_IC, kind: inductor, properties: {VALUE: "${ind_value}", IC: "${ind_initial}"}, pins: {P: IND_TOP, N: IND_SENSE}, group: inductor, layout: {x: 0, y: 2400}}
+  - {id: ind_probe, ref: IPRB_LIC, kind: current_probe, properties: {LABEL: IND_I}, pins: {P: IND_SENSE, N: "0"}, group: inductor, layout: {x: 2160, y: 2400}}
+  - {id: ind_decay, ref: R_L_DECAY, kind: resistor, properties: {VALUE: "${ind_resistance}"}, pins: {P: "0", N: IND_TOP}, group: inductor, layout: {x: 4320, y: 2400}}
+
+  - {id: p_ind_top, ref: P_IND_TOP, kind: voltage_probe, properties: {Label: IND_TOP}, pins: {NODE: IND_TOP}, group: observation, layout: {x: 6480, y: 2400}}
