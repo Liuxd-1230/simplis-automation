@@ -4,6 +4,7 @@ __pycache__/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+*.egg-info/
 .worktrees/
 
 *.sxsch
@@ -15,18 +16,9 @@ __pycache__/
 *.out
 SIMPLIS_Data/
 
-!examples/buck_comp_optimizer/
-!examples/buck_comp_optimizer/**
-
 outputs/
 .codex_tmp/
-docs/superpowers/
-config/local_config.json
-
-examples/buck_comp_optimizer/generated/
-examples/buck_comp_optimizer/runs/
-examples/buck_comp_optimizer/charts/
-examples/buck_comp_optimizer/best_params*.json
-examples/buck_comp_optimizer/optimization_history.json
-examples/buck_comp_optimizer/summary.csv
-examples/buck_comp_optimizer/report*.md
+finalization-output/
+review.json
+legacy/v1/config/local_config.json
+legacy/v1/outputs/

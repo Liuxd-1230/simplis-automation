@@ -1,0 +1,38 @@
+{
+  "schema_version": "simplis-automation/v2/catalog-proof",
+  "device": "digital_and2_grounded",
+  "runtime": "SIMetrix/SIMPLIS 8.4",
+  "official_example_sha256": "aac734850a42d9ecd81ee588981c81599a08e8a4dd4e3d4bb9a7b52cede83441",
+  "fixture": {
+    "circuit": "examples/catalog_proofs/digital_and2_v84.yaml",
+    "circuit_sha256": "590149e65f48fcc85669997e289b5ce4bb97b35f7925ba9f8ddfcd54bd18678b",
+    "experiment": "examples/catalog_proofs/digital_and2_v84_experiment.yaml",
+    "experiment_sha256": "9e848bef580191b59b84a7e09dad8796f9ff2e2151900aa52858dc81c0cb05cb"
+  },
+  "placement": {
+    "symbol": "SIMPLIS_DIGI1_AND_2I0_Y",
+    "generated_schematic_sha256": "aed4f20761de643af0c0f3c059cc9b98b778bbf1934775e7bada6c350e396267",
+    "generated_netlist_sha256": "92d82a875551196f8b464809c16fc0681ad7df3b16104ac447fc8bc90fa0d949",
+    "clean_reopen_netlist_sha256": "71203a6e29eddb793ccc1a7bbea4108501ccf581dd46a8041ad4fde303b119f4",
+    "visual": {"method": "legacy_manual_visual", "width": 1920, "height": 1032, "verdict": "pass", "persistent_image": false},
+    "netlist_model": "SIMPLIS_DIGI1_AND2_Y"
+  },
+  "pins": ["OUT", "OUT_BAR", "RTN", "IN1", "IN2"],
+  "behavior": {
+    "exit_code": 0,
+    "simulation_has_errors": 0,
+    "truth_table_states_covered": 4,
+    "checked_samples": 997,
+    "output_mismatch_samples": 0,
+    "complement_mismatch_samples": 0,
+    "propagation_ignore_s": 4.000000000110415e-12,
+    "vector_sha256": {
+      "A": "c8bc60fe5e0ccc4c294dfad834899b04d7f9d01cf2c02812a3d86d47b3a4ec35",
+      "B": "04ff2c1d23d90214904ea5b09abf604cc4dea3a68594d56e4f65311c776a64e3",
+      "OUT": "a8c87a278743e32529cf2ff5d9b02223073d164f02e022f78bf146a84bf47baf",
+      "OUT_BAR": "991e0374e31c03b81218f861a43f4e28a6d0a8e0c13c4863130f51be42a87d28"
+    },
+    "chart_sha256": "bf9946311da5996dadb07826a0150bf02454cf0219a6c1282299b2328381e8c4",
+    "note": "All 00, 10, 11 and 01 hold regions pass OUT=A AND B and OUT_BAR complement checks. Completion limitations keep vectors catalog-only."
+  }
+}
