@@ -1,138 +1,47 @@
-# SIMPLIS Automation Skill
+# simplis-automation
 
-[中文说明](README.zh-CN.md)
-
-Codex skill for automating SIMetrix/SIMPLIS 8.4 on Windows. It can create SIMPLIS schematics from structured JSON/YAML specs, run POP/transient jobs, add voltage/current probes, validate generated netlists, and support sweep or closed-loop optimization workflows for buck/PMIC experiments.
-
-## What It Includes
-
-- `SKILL.md`: Codex skill instructions.
-- `scripts/simplis_cli.py`: Main CLI entry point.
-- `scripts/simetrix_waveforms.py`: Waveform export-script generation and SIMetrix `Show` text parsing helpers.
-- `scripts/schematic_generator.py`: JSON/YAML to `.sxscr`, `.sxsch`, `.net`, and `.deck` generator.
-- `scripts/inspect_schematic.py`: Deterministic `.sxsch/.sxcmp` inspection for symbols, wires, modules, tunables, and canonical roles.
-- `scripts/export_agent_evidence.py`: Agent-readable simulation evidence export from generated output directories.
-- `scripts/smoke_test.py`: Local validation for RC and buck examples.
-- `examples/official/`: Official/open-source-approved SIMPLIS examples used as evidence.
-- `profiles/`: Canonical symbol and reusable module profiles derived from official examples and verified generator defaults.
-- `references/generated_feedback_divider_hybrid.json`: Small feedback-divider example that uses hybrid local-wire routing.
-- `references/generated_buck_open_loop_tran.json`: 12 V buck example with body diodes, inverter-derived `PWM_LS`, POP trigger, 60 us transient, voltage probes, and inline current probes.
-- `references/`: SIMetrix/SIMPLIS command notes, DVM notes, optimization guidance, and verified local behavior.
-
-## Requirements
-
-- Windows.
-- SIMetrix/SIMPLIS 8.4 installed.
-- Python 3.10 or newer.
-- Git, if installing from GitHub.
-
-Create a local runtime config after installation:
-
-```powershell
-Copy-Item %CODEX_HOME%\skills\simplis-automation\config\simplis_automation_config.json `
-  %CODEX_HOME%\skills\simplis-automation\config\local_config.json
-```
-
-Edit `config\local_config.json` so `simetrix_exe` and `symbol_lib_dir` point to your installed SIMetrix/SIMPLIS files. You can also set `SIMETRIX_EXE` and `SIMPLIS_SYMBOL_LIB_DIR`, or pass `--simetrix-exe` and `--symbol-lib-dir`.
-
-Check the resolved configuration:
-
-```powershell
-python %CODEX_HOME%\skills\simplis-automation\scripts\simplis_cli.py show-config
-```
+Evidence-first SIMetrix/SIMPLIS 8.3/8.4 automation. The v2 implementation is now the
+repository default; the former implementation is archived in `legacy/v1/`.
 
 ## Install
 
-Clone this repository into your Codex skills folder:
+```powershell
+python -m pip install -e .
+simplis doctor --catalog catalog/seed_8_4.yaml
+```
+
+Runtime discovery honors explicit CLI arguments, environment variables and runtime
+config first. Automatic discovery prefers SIMetrix 8.4 and falls back to 8.3.
+`doctor` is side-effect free and never starts SIMetrix.
+
+## Fast iteration and strict delivery
 
 ```powershell
-$codexHome = if ($env:CODEX_HOME) { $env:CODEX_HOME } else { Join-Path $env:USERPROFILE ".codex" }
-New-Item -ItemType Directory -Force -Path (Join-Path $codexHome "skills") | Out-Null
-git clone https://github.com/Liuxd-1230/simplis-automation.git (Join-Path $codexHome "skills\simplis-automation")
+simplis run examples/acot_buck_v84_experiment.yaml --out-dir outputs/acot
+simplis finalize outputs/acot/experiment-result.json --out-dir outputs/acot-final
+simplis finalize-review outputs/acot-final/finalization-request.json `
+  --review outputs/acot-final/review.json
 ```
 
-Restart Codex after installation so the skill metadata is reloaded.
+One analysis partition uses one SIMetrix process to create the editable schematic,
+write analysis directives, produce a real netlist, run SIMPLIS and export vectors.
+Sweep and optimization candidates use the same fast path. Only the selected result is
+clean-reopened in a second process.
 
-## Validate
+Finalization captures the task-owned window directly with Win32 `PrintWindow`.
+The image is reviewed by Codex multimodal vision through the versioned checklist;
+there is no model API integration or desktop capture.
 
-Run the lightweight RC smoke test:
+`simplis-v2` is retained as an alias. `compile`, `verify` and `roundtrip` remain
+available for diagnosis. Legacy v1 commands must be invoked from `legacy/v1/`.
 
-```powershell
-python %CODEX_HOME%\skills\simplis-automation\scripts\smoke_test.py --timeout 90
-```
+## Trust contract
 
-Run the full buck POP+60 us example:
+A normal run is scoring eligible only when ordered stage tokens, SIMPLIS exit and
+error state, warning policy, analysis-group contract, fresh vectors, behavioral
+checks and required charts all pass. A post-return `GetSimulatorStatus() == None`
+does not require an artificial calibration circuit; it is accepted only when the
+real task supplies every independent proof.
 
-```powershell
-python %CODEX_HOME%\skills\simplis-automation\scripts\smoke_test.py --include-buck-run --timeout 240
-```
-
-## Example Use
-
-Inspect official examples and generate symbol evidence:
-
-```powershell
-python %CODEX_HOME%\skills\simplis-automation\scripts\simplis_cli.py inspect-schematic `
-  --input %CODEX_HOME%\skills\simplis-automation\examples\official `
-  --out reports\official_examples.json `
-  --summary-md reports\official_examples.md
-```
-
-Before interpreting a failed or suspicious simulation, export the work directory for agent analysis:
-
-```powershell
-python %CODEX_HOME%\skills\simplis-automation\scripts\simplis_cli.py export-agent-evidence `
-  --work-dir path\to\outputs\run_001 `
-  --out reports\run_001_evidence.json `
-  --summary-md reports\run_001_evidence.md `
-  --redact-paths
-```
-
-Generate and run the default probed 12 V buck:
-
-```powershell
-python %CODEX_HOME%\skills\simplis-automation\scripts\simplis_cli.py generate-schematic `
-  --config %CODEX_HOME%\skills\simplis-automation\references\generated_buck_open_loop_tran.json `
-  --out-dir path\to\outputs\generated_buck_open_loop_tran `
-  --run --netlist-check --timeout 240 --batch
-```
-
-Or ask Codex naturally:
-
-```text
-Use simplis-automation to run the 12 V buck POP+60 us example with probes and check VOUT, SW, IL, and PWM waveforms.
-```
-
-Generate a cleaner hand-drawn-style feedback block:
-
-```powershell
-python %CODEX_HOME%\skills\simplis-automation\scripts\simplis_cli.py generate-schematic `
-  --config %CODEX_HOME%\skills\simplis-automation\references\generated_feedback_divider_hybrid.json `
-  --out-dir path\to\outputs\generated_feedback_divider_hybrid `
-  --netlist-check --timeout 180 --batch
-```
-
-Set `routing.mode` to `hybrid` when a schematic should use short local Manhattan wires and only a few boundary `term` labels. Leave it unset for the older, most robust one-label-per-pin behavior.
-
-Export POP/AC vectors from an existing schematic:
-
-```powershell
-python %CODEX_HOME%\skills\simplis-automation\scripts\simplis_cli.py make-vector-export `
-  --schematic path\to\existing.sxsch `
-  --out-dir path\to\vectors `
-  --out path\to\export_vectors.sxscr `
-  --vector simplis_pop1:#VOUT `
-  --vector simplis_pop1:#V_SERVO `
-  --vector simplis_ac1:46
-
-python %CODEX_HOME%\skills\simplis-automation\scripts\simplis_cli.py run-script path\to\export_vectors.sxscr
-python %CODEX_HOME%\skills\simplis-automation\scripts\simplis_cli.py parse-show path\to\vectors\pop_vout.txt --out parsed_vectors.json
-```
-
-## Evidence And Privacy
-
-Default device names should come from `profiles/` or fresh `inspect-schematic` evidence, not from memory. The official examples in `examples/official/` are approved for this open-source repository. Do not copy private research schematics, generated SIMPLIS output, or local absolute paths into the skill.
-
-## Agent Install
-
-If you want an AI coding agent to install this skill for you, point it to [`agent.md`](agent.md).
+Private schematics, local paths, screenshots and generated outputs must remain under
+ignored output directories.
