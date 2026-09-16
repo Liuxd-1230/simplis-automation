@@ -1,4 +1,4 @@
 interface:
-  display_name: "SIMPLIS Automation"
-  short_description: "Control SIMetrix/SIMPLIS runs"
-  default_prompt: "Use $simplis-automation to create or modify a SIMPLIS schematic, run simulations, extract measurements, and iterate parameters."
+  display_name: "SIMPLIS Automation v3"
+  short_description: "Reference-led SIMPLIS schematic and simulation tools"
+  default_prompt: "Use $simplis-automation for this SIMPLIS task, loading only the device, schematic or simulation reference needed."

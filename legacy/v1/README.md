@@ -6,7 +6,7 @@ Codex skill for automating SIMetrix/SIMPLIS 8.4 on Windows. It can create SIMPLI
 
 ## What It Includes
 
-- `SKILL.md`: Codex skill instructions.
+- `WORKFLOW.md`: archived v1 instructions; not a registered skill.
 - `scripts/simplis_cli.py`: Main CLI entry point.
 - `scripts/simetrix_waveforms.py`: Waveform export-script generation and SIMetrix `Show` text parsing helpers.
 - `scripts/schematic_generator.py`: JSON/YAML to `.sxscr`, `.sxsch`, `.net`, and `.deck` generator.
