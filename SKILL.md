@@ -1,58 +1,47 @@
 ---
 name: simplis-automation
-description: Generate, import, run, validate, finalize and tune SIMetrix/SIMPLIS 8.3 or 8.4 circuits from strict YAML and locked local device evidence.
+description: Consult SIMetrix/SIMPLIS devices, build editable schematics or submodules, and run or inspect circuit simulations.
+metadata:
+  version: "3.0.0"
 ---
 
-# SIMPLIS Automation
+# SIMPLIS Automation v3
 
-This repository root is the default evidence-first v2 implementation. The archived
-v1 implementation is available only under `legacy/v1/`.
+Use the smallest useful path for the requested result. Reference lookup, drawing,
+simulation and model validation are separate tasks, not mandatory stages of one
+pipeline. Follow the user's circuit, model fidelity and chosen tools.
 
-## Efficient default workflow
+## Read only the relevant reference
 
-1. Run `simplis doctor --catalog <catalog.lock.yaml>` after installation or runtime
-   configuration changes. Doctor is static: it never launches SIMetrix or a fixture.
-2. Approve a catalog device only when it is new or its installed-library fingerprint
-   changed. Do not repeat proof runs for an unchanged approved catalog.
-3. Run `simplis run experiment.yaml --out-dir <run-dir>`. One analysis partition uses
-   one task-owned SIMetrix process for create, analysis cards, real netlist,
-   simulation and vector export.
-4. Use `simplis sweep` or `simplis optimize` on the same fast path. Do not clean-reopen
-   or capture every candidate.
-5. For the selected deliverable, run `simplis finalize
-   <run-dir>/experiment-result.json --out-dir <final-dir>`. This performs the sole
-   additional clean-reopen, re-netlist and native HWND screenshot.
-6. Read the emitted PNG with Codex `view_image`, write the required review JSON, then
-   run `simplis finalize-review <finalization-request.json> --review <review.json>`.
-   Bind that review with `finalization_request_sha256` and `screenshot_sha256` from
-   the exact request and PNG; a review for another capture must fail closed.
+| Task | Reference |
+|---|---|
+| Find a device, its pins, parameters or model | [Devices](references/devices.md) |
+| Create/edit `.sxsch` or `.sxcmp`; inspect connectivity | [Native schematics](references/native-schematics.md) |
+| Run a deck, read waveforms, diagnose or measure | [Simulation](references/simulation.md) |
+| Explicitly use the existing YAML compiler, sweeps or strict finalization | [Optional v2 backend](references/v2-workflow.md) |
 
-`simplis-v2` remains an alias for `simplis`. `compile`, `verify` and `roundtrip` are
-diagnostic commands, not mandatory steps in the default flow.
+Direct native commands, standalone SIMPLIS, small task scripts and the existing v2
+backend are all valid approaches. The optional stdlib helper
+`python scripts/simplis_tools.py --help` supports library queries, self-contained
+deck runs and `.t2` measurements without installing the backend.
 
-## Completion and visual evidence
+## Evidence and scope
 
-- A real task proves completion through ordered stage tokens, exit code 0, empty
-  error and unapproved-warning sets, matching analysis groups, and fresh non-empty
-  vectors. `GetSimulatorStatus() == None` is acceptable only when all of those
-  independent facts pass.
-- Finalization captures only the task-owned SIMetrix HWND with Win32 `PrintWindow`.
-  Never capture the desktop and never substitute an offline preview.
-- Codex must inspect readable text, symbol and label spacing, terminal/series/ground
-  orientation, functional bands and analysis gutter. A failed check makes the
-  deliverable fail closed.
-- Visual evidence proves readability only. The real netlist, vector provenance and
-  behavioral validation remain the electrical evidence.
-
-## Safety rules
-
-- Treat `circuit.yaml` as the source of truth. Import any GUI edit back into YAML.
-- Use only fingerprint-locked catalog symbols and approved parameter properties.
-- Unknown or opaque modules remain non-parameterizable boundaries and cannot make a
-  design fully ideal.
-- Preserve task isolation, terminate only task-owned PIDs, and retain failure bundles.
-- Treat warnings as failures unless their exact text is allowlisted.
-- Integrate nonuniform SIMPLIS samples over time; never use a plain row average for
-  DC, current or power metrics.
-- Keep generated schematics, screenshots, local runtime paths and raw outputs in
-  ignored output directories.
+- Prefer the installed library and matching-version manual for syntax and device
+  facts. The [source notes](references/evidence.md) distinguish documented behavior
+  from observations. Catalog approval belongs to the v2 compiler contract; it is
+  not a prerequisite for looking up or independently using a native device.
+- Keep user schematics and research circuits in the task workspace. Derive the
+  design from the user's specification; examples and golden cases are optional
+  test material, never an automatic starting circuit or prerequisite run.
+- Check what supports the requested claim: pins/properties for lookup; readable
+  layout and intended connections for a drawing; fresh solver output and relevant
+  electrical behavior for simulation. A picture, exit code or passing fixture alone
+  does not establish circuit correctness.
+- State material assumptions and remaining model limits. Ideal switches can replace
+  MOSFETs when appropriate; retain finite on-resistance if the method senses their
+  conduction voltage. Read the simulation reference when that approximation matters.
+- Finish when the requested artifact and necessary checks are complete. Add POP,
+  corners, optimization, clean-reopen or screenshots when the question needs them,
+  rather than attaching the entire workflow to every task. Retry against new error
+  evidence; an unchanged failure calls for diagnosis, not repeated waits.

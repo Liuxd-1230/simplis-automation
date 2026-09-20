@@ -1,27 +1,32 @@
-# simplis-automation
+# SIMPLIS 自动化技能 v3
 
-面向 SIMetrix/SIMPLIS 8.3/8.4 的证据优先自动化。v2 已提升为仓库默认实现，原
-v1 完整保存在 `legacy/v1/`。
+宗旨：**灵活、不臃肿、参考有依据**。入口是 [SKILL.md](SKILL.md)。
 
-## 安装与默认流程
+按需要选择器件查询、原生绘图、子模块、仿真或结果分析；不要求依次走完整流程。
+可以直接查安装库、编写原生命令或小脚本，也可以按需使用已有 v2 执行器。
+不强制转换 YAML，不自动运行 golden case，不把论文电路当默认模板。
 
-```powershell
-python -m pip install -e .
-simplis doctor --catalog catalog/seed_8_4.yaml
-simplis run examples/acot_buck_v84_experiment.yaml --out-dir outputs/acot
-simplis finalize outputs/acot/experiment-result.json --out-dir outputs/acot-final
-```
+## 默认加载什么
 
-`doctor` 只检查安装、路径、版本、SxCommand 和 catalog，不启动 SIMetrix，也不运行
-RC 校准电路。自动发现优先使用 8.4，找不到时才回退 8.3。
+根技能只保留任务路由和必要边界。详细内容分为：
 
-一次分析任务只启动一个 SIMetrix 进程，在同一进程内完成建图、分析卡、真实网表、
-仿真和向量导出。扫参和优化候选不做重复重开与截图；只有最终入选结果额外启动一次
-执行干净重开、复网表和原生窗口截图。
+- [器件参考](references/devices.md)：引脚、实例属性、模型来源和版本差异。
+- [原生原理图](references/native-schematics.md)：层级端口、布线、网表与显示检查。
+- [仿真与数据](references/simulation.md)：命令行运行、波形新鲜度、非均匀采样积分。
+- [来源与适用范围](references/evidence.md)：手册章节与实际观察，区分事实和推断。
 
-截图只针对任务所属 HWND，通过 Win32 `PrintWindow` 保存 PNG，不截取桌面。Codex
-使用图像识别检查文字、间距、方向和功能分区，再通过 `simplis finalize-review`
-写入结构化证据，不需要视觉模型 API 或密钥。
+`scripts/simplis_tools.py` 是可选的 Python 标准库工具，提供符号查询、自包含网表运行、
+`.t2` 读取及时间加权均值。运行 `--help` 查看参数；只使用它不需要安装完整后端依赖。
 
-`simplis` 是默认命令，`simplis-v2` 是兼容别名。`compile`、`verify`、`roundtrip`
-仅用于诊断。旧版命令只能从 `legacy/v1/` 显式调用。
+## 保留兼容性
+
+v3 是技能版本。现有 `simplis` / `simplis-v2` CLI、Python 包版本及严格验证合同保持不变，
+作为[可选后端](references/v2-workflow.md)保留。选择该后端后仍遵守其输入与验证要求。
+旧 v1 的 `SKILL.md` 改名为 `WORKFLOW.md`，避免同名技能重复注册。
+
+实际任务按目标收尾：查器件不启动仿真；画图不自动扩大为参数扫描；仿真必须检查真实波形，
+但不自动附加所有角点、POP、截图或 finalize。开关替代 MOS 时应保留研究依赖的非理想性；
+例如 VDS 电流检测需要有限导通电阻。
+
+安装技能时选仓库根目录。开发与命令示例见 [README.md](README.md)。本次版本没有收录私人
+论文电路、绝对安装路径、商业手册正文或生成波形。

@@ -1,7 +1,8 @@
 # SIMPLIS Automation
 
-This context defines the evidence language used to turn a circuit specification into
-a trusted SIMPLIS result and a reviewable schematic deliverable.
+The v3 skill is a small router to task-specific references and optional tools.
+The v2 backend remains an opt-in implementation with its existing strict contract.
+Its vocabulary below describes that backend, not mandatory steps for every task.
 
 ## Language
 

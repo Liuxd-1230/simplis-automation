@@ -1,47 +1,58 @@
-# simplis-automation
+# SIMPLIS Automation v3
 
-Evidence-first SIMetrix/SIMPLIS 8.3/8.4 automation. The v2 implementation is now the
-repository default; the former implementation is archived in `legacy/v1/`.
+A lightweight skill for device reference, native schematic/submodule work and
+SIMPLIS simulation. Start with [SKILL.md](SKILL.md); read only the reference needed
+for the task. [中文说明](README.zh-CN.md).
 
-## Install
+## What changed
+
+v3 makes the skill reference-led instead of prescribing a complete execution
+pipeline. Device lookup does not start the simulator. A drawing does not imply a
+sweep. A native deck does not need conversion to YAML. Examples and golden cases
+remain optional; private research circuits are not bundled as templates.
+
+The v2 Python package, CLI names and strict verification contract remain intact as
+an **optional backend**. v3 is the skill version; it does not rename the existing
+`simplis_automation_v2` API or change its package version. Legacy v1 instructions
+are now a plain `WORKFLOW.md`, so the repository exposes only one `SKILL.md`.
+
+## Use without installing Python dependencies
+
+Python 3.10+ and the repository files are sufficient for the reference helper:
+
+```powershell
+python scripts/simplis_tools.py symbols --library <installed-passives.sxslb> --query cap
+python scripts/simplis_tools.py symbols --library <installed-simplis.sxslb> --name simplis_prim_vcswitch
+python scripts/simplis_tools.py run --exe <installed-simplis.exe> --deck <task.ckt> --out-dir <new-run-directory>
+python scripts/simplis_tools.py waveform <run-directory>/input.ckt.t2 --column "V(2)" --start 0.00008 --end 0.0001
+```
+
+The helper runner stages **self-contained** decks in a fresh directory. For external
+includes, use the native CLI in a task-owned directory with its dependencies or the
+existing backend. These helpers are conveniences, not required interfaces.
+
+Install the repository root as the `simplis-automation` skill using your skill
+installer. No simulator install, package install or fixture run is needed just to
+read the references.
+
+## Optional v2 backend
 
 ```powershell
 python -m pip install -e .
-simplis doctor --catalog catalog/seed_8_4.yaml
+simplis --help
 ```
 
-Runtime discovery honors explicit CLI arguments, environment variables and runtime
-config first. Automatic discovery prefers SIMetrix 8.4 and falls back to 8.3.
-`doctor` is side-effect free and never starts SIMetrix.
+`simplis` and `simplis-v2` retain their existing behavior. See
+[the backend reference](references/v2-workflow.md) when choosing that path.
 
-## Fast iteration and strict delivery
+## Development and evidence
 
 ```powershell
-simplis run examples/acot_buck_v84_experiment.yaml --out-dir outputs/acot
-simplis finalize outputs/acot/experiment-result.json --out-dir outputs/acot-final
-simplis finalize-review outputs/acot-final/finalization-request.json `
-  --review outputs/acot-final/review.json
+python -m unittest discover -s tests -p "test_v3_tools.py"
+# With backend dependencies installed:
+python -m unittest discover -s tests -p "test_*.py"
 ```
 
-One analysis partition uses one SIMetrix process to create the editable schematic,
-write analysis directives, produce a real netlist, run SIMPLIS and export vectors.
-Sweep and optimization candidates use the same fast path. Only the selected result is
-clean-reopened in a second process.
-
-Finalization captures the task-owned window directly with Win32 `PrintWindow`.
-The image is reviewed by Codex multimodal vision through the versioned checklist;
-there is no model API integration or desktop capture.
-
-`simplis-v2` is retained as an alias. `compile`, `verify` and `roundtrip` remain
-available for diagnosis. Legacy v1 commands must be invoked from `legacy/v1/`.
-
-## Trust contract
-
-A normal run is scoring eligible only when ordered stage tokens, SIMPLIS exit and
-error state, warning policy, analysis-group contract, fresh vectors, behavioral
-checks and required charts all pass. A post-return `GetSimulatorStatus() == None`
-does not require an artificial calibration circuit; it is accepted only when the
-real task supplies every independent proof.
-
-Private schematics, local paths, screenshots and generated outputs must remain under
-ignored output directories.
+[Sources and limits](references/evidence.md) identify the installed manuals and
+observations behind the advice. Keep installed-library excerpts, machine paths,
+private circuits and generated waveforms outside version control.

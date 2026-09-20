@@ -1,7 +1,4 @@
----
-name: simplis-automation
-description: Automate SIMetrix/SIMPLIS 8.4 on Windows for schematic creation or editing, SIMPLIS runs, DVM-oriented testplans, parameter sweeps, black-box optimization, and iterative circuit validation. Use when Codex needs to control SIMetrix.exe/SIMPLIS, write .sxscr scripts, generate or modify .sxsch/.sxcmp/.testplan artifacts, run a buck/PMIC simulation, extract measurements, or tune design parameters from simulation results.
----
+# Archived v1 workflow (opt-in historical reference)
 
 # SIMPLIS Automation
 
