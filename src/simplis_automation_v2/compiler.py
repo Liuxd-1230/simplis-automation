@@ -31,29 +31,24 @@ def _resolve_catalog_path(circuit: Mapping[str, Any], circuit_path: Path, explic
 
 
 def _runtime_symbol_dir(catalog: Mapping[str, Any], explicit: str | Path | None = None) -> Path:
+    from .runtime import resolve_runtime
     runtime = catalog.get("runtime", {})
     configured = explicit or os.environ.get("SIMPLIS_SYMBOL_LIB_DIR") or runtime.get("symbol_library_dir")
-    if not configured:
-        raise CatalogError("Catalog does not identify a symbol_library_dir")
+    if configured is None or (not explicit and not os.environ.get("SIMPLIS_SYMBOL_LIB_DIR") and not Path(str(configured)).is_dir()):
+        active = resolve_runtime(version=runtime.get("version"))
+        configured = active["symbol_library"] if active["ready"] else runtime.get("symbol_library_dir")
+    if configured is None:
+        raise CatalogError("No matching runtime symbol library", version=runtime.get("version"))
     return Path(str(configured)).resolve()
 
 
 def _runtime_source_path(source: Path, symbol_library_dir: str | Path | None) -> Path:
     """Rebase a locked installed-source path onto the selected runtime."""
 
-    if source.is_file() or symbol_library_dir is None:
+    if symbol_library_dir is None:
         return source
-    parts = list(source.parts)
-    support_index = next((index for index, part in enumerate(parts) if part.casefold() == "support"), None)
-    if support_index is None:
-        return source
-    symbols = Path(symbol_library_dir).resolve()
-    try:
-        install_root = symbols.parents[1]
-    except IndexError:
-        return source
-    candidate = install_root.joinpath(*parts[support_index:])
-    return candidate if candidate.is_file() else source
+    from .runtime import installed_source_path
+    return installed_source_path(source, symbol_library_dir)
 
 
 def _normalize_orientation(value: Any) -> str:
@@ -1179,6 +1174,7 @@ def compile_circuit(
     """Compile a validated v2 circuit without launching SIMetrix."""
 
     source_path = Path(circuit_path).resolve()
+    source_fingerprint = sha256_file(source_path)
     circuit = load_circuit(source_path)
     catalog_source = _resolve_catalog_path(circuit, source_path, catalog_path)
     catalog = load_catalog(catalog_source)
@@ -1195,7 +1191,12 @@ def compile_circuit(
     if requested_fingerprint and requested_fingerprint != catalog["fingerprint"]:
         raise CatalogError("Circuit catalog fingerprint is stale", expected=requested_fingerprint, actual=catalog["fingerprint"])
     parameters = resolve_parameters(circuit, parameter_overrides)
-    installed = parse_symbol_libraries(_runtime_symbol_dir(catalog, symbol_library_dir))
+    symbol_library_dir = _runtime_symbol_dir(catalog, symbol_library_dir)
+    from .catalog import catalog_runtime_evidence
+    library_evidence = catalog_runtime_evidence(dict(catalog), symbol_library_dir)
+    if not library_evidence["ready"]:
+        raise CatalogError("Installed symbol/model content differs from catalog evidence; revalidate before compiling", evidence=library_evidence)
+    installed = parse_symbol_libraries(symbol_library_dir)
     embedded_records: dict[str, dict[str, Any]] = {}
     for device in catalog.get("devices", []):
         if device.get("placement_adapter") != "embedded_clone":
@@ -1255,6 +1256,7 @@ def compile_circuit(
         "manifest_path": str(paths["manifest"]),
         "build_dir": str(root),
         "source_circuit": str(source_path),
+        "source_circuit_sha256": source_fingerprint,
         "catalog": {"path": str(catalog_source), "fingerprint": catalog["fingerprint"]},
         "artifacts": {key: str(value) for key, value in paths.items() if key != "manifest"},
         "expected": {
@@ -1300,5 +1302,7 @@ def compile_circuit(
         },
         "script_sha256": sha256_file(paths["script"]),
     }
+    if sha256_file(source_path) != source_fingerprint:
+        raise ValidationError("YAML source changed during compilation", path=str(source_path))
     write_json(paths["manifest"], manifest)
     return manifest

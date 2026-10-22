@@ -12,6 +12,9 @@ import sys
 import time
 from typing import Iterator, TextIO
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+from simplis_automation_v2.runtime import resolve_runtime
+
 
 def attributes(line: str) -> dict[str, str]:
     return {m[1]: m[2] if m[2] is not None else m[3] for m in
@@ -145,11 +148,16 @@ def waveform(path: Path, column: str | None = None,
     return result
 
 
-def run_deck(exe: Path, deck: Path, out: Path, timeout: float = 60, *,
+def run_deck(exe: Path | None, deck: Path, out: Path, timeout: float = 60, *,
              kind: str = "candidate", environment: dict | None = None) -> dict:
     from run_storage import KINDS, register_run
     if kind not in KINDS:
         raise ValueError(f"Unknown run kind: {kind}")
+    active = resolve_runtime(install=exe, project_dir=deck.resolve().parent)
+    if exe is None:
+        if not active["ready"] or not active["simplis_exe"]:
+            raise ValueError(active["errors"] or active["warnings"])
+        exe = Path(active["simplis_exe"])
     exe, deck, out = exe.resolve(), deck.resolve(), out.resolve()
     if not exe.is_file() or not deck.is_file():
         raise ValueError("Executable and deck must be existing files")
@@ -166,6 +174,7 @@ def run_deck(exe: Path, deck: Path, out: Path, timeout: float = 60, *,
     result = {"input_sha256": hashlib.sha256(source).hexdigest(), "solver": str(exe),
               "source": str(deck), "authoritative_input": "standalone netlist",
               "editable_schematic": None, "settings": environment or {},
+              "runtime": active,
               "started_utc": datetime.now(timezone.utc).isoformat(),
               "completed": False, "behavior_validated": False}
     begun = time.monotonic()
@@ -197,7 +206,7 @@ def run_deck(exe: Path, deck: Path, out: Path, timeout: float = 60, *,
                                 else "log" if path.suffix in {".log", ".err", ".lst"}
                                 else "raw" if path.suffix in {".t0", ".t2", ".tc"} else "scratch")
     register_run(out, roles, kind=kind if result["completed"] else "diagnostic",
-                 completed=result["completed"], environment=environment,
+                 completed=result["completed"], environment=dict(runtime=active, conditions=environment or {}),
                  source={"kind": "netlist", "authoritative": [str(deck)], "snapshot": staged.name})
     return result
 
@@ -222,7 +231,7 @@ def main() -> int:
     p.add_argument("--install", type=Path)
     p.add_argument("--query", default="")
     p = commands.add_parser("run", help="Run a self-contained transient deck in a fresh directory")
-    p.add_argument("--exe", type=Path, required=True)
+    p.add_argument("--exe", type=Path, help="Explicit solver, otherwise use shared runtime discovery")
     p.add_argument("--deck", type=Path, required=True)
     p.add_argument("--out-dir", type=Path, required=True)
     p.add_argument("--timeout", type=float, default=60)

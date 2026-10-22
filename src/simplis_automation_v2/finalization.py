@@ -15,7 +15,7 @@ from PIL import Image, ImageStat
 
 from .errors import ValidationError
 from .io import sha256_file, sha256_text, write_json
-from .runtime import resolve_runtime
+from .runtime import normalize_version, resolve_runtime, startup_command
 from .watchdog import capture_dialogs, process_snapshot, simetrix_processes
 
 
@@ -192,7 +192,28 @@ def _prepare_capture_window(hwnd: int, sxcommand: Path) -> None:
     time.sleep(1)
 
 
-def finalize_experiment(
+def finalize_experiment(result_path: str | Path, out_dir: str | Path, *,
+                        runtime: Mapping[str, Any] | str | Path | None = None, timeout: float = 60) -> dict[str, Any]:
+    from .run_storage import fresh_directory, finish_run, protect
+    root = fresh_directory(Path(out_dir))
+    source = Path(result_path).resolve()
+    record = dict(completed=False, workflow="finalization", source=dict(kind="v2-result", authoritative=[str(source)]))
+    try:
+        owner = next((p for p in (source.parent, *source.parents) if (p / "storage.json").is_file()), None)
+        if owner:
+            protect(owner, "Input evidence required by finalization and final review")
+        result = _finalize_experiment(source, root, runtime=runtime, timeout=timeout)
+        record.update(completed=bool(result["ok"]), runtime=result["result"]["runtime"],
+                      runtime_transition=result["result"]["runtime_transition"], backend_result=result["request"])
+        return result
+    except Exception as exc:
+        record["error"] = repr(exc)
+        raise
+    finally:
+        finish_run(root, record, "final")
+
+
+def _finalize_experiment(
     result_path: str | Path,
     out_dir: str | Path,
     *,
@@ -227,7 +248,8 @@ def finalize_experiment(
     existing = simetrix_processes()
     if existing:
         raise ValidationError("Unrelated SIMetrix instance prevents isolated finalization", pids=[item.get("pid") for item in existing])
-    runtime_status = resolve_runtime(runtime)
+    input_version = result.get("runtime", {}).get("version")
+    runtime_status = resolve_runtime(runtime, target_version=input_version)
     if not runtime_status.get("watchdog_ready"):
         raise ValidationError("SIMetrix runtime is not ready for finalization", diagnostics=runtime_status.get("errors", []))
     root = Path(out_dir).resolve()
@@ -239,11 +261,12 @@ def finalize_experiment(
     screenshot = root / f"{schematic.stem}.png"
     script.write_text(build_finalize_script(schematic, reopened_netlist, status, message_log), encoding="utf-8")
     process = subprocess.Popen(
-        [str(runtime_status["executable"]), "/s", str(script)],
+        startup_command(runtime_status["executable"], script),
         cwd=str(root),
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
+        encoding="utf-8", errors="replace",
     )
     deadline = time.time() + timeout
     status_text = ""
@@ -286,6 +309,9 @@ def finalize_experiment(
             reopened_normalized_sha256=reopened_normalized,
         )
     request = {
+        "runtime": runtime_status,
+        "runtime_transition": {"input_version": input_version, "selected_version": runtime_status["version"],
+                               "version_changed": bool(input_version and normalize_version(input_version) != runtime_status["version"])},
         "schema_version": FINALIZATION_SCHEMA,
         "created_at": datetime.now(timezone.utc).isoformat(),
         "status": "pending_visual_review",

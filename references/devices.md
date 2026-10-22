@@ -3,10 +3,14 @@
 Use this for a device fact or when selecting a symbol/model. A lookup ends once the
 needed definition and its source are established; it does not launch a simulator.
 
+Installation selection uses the shared [runtime discovery](runtime.md).
+Reference matches include `runtime_compatibility`; matching names alone do not
+qualify another version or changed symbol/model content.
+
 ## Sources
 
 Start with [the curated user reference](../assets/device-reference/README.md):
-24 device types with Chinese functions, actual pins, example instance values and
+27 device types with Chinese functions, actual pins, example instance values and
 verification scope. `devices.sxsch` is an unwired reference sheet. Its original
 `.sxcmp` filename did not give it an external module interface.
 
