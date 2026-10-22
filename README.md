@@ -1,5 +1,11 @@
 # SIMPLIS Automation v3
 
+Runtime discovery and default run registration are now shared by the public entries.
+Use `simplis doctor --format text`, `simplis run ...`, or `simplis native ...`;
+the old command names, flags and backend results remain available. Read
+[configuration and portability](references/runtime.md) and the
+[measured compatibility matrix](docs/runtime-compatibility-validation.md).
+
 A lightweight skill for device reference, native schematic/submodule work and
 SIMPLIS simulation. Start with [SKILL.md](SKILL.md); read only the reference needed
 for the task. [中文说明](README.zh-CN.md).
@@ -81,6 +87,7 @@ Opt-in real integration (not run by unittest discovery):
 python tests/validate_v3_native.py --gui <SIMetrix.exe> --solver <simplis.exe> --out-dir <fresh-native-check>
 python tests/validate_v3_runtime.py --solver <simplis.exe> --install <installation-root> --out-dir <fresh-runtime-check>
 python tests/validate_control_workflow.py --gui <SIMetrix.exe> --install <installation-root> --out-dir <fresh-control-check>
+python tests/validate_runtime_compatibility.py --out-dir <fresh-version-check>
 python tests/validate_large_t2.py --solver <simplis.exe> --out-dir <fresh-memory-check>
 ```
 

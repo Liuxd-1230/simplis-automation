@@ -33,11 +33,20 @@ class DeviceReferenceTests(unittest.TestCase):
 
     def test_all_indexed_pins_match_actual_bundled_symbols(self):
         index = json.loads(REFERENCE.read_text(encoding="utf-8"))
-        self.assertEqual(len(index["devices"]), 24)
+        self.assertEqual(len(index["devices"]), 27)
         for part in index["devices"]:
             actual = symbols(REFERENCE.parent / index["schematic"], name=part["name"])["symbols"][0]
             self.assertEqual(part["pins"], actual["pins"], part["name"])
         self.assertEqual(find("节点电压探针")["matches"][0]["name"], "probev_new")
+
+    def test_updated_ac_and_pop_reference_has_actual_pins_and_model_dependency(self):
+        for query, name, pins in (("AC小信号电压源", "ac_source", ["P", "N"]),
+                                  ("双节点波特探针", "Bode_Probe2", ["OUT", "IN"]),
+                                  ("POP周期触发器", "PERIODIC_OP_V8", ["IN", "OUT"])):
+            part = find(query)["matches"][0]
+            self.assertEqual(part["name"], name)
+            self.assertEqual([p["name"] for p in part["pins"]], pins)
+        self.assertEqual(find("POP周期触发器")["matches"][0]["model_dependency"], "support/models/simplis_param.lb")
 
 
 class RunStorageTests(unittest.TestCase):

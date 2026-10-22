@@ -1,6 +1,6 @@
 # 首选器件参考 / Preferred device reference
 
-用户授权提供的精选器件集合：25个实例、24种符号。打开 `devices.sxsch` 查看中文用途与引脚。
+用户授权提供的精选器件集合：28个器件实例、27种器件符号。打开 `devices.sxsch` 查看中文用途与引脚。
 This is an editable, unwired reference sheet, not an executable circuit or an attachable submodule.
 
 原始文件虽名为.sxcmp，内容没有外部.Symbol接口；本库以.sxsch保存。
@@ -10,6 +10,11 @@ Selected embedded symbol drawings/properties originate from the supplied sheet; 
 
 Verified: native open, save and PNG/SVG export on 8.40. Individual electrical behavior is not universally certified.
 R1 has MODEL=R and an example VALUE=1k. U2/U3 are duplicate buffer instances with both normal and inverted outputs.
+
+2026-10-23 标注更新使用用户补充的原理图，保留原有定义，并增加 D26–D28。
+AC 源提供小信号扰动；波特探针测量 OUT/IN；POP 触发器检测周期信号的阈值交越。
+POP 模型依赖 `support/models/simplis_param.lb`，索引记录其内容身份。
+放置器件后仍需配置 POP/AC 分析、触发节点和测量方向。
 
 |编号|中文名称|符号|用途|
 |---|---|---|---|
@@ -37,6 +42,10 @@ R1 has MODEL=R and an example VALUE=1k. U2/U3 are duplicate buffer instances wit
 |D23|上升沿D触发器|`SIMPLIS_DIGI1_DFF_Y_0_TO_1`|边沿采样、状态切换与分频|
 |D24|节点电压探针|`probev_new`|连接待测节点，输出电压波形|
 |D25|串联电流探针|`InlineCurrentProbe`|串入支路；按箭头定义正方向|
+|D26|AC小信号电压源|`ac_source`|AC 1提供小信号激励，直流分量为零|
+|D27|双节点波特探针|`Bode_Probe2`|测量OUT/IN的增益与相位|
+|D28|POP周期触发器|`PERIODIC_OP_V8`|IN检测周期信号，OUT连接POP触发节点|
 
 详细引脚、参数默认值及证据见 `index.json`。查询工具读取原生符号定义，不依赖该表推测引脚。
-Suggested additions when needed: an explicitly configured 0/5 V pulse example; appropriate SIMPLIS diode/MOSFET models; loop-injection devices. A buffer inverted output is already available.
+按需要继续补充：配置明确的 0/5 V 脉冲源、适合实际设计的二极管与 MOSFET 模型。
+需要电流注入或隔离注入时，再补充相应器件。现有缓冲器已经提供反相输出。

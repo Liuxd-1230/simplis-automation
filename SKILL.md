@@ -15,6 +15,7 @@ pipeline. Follow the user's circuit, model fidelity and chosen tools.
 
 | Task | Reference |
 |---|---|
+| Discover installation, choose 8.30/8.40 or diagnose configuration | [Runtime](references/runtime.md) |
 | Find a device, its pins, parameters or model | [Devices](references/devices.md) |
 | Create/edit `.sxsch` or `.sxcmp`; inspect connectivity | [Native schematics](references/native-schematics.md) |
 | Run a deck, read waveforms, diagnose or measure | [Simulation](references/simulation.md) |
@@ -28,6 +29,10 @@ deck runs and `.t2` measurements without installing the backend. Functional look
 `python scripts/simplis_tools.py find --query "测量支路电流"`. Start with the
 curated [user reference](assets/device-reference/README.md); if unsuitable or absent,
 inspect installed official libraries, then matching-version manuals/examples.
+
+For normal simulation use `simplis native <source.sxsch> --vector ... --out-dir ...`,
+`simplis run <experiment.yaml> --out-dir ...`, or the helper's deck `run` command.
+These entries discover the runtime and register evidence by default.
 
 ## Deliver the requested circuit source
 

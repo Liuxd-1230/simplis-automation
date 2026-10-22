@@ -10,8 +10,6 @@ purpose: >-
 runtime:
   product: SIMetrix/SIMPLIS
   version: "8.4"
-  executable: D:\Simplis8.4\bin64\SIMetrix.exe
-  symbol_library_dir: D:\Simplis8.4\support\symbollibs
   symbol_libraries:
     - {path: passives.sxslb, sha256: 65f9a89167b1816ae45e246dc752d2ea6f34045c6be43e1825848f8192c6b9e0}
     - {path: sources.sxslb, sha256: 1a8def4926637d79fe0fb175bb273d8a2aad5ae54afc463ab1df455ec0a5402f}
@@ -22,9 +20,9 @@ runtime:
     - {path: semiconductors.sxslb, sha256: a5778c4411843ab43555c57a236b798f345816c506a7d0a8b0e14455bd333d41}
     - {path: simplis_analog_functions.sxslb, sha256: e6451da314c5adf2edf57f9eab9bc3245725a331972a6b83612a67868425a04a}
   model_libraries:
-    - {path: D:\Simplis8.4\support\models\SIMPLIS_DIGI1.lb, sha256: 073836571353c918f11f2ca00ccf21825b6d8a184b22405fff673006b4c2868f}
-    - {path: D:\Simplis8.4\support\models\Logic_BB.cat, sha256: 206b756535cdd60d993aeff425c32d9a678047148297e338aef1e75beee2ac5a}
-    - {path: D:\Simplis8.4\support\models\SIMPLIS_logic_gates_BB.lb, sha256: 98610879a672644eee3672c1f41025e2e81c330ec715e86411c17fded09f254e}
+    - {path: support/models/SIMPLIS_DIGI1.lb, sha256: 073836571353c918f11f2ca00ccf21825b6d8a184b22405fff673006b4c2868f}
+    - {path: support/models/Logic_BB.cat, sha256: 206b756535cdd60d993aeff425c32d9a678047148297e338aef1e75beee2ac5a}
+    - {path: support/models/SIMPLIS_logic_gates_BB.lb, sha256: 98610879a672644eee3672c1f41025e2e81c330ec715e86411c17fded09f254e}
 
 devices:
   - kind: resistor
@@ -275,7 +273,7 @@ devices:
     placement_adapter: embedded_clone
     symbol:
       name: SIMPLIS_DIGI1_AND_2I0_Y
-      source: 'D:\Simplis8.4\support\examples\SIMPLIS\DVM Tutorial\LLC\Modeling Blocks\LLC_Modulator_Open_Loop.sxcmp'
+      source: 'support/examples/SIMPLIS/DVM Tutorial/LLC/Modeling Blocks/LLC_Modulator_Open_Loop.sxcmp'
       source_sha256: aac734850a42d9ecd81ee588981c81599a08e8a4dd4e3d4bb9a7b52cede83441
     pins:
       - {name: OUT, index: 1, domain: analog}

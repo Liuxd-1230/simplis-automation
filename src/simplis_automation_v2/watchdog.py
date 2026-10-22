@@ -20,6 +20,7 @@ from typing import Any, Callable, Iterable, Mapping
 
 from .execution import assess_simulation_status, classify_watchdog
 from .io import sha256_file, write_json
+from .runtime import startup_command
 
 
 @dataclass(frozen=True)
@@ -237,10 +238,12 @@ def _artifact_snapshot(root: Path) -> list[dict[str, Any]]:
 def _powershell_json(script: str, *, timeout: float = 5.0) -> Any:
     try:
         completed = subprocess.run(
-            ["powershell", "-NoProfile", "-NonInteractive", "-Command", script],
+            ["powershell", "-NoProfile", "-NonInteractive", "-Command",
+             "[Console]::OutputEncoding=[System.Text.UTF8Encoding]::new($false);" + script],
             check=False,
             capture_output=True,
             text=True,
+            encoding="utf-8",
             timeout=timeout,
         )
     except (OSError, subprocess.TimeoutExpired):
@@ -336,6 +339,7 @@ def query_simulator_status(
                 check=False,
                 capture_output=True,
                 text=True,
+                encoding="utf-8", errors="replace",
                 timeout=timeout,
             )
             outputs.extend((completed.stdout, completed.stderr))
@@ -473,7 +477,8 @@ def run_script_with_watchdog(
         return {"ok": False, "classification": "message_path_outside_work_dir", "message_log": str(message_target)}
 
     started_at = clock()
-    process = subprocess.Popen([str(executable), "/s", str(source)], cwd=str(root), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    process = subprocess.Popen(startup_command(executable, source), cwd=str(root), stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                               text=True, encoding="utf-8", errors="replace")
     owned_pids = {int(process.pid)}
     monitor = WatchdogMonitor(started_at=started_at, config=config)
     last_dialogs: list[dict[str, Any]] = []

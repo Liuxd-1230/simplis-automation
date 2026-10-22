@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import json
-import os
+import hashlib
 from pathlib import Path
-import shutil
+import sys
 
 from simplis_tools import symbols
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+from simplis_automation_v2.runtime import resolve_runtime
 
 
 REFERENCE = Path(__file__).resolve().parents[1] / "assets/device-reference/index.json"
@@ -14,15 +16,10 @@ OFFICIAL_TERMS = {"二极管": ("diode",), "场效应管": ("mosfet",), "功率�
 
 
 def installation(value: Path | None = None) -> Path:
-    configured = value or os.environ.get("SIMPLIS_INSTALL") or shutil.which("simplis.exe")
-    if not configured:
-        raise ValueError("Provide --install <installation root or executable>, or set SIMPLIS_INSTALL")
-    path = Path(configured).expanduser().resolve()
-    if path.is_file():
-        path = path.parent.parent
-    if not (path / "support/symbollibs").is_dir():
-        raise ValueError(f"No support/symbollibs below {path}")
-    return path
+    active = resolve_runtime(install=value)
+    if not active["ready"]:
+        raise ValueError(dict(errors=active["errors"], warnings=active["warnings"]))
+    return Path(active["install_root"])
 
 
 def locate(value: Path | None = None, query: str = "") -> dict:
@@ -62,6 +59,16 @@ def find(query: str, install: Path | None = None, reference: Path = REFERENCE,
             definition = symbols(reference.parent / index["schematic"], name=device["name"])["symbols"][0]
             results.append(dict(device, score=score, properties=definition["properties"],
                                 definition=definition["definition"]))
+        active = resolve_runtime(install=install)
+        for device in results:
+            checks = list(active.get("library_checks", []))
+            for relative, expected in device["evidence"].get("installed_files", {}).items():
+                path = Path(active["install_root"]) / relative
+                actual = hashlib.sha256(path.read_bytes()).hexdigest() if path.is_file() else None
+                checks.append(dict(path=relative, expected_sha256=expected, actual_sha256=actual, matches=actual == expected))
+            device["runtime_compatibility"] = dict(version=active["version"], version_status=active["version_status"],
+                status="matching_recorded_libraries" if active["ready"] and active.get("catalog_match") and active["version"] == "8.4" and all(c["matches"] for c in checks) else "requires_revalidation",
+                library_checks=checks, electrical_behavior="not individually qualified")
         return dict(source="user-reference", reference=str(reference.resolve()), matches=results,
                     match_count=len(ranked),
                     next_step="Check suitability, instance values and model requirements; use --official with --install if unsuitable")

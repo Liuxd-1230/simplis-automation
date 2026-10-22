@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any, Mapping
 
 from .io import sha256_file, write_json
-from .runtime import resolve_runtime
+from .runtime import resolve_runtime, startup_command
 from .watchdog import recent_error_artifacts, simetrix_processes
 
 
@@ -68,7 +68,8 @@ def build_roundtrip_scripts(
 
 def _run(executable: Path, script: Path, timeout: float) -> dict[str, Any]:
     started = time.time()
-    process = subprocess.Popen([str(executable), "/s", str(script)], cwd=str(script.parent), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    process = subprocess.Popen(startup_command(executable, script), cwd=str(script.parent), stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                               text=True, encoding="utf-8", errors="replace")
     try:
         stdout, stderr = process.communicate(timeout=timeout)
         return {"returncode": process.returncode, "stdout": stdout, "stderr": stderr, "timed_out": False, "started_at": started, "pid": process.pid}
