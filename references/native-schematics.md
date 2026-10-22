@@ -6,8 +6,9 @@ device definitions behind those blocks. Keep those claims separate.
 
 ## Build and connect
 
-Choose the source file first. Existing native schematics stay authoritative;
-netlists and previews are generated outputs. For a simulation-only deck, disclose
+Choose the source file first. Native workflows keep `.sxsch` authoritative;
+netlists and previews are generated outputs. In the optional v2 YAML workflow,
+YAML remains authoritative; import GUI changes before regenerating. For a simulation-only deck, disclose
 that no editable native source exists. If editing is later requested, reconstruct
 the required topology, then compare its native export with the intended circuit.
 
@@ -23,6 +24,13 @@ Reuse the optional v2 compiler's pin transforms, orientation, bounding-box/label
 clearance and routing checks when that backend fits. For a fixed small circuit an
 explicit layout is sufficient; the [native examples](../examples/native/README.md)
 reuse its transform. No general autorouter is added.
+
+Automatic rows should advance by the previous object's full annotation footprint
+and clearance. Multiplying the current object's height by its list index can make
+mixed-size rows overlap, leaving the collision resolver to shift them sideways.
+The control validation uses the same footprint pack and pin transforms for a
+comparator/latch/driver block, with native modules and a crossing-wire variant.
+See [control and storage checks](../docs/control-storage-validation.md).
 
 Use installed symbols and a task-specific layout. Native `Inst /loc`, `Wire /loc`,
 `Prop`, `SaveAs /force` and `Netlist /simplis` are documented in the local

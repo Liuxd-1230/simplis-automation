@@ -43,6 +43,18 @@ diagnostic commands, not mandatory steps in the default flow.
 
 ## Safety rules
 
+For shared run retention without changing backend stages, the optional command is:
+
+```powershell
+python scripts/run_managed.py v2 --experiment <experiment.yaml> --out-dir <fresh-run> --runtime <runtime.json>
+```
+
+It calls the existing `run_experiment` unchanged, keeps its result under
+`execution/experiment-result.json`, and adds input snapshots, source mapping and
+`storage.json`. Existing direct v2 commands and outputs remain supported; they are
+not retroactively adopted into cleanup. Protected raw vectors needed for
+finalization/review must remain available. See [storage](run-storage.md).
+
 - Treat `circuit.yaml` as the source of truth. Import any GUI edit back into YAML.
 - Use only fingerprint-locked catalog symbols and approved parameter properties.
 - Unknown or opaque modules remain non-parameterizable boundaries and cannot make a

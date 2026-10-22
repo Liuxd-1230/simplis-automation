@@ -11,10 +11,10 @@ temperature/model conditions remain unspecified in reported conclusions.
 
 | Kind | Use | Cleanup |
 |---|---|---|
-| temporary | Debugging or scan points | Prune registered scratch; successful raw output requires saved metrics |
-| candidate | Successful result under consideration; default | Same preview/apply rules; select useful raw evidence before pruning |
+| temporary | Debugging or scan points | Prune registered scratch; keep raw unless specific files are marked disposable |
+| candidate | Successful result under consideration; default | Same file-level rules; retain raw needed for waveform checks |
 | final | Paper evidence or delivery, selected with `--kind final` | Protected automatically; preserve raw evidence |
-| diagnostic | Failed run, assigned automatically | Keep input/status/log/error text; redundant raw/scratch may be pruned |
+| diagnostic | Failed run, assigned automatically | Keep input/status/log/error and raw; explicitly select redundant raw before pruning |
 
 ## Small workflow
 
@@ -22,6 +22,7 @@ temperature/model conditions remain unspecified in reported conclusions.
 python scripts/simplis_tools.py run --exe <simplis.exe> --deck <circuit.ckt> --out-dir <task/run-01> --kind temporary --environment <conditions.json>
 python scripts/simplis_tools.py waveform <task/run-01/input.ckt.t2> --column "V(2)" --start 0.00008 --end 0.0001 --save-run <task/run-01>
 python scripts/run_storage.py protect <task/run-01> --reason "Representative result used in the paper"
+python scripts/run_storage.py raw-retention <task/run-02> --file input.ckt.t2 --discard --reason "Disposable scan point; selected raw evidence retained in run-01"
 python scripts/run_storage.py cleanup <task/run-02> <task/run-03>
 python scripts/run_storage.py cleanup <task/run-02> <task/run-03> --apply
 ```
@@ -31,7 +32,13 @@ Preserve the relevant raw waveform for critical claims; metrics alone cannot
 independently establish ripple, stability or event timing. For task-specific
 measurements, `register_metrics(run_path, metrics_dict)` from `scripts/run_storage.py`
 registers the saved JSON. Include signal names, windows, definitions and extraction
-script/version. Failed metric extraction should stop pruning successful raw data.
+script/version. Saving any metric does **not** authorize deletion of any raw file.
+All raw waveforms/state files stay by default. `raw-retention --file ... --discard`
+records an explicit file-level decision and reason. Use `--retain` for raw needed
+by timing, ripple, transient or independent waveform verification; protect entire
+selected runs for finalization/publication. Never mark those files disposable just
+because an unrelated average was saved. Changed files are preserved even if an
+earlier decision marked them disposable. Failed runs follow the same raw policy.
 
 For a scan, keep a compact parameter/measurement summary, protect selected and
 representative runs, then pass remaining run paths explicitly to cleanup. There is
@@ -49,13 +56,47 @@ never register them as scratch. Protected/final runs are retained in full. Prote
 is intentionally a one-way CLI action; use a new temporary run for further work.
 
 The report lists actions/reasons, reclaimable bytes, remaining registered bytes
-and unregistered files. On tested Windows 8.40, SIMPLIS marks some state outputs
+and total bytes, plus unregistered files. On tested Windows 8.40, SIMPLIS marks some state outputs
 read-only: apply clears that attribute only for eligible unchanged generated files.
 Failed cleanup stops at the operating-system error; inspect it before retrying.
 
-This helper manages its own new standalone runs. Existing v2 outputs keep their
-current contract; retain selected v2 evidence and clean only task-owned disposable
-outputs with an explicitly reviewed file list. They are not automatically enrolled.
+## Optional native and v2 execution
+
+`scripts/run_managed.py` adds this same storage record around either execution path:
+
+```powershell
+python scripts/run_managed.py v2 --experiment <experiment.yaml> --out-dir <fresh-run> --runtime <runtime.json>
+python scripts/run_managed.py native --schematic <circuit.sxsch> --out-dir <fresh-run> --runtime <runtime.json> --vector "#VOUT" "#Q"
+```
+
+`runtime.json` uses the existing v2 configuration fields `executable` and
+`symbol_library`. Optional backend dependencies are required. The v2 command calls
+the existing runner and preserves its status, validation, analysis isolation and
+result files under `execution/`. `run.json` links that result; it does not promote a
+failed/unvalidated v2 run to success. Snapshots retain original YAML text plus
+original-to-copy paths. Restore that mapping and installed model dependencies when
+reconstructing an old run; snapshot filenames are not rewritten executable projects.
+
+The native command stages `.sxsch` and relative `.sxcmp` dependencies in a fresh
+directory and uses the existing native execution/export commands. This entry reads
+UTF-8 text schematic/module files. Set `--project-root`
+when modules live in a wider project tree. Absolute module paths are rejected.
+External include/model trees are not automatically bundled. The current path checks
+transient Show exports; it does not implement new AC/POP validation. Show readers
+keep their existing memory behavior. Native solver success remains separate from
+electrical behavior validation. Session isolation follows the existing watchdog:
+an unrelated SIMetrix instance prevents launch and is left untouched. Output metadata may be unavailable from
+`GetSimulationInfo` in 8.40; a fresh exported native netlist, completion/error state,
+group selection and fresh finite vectors supply actual run evidence.
+
+Native workflows keep the original `.sxsch` and its modules authoritative; snapshots
+are immutable run inputs. V2 workflows keep the original YAML protocol, with native
+schematics as generated outputs. Import GUI edits to YAML before rerunning v2.
+Neither path edits the user's original files. Files changed after registration,
+input snapshots, source recipes, logs, records and unknown evidence files survive
+cleanup. Existing v2 directories are not retroactively enrolled. New managed runs
+require an empty destination, so arbitrary project files cannot be claimed as output.
+
 External models/native source dependencies remain the task's responsibility. Keep
 their versions and required files with final results. Inputs and software identifiers
 support reproduction; they do not guarantee identical future solver behavior.

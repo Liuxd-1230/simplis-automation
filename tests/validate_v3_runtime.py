@@ -8,7 +8,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 from device_lookup import find, installation, locate
-from run_storage import cleanup, load_run, protect, register_metrics
+from run_storage import cleanup, load_run, protect, raw_retention, register_metrics
 from simplis_tools import run_deck, waveform
 
 
@@ -38,6 +38,8 @@ def validate(solver: Path, install: Path, out: Path):
         register_metrics(run, waveform(run / "input.ckt.t2", "V(2)", .004, .005))
         runs.append(run)
     protect(runs[1], "Representative sweep point")
+    raw_retention(runs[0], ["input.ckt.t2"], discard=True,
+                  reason="Disposable RC scan point; selected representative raw data retained in run_1")
     (runs[2] / "input.ckt.t2").write_text((runs[2] / "input.ckt.t2").read_text() + "\n")
     (runs[0] / "manual.txt").write_text("user annotations")
     preview = [cleanup(run) for run in runs]

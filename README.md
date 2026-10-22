@@ -12,6 +12,12 @@ bilingual functional lookup, installed-document discovery, two editable
 [run storage](references/run-storage.md). The helper preserves inputs/logs/metrics,
 protects selected evidence and prunes only registered unchanged generated files.
 
+The follow-up keeps v3.1's scope: optional native/v2 run registration shares that
+storage policy, raw evidence now needs an explicit per-file discard decision, and
+`.t2` summaries/means stream rows with bounded memory. A comparator/latch/driver
+feedback circuit checks automatic placement, actual hierarchy/crossing connections
+and native property editing. See [measured results](docs/control-storage-validation.md).
+
 v3 makes the skill reference-led instead of prescribing a complete execution
 pipeline. Device lookup does not start the simulator. A drawing does not imply a
 sweep. A native deck does not need conversion to YAML. Examples and golden cases
@@ -74,6 +80,8 @@ Opt-in real integration (not run by unittest discovery):
 ```powershell
 python tests/validate_v3_native.py --gui <SIMetrix.exe> --solver <simplis.exe> --out-dir <fresh-native-check>
 python tests/validate_v3_runtime.py --solver <simplis.exe> --install <installation-root> --out-dir <fresh-runtime-check>
+python tests/validate_control_workflow.py --gui <SIMetrix.exe> --install <installation-root> --out-dir <fresh-control-check>
+python tests/validate_large_t2.py --solver <simplis.exe> --out-dir <fresh-memory-check>
 ```
 
 The native test requires optional backend dependencies and checks actual exported
