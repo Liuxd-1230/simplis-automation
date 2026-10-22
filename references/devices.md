@@ -5,9 +5,50 @@ needed definition and its source are established; it does not launch a simulator
 
 ## Sources
 
+Start with [the curated user reference](../assets/device-reference/README.md):
+24 device types with Chinese functions, actual pins, example instance values and
+verification scope. `devices.sxsch` is an unwired reference sheet. Its original
+`.sxcmp` filename did not give it an external module interface.
+
+```powershell
+python scripts/simplis_tools.py find --query "需要测量支路电流"
+python scripts/simplis_tools.py find --query transformer --install <installation-root>
+python scripts/simplis_tools.py find --query "电压控制开关" --official --install <installation-root>
+python scripts/simplis_tools.py locate --install <installation-root-or-executable> --query ScriptReference
+```
+
+`find` uses bilingual functional aliases and descriptions. Reference matches return
+the original symbol definition, pin order/coordinates, property definitions,
+instance defaults, version and provenance. This is a bounded index: refine the
+function name or translate it when no alias matches. Inspect suitability before
+selecting a result. `--official` continues to installed libraries when reference
+choices are unsuitable. With no reference match it automatically searches installed
+libraries; provide `--install`, `SIMPLIS_INSTALL` or a `simplis.exe` on PATH.
+Match lists are bounded and include counts.
+
+An inline current probe goes **in series**, with its arrow defining positive current.
+The actual symbol emits a zero-volt sensing source plus probe directives. Replacing
+its properties with an ordinary DC source loses that probe behavior. A voltage
+probe attaches to a node. An independent current source drives current. Select by
+the task and actual template.
+
+Some supplied digital symbols are embedded definitions backed by
+`support/models/SIMPLIS_DIGI1.lb`; they are not standalone entries in the tested
+`.sxslb` files. The index records this distinction. Parameterized models require
+native preprocessing. Default values are examples; required instance/model fields
+follow `SIMPLIS_TEMPLATE` and the matching manual. The `vcvs`/`vccs` reference symbols
+are marked Obsolete in the installed source; inspect available alternatives as needed.
+
 Find the installed version from the user's configuration or executable location.
 Typical installation-relative locations are `support/symbollibs/*.sxslb`,
 `support/models/` and `support/docs/`. Search only the likely library first.
+
+`locate` reports local manual/example paths and useful manual topics without
+copying manuals. Use existing PDF extraction or text search for chapter contents:
+`ScriptReference.pdf` for Inst/Wire/Prop/Netlist/PreProcessNetlist; `UsersManual.pdf`
+for probes, hierarchy and command-line options; `SIMPLIS_Reference.pdf` for device
+equations, models, initialization and output controls. Search installed models by
+`PARAM_MODEL_NAME` and official examples by the device/function.
 
 ```powershell
 python scripts/simplis_tools.py symbols --library <library.sxslb> --query switch

@@ -2,6 +2,24 @@
 
 宗旨：**灵活、不臃肿、参考有依据**。入口是 [SKILL.md](SKILL.md)。
 
+v3.1 整合了用户的[中文器件参考](assets/device-reference/README.md)，包含 24 种器件。
+增加按功能查询、官方资料定位、两个[可编辑原生示例](examples/native/README.md)，以及
+[运行数据保存和清理](references/run-storage.md)。清理默认预览，正式证据可以标记保留。
+
+```powershell
+python scripts/simplis_tools.py find --query "需要测量支路电流"
+python scripts/simplis_tools.py find --query transformer --install <安装目录>
+python scripts/simplis_tools.py locate --install <安装目录或程序路径> --query ScriptReference
+python scripts/run_storage.py cleanup <本次任务运行目录>
+```
+
+器件查询优先参考表；缺少匹配时查找官方库。参考器件不适合时，使用 `--official` 继续查询。
+输出包含引脚、属性、实际来源和验证范围。查询工具依靠双语功能词，未匹配时需要调整关键词。
+参考中的部分数字器件由嵌入符号和本机模型提供，索引中记录了依赖。
+
+仿真可以直接使用网表。要求设计、修改和交付电路时，以原生原理图及子模块作为电路源文件。
+生成物与源文件分开保存，交付时说明文件位置和可编辑性。
+
 按需要选择器件查询、原生绘图、子模块、仿真或结果分析；不要求依次走完整流程。
 可以直接查安装库、编写原生命令或小脚本，也可以按需使用已有 v2 执行器。
 不强制转换 YAML，不自动运行 golden case，不把论文电路当默认模板。
@@ -13,6 +31,7 @@
 - [器件参考](references/devices.md)：引脚、实例属性、模型来源和版本差异。
 - [原生原理图](references/native-schematics.md)：层级端口、布线、网表与显示检查。
 - [仿真与数据](references/simulation.md)：命令行运行、波形新鲜度、非均匀采样积分。
+- [数据保存与清理](references/run-storage.md)：四类运行记录、测量保存、保留标记和空间统计。
 - [来源与适用范围](references/evidence.md)：手册章节与实际观察，区分事实和推断。
 
 `scripts/simplis_tools.py` 是可选的 Python 标准库工具，提供符号查询、自包含网表运行、
@@ -30,3 +49,7 @@ v3 是技能版本。现有 `simplis` / `simplis-v2` CLI、Python 包版本及�
 
 安装技能时选仓库根目录。开发与命令示例见 [README.md](README.md)。本次版本没有收录私人
 论文电路、绝对安装路径、商业手册正文或生成波形。
+
+实际验证了原生打开/保存/导出、层级反馈连接、真实仿真与失败诊断、批量运行清理。
+结果和适用范围见[验证记录](docs/v3.1-validation.md)。现有 v2 后端保持兼容，
+其输出不会自动加入新清理工具的管理范围。

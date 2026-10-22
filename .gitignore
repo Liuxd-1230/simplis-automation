@@ -9,6 +9,11 @@ __pycache__/
 
 *.sxsch
 *.sxcmp
+!assets/device-reference/devices.sxsch
+!examples/native/simple_rc.sxsch
+!examples/native/feedback.sxsch
+!examples/native/controller.sxcmp
+!examples/native/plant.sxcmp
 *.net
 *.deck
 *.err
