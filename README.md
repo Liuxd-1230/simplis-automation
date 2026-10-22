@@ -6,6 +6,12 @@ for the task. [中文说明](README.zh-CN.md).
 
 ## What changed
 
+v3.1 adds the curated editable [device reference](assets/device-reference/README.md),
+bilingual functional lookup, installed-document discovery, two editable
+[native examples](examples/native/README.md), and preview-first
+[run storage](references/run-storage.md). The helper preserves inputs/logs/metrics,
+protects selected evidence and prunes only registered unchanged generated files.
+
 v3 makes the skill reference-led instead of prescribing a complete execution
 pipeline. Device lookup does not start the simulator. A drawing does not imply a
 sweep. A native deck does not need conversion to YAML. Examples and golden cases
@@ -21,10 +27,14 @@ are now a plain `WORKFLOW.md`, so the repository exposes only one `SKILL.md`.
 Python 3.10+ and the repository files are sufficient for the reference helper:
 
 ```powershell
+python scripts/simplis_tools.py find --query "测量支路电流"
+python scripts/simplis_tools.py find --query transformer --install <installation-root>
+python scripts/simplis_tools.py locate --install <installation-root-or-executable> --query ScriptReference
 python scripts/simplis_tools.py symbols --library <installed-passives.sxslb> --query cap
 python scripts/simplis_tools.py symbols --library <installed-simplis.sxslb> --name simplis_prim_vcswitch
 python scripts/simplis_tools.py run --exe <installed-simplis.exe> --deck <task.ckt> --out-dir <new-run-directory>
 python scripts/simplis_tools.py waveform <run-directory>/input.ckt.t2 --column "V(2)" --start 0.00008 --end 0.0001
+python scripts/run_storage.py cleanup <run-directory>
 ```
 
 The helper runner stages **self-contained** decks in a fresh directory. For external
@@ -55,4 +65,18 @@ python -m unittest discover -s tests -p "test_*.py"
 
 [Sources and limits](references/evidence.md) identify the installed manuals and
 observations behind the advice. Keep installed-library excerpts, machine paths,
-private circuits and generated waveforms outside version control.
+private circuits and generated waveforms outside version control, except explicitly
+curated public reference/example files. Selected vendor symbols retain their rights;
+see [third-party notes](assets/device-reference/README.md).
+
+Opt-in real integration (not run by unittest discovery):
+
+```powershell
+python tests/validate_v3_native.py --gui <SIMetrix.exe> --solver <simplis.exe> --out-dir <fresh-native-check>
+python tests/validate_v3_runtime.py --solver <simplis.exe> --install <installation-root> --out-dir <fresh-runtime-check>
+```
+
+The native test requires optional backend dependencies and checks actual exported
+topology plus an RC/feedback transient. The runtime test checks real library
+fallback, standalone success/failure, scan retention and cleanup. Tested versions,
+measurements and remaining limits are recorded in [v3.1 validation](docs/v3.1-validation.md).

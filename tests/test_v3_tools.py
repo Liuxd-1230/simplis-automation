@@ -5,10 +5,12 @@ import json
 from pathlib import Path
 import subprocess
 import tempfile
+import sys
 import unittest
 from unittest.mock import patch
 
 SPEC = importlib.util.spec_from_file_location("v3_tools", Path(__file__).parents[1] / "scripts/simplis_tools.py")
+sys.path.insert(0, str(Path(__file__).parents[1] / "scripts"))
 tools = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(tools)
 

@@ -21,6 +21,13 @@ execution with the required files staged or choose the existing backend. It also
 does not preprocess SIMetrix macro libraries: parameterized native symbols may need
 SIMetrix's `PreProcessNetlist` before their deck can run in standalone SIMPLIS.
 
+The report identifies the authoritative standalone netlist and states that this
+command does not deliver an editable schematic. When the deck was exported from a
+native design, keep its `.sxsch`/`.sxcmp` source and report that relationship in the
+delivery. Generated outputs are registered for optional
+[evidence retention and cleanup](run-storage.md). Select `--kind temporary` for
+scan points and `--kind final` for retained evidence; failures become diagnostic.
+
 For an existing schematic, `simplis_run` uses the native schematic workflow.
 `Netlist /simplis` exports hierarchy; `RunSIMPLIS` is a lower-level command and does
 not perform that preprocessing itself. A GUI command returning is not sufficient
@@ -43,6 +50,10 @@ states that `PSP_NPT` must be specified to generate output print data, for examp
 This is a syntax illustration, not a compulsory time length or sampling count.
 Standalone 8.40 produced text `.t2` waveforms. `.t0` contains state/snapshot data;
 it is not the same waveform table. Read `.err` when the solver fails.
+
+In a SIMetrix-exported numeric netlist, `.NODE_MAP VOUT 4` provides a named alias:
+the tested standalone SIMPLIS syntax is `.PRINT V(#VOUT)` or `.PRINT V(4)`.
+`.PRINT V(VOUT)` failed despite that map. Inspect the actual emitted nodes.
 
 Check non-empty, current output, expected columns, finite values and requested time
 coverage. Then check behavior relevant to the claim: steady-state values, event

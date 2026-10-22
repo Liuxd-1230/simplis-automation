@@ -1,0 +1,1448 @@
+{
+  "schema": 1,
+  "schematic": "devices.sxsch",
+  "devices": [
+    {
+      "id": "D01",
+      "name": "res",
+      "chinese_name": "电阻",
+      "description": "限流、分压、RC时间常数",
+      "aliases": [
+        "电阻",
+        "resistor",
+        "分压",
+        "限流"
+      ],
+      "library": "passives.sxslb",
+      "pins": [
+        {
+          "name": "P",
+          "order": "1",
+          "x": "0",
+          "y": "0",
+          "visible": "0"
+        },
+        {
+          "name": "N",
+          "order": "2",
+          "x": "0",
+          "y": "360",
+          "visible": "0"
+        }
+      ],
+      "instance_defaults": {
+        "DECSCRIPT": "inc_dec_passive 1",
+        "INCSCRIPT": "inc_dec_passive 0",
+        "MODEL": "R",
+        "REF": "R?",
+        "SIMULATOR": "DUAL",
+        "VALUE": "1k"
+      },
+      "evidence": {
+        "version": "8.40",
+        "native_open_save_export": true,
+        "electrical_behavior": "not individually qualified",
+        "manual": "SIMPLIS_Reference.pdf"
+      },
+      "connection_note": "Use actual pin order below; example values must be chosen for the target circuit.",
+      "installed_symbol_libraries": [
+        "passives.sxslb"
+      ]
+    },
+    {
+      "id": "D02",
+      "name": "cap",
+      "chinese_name": "电容",
+      "description": "滤波、积分、保持与定时",
+      "aliases": [
+        "电容",
+        "capacitor",
+        "积分电容",
+        "保持电容"
+      ],
+      "library": "passives.sxslb",
+      "pins": [
+        {
+          "name": "P",
+          "order": "1",
+          "x": "0",
+          "y": "0",
+          "visible": "0"
+        },
+        {
+          "name": "N",
+          "order": "2",
+          "x": "0",
+          "y": "240",
+          "visible": "0"
+        }
+      ],
+      "instance_defaults": {
+        "DECSCRIPT": "inc_dec_passive 1",
+        "ICANAL": "0;1;0;0;",
+        "INCSCRIPT": "inc_dec_passive 0",
+        "INIT_SCRIPT": "ic_reactive",
+        "MODEL": "C",
+        "PARAMSSCRIPT": "params_capacitor",
+        "PLUS": " +",
+        "REF": "C?",
+        "SIMPLIS_TEMPLATE": "<ref> <nodelist> %VALUE%",
+        "SIMULATOR": "DUAL",
+        "TEMPLATE": "<ref> <nodelist> <value> <paramsvalue> %FORM% <ifd:FORM:ICMODE=0>",
+        "VALUE": "1n",
+        "VALUESCRIPT": "edit_reactive"
+      },
+      "evidence": {
+        "version": "8.40",
+        "native_open_save_export": true,
+        "electrical_behavior": "not individually qualified",
+        "manual": "SIMPLIS_Reference.pdf"
+      },
+      "connection_note": "Use actual pin order below; example values must be chosen for the target circuit.",
+      "installed_symbol_libraries": [
+        "passives.sxslb"
+      ]
+    },
+    {
+      "id": "D03",
+      "name": "ind",
+      "chinese_name": "电感",
+      "description": "Buck储能与电流纹波",
+      "aliases": [
+        "电感",
+        "inductor"
+      ],
+      "library": "passives.sxslb",
+      "pins": [
+        {
+          "name": "P",
+          "order": "1",
+          "x": "0",
+          "y": "0",
+          "visible": "0"
+        },
+        {
+          "name": "N",
+          "order": "2",
+          "x": "480",
+          "y": "0",
+          "visible": "0"
+        }
+      ],
+      "instance_defaults": {
+        "DECSCRIPT": "inc_dec_passive 1",
+        "ICANAL": "0;1;0;0;",
+        "INCSCRIPT": "inc_dec_passive 0",
+        "INIT_SCRIPT": "ic_reactive",
+        "MODEL": "L",
+        "REF": "L?",
+        "SIMPLIS_TEMPLATE": "<ref> <nodelist> %VALUE%",
+        "SIMULATOR": "DUAL",
+        "TEMPLATE": "<ref> <nodelist> <value> <paramsvalue> %FORM% <ifd:FORM:ICMODE=0>",
+        "VALUE": "1u",
+        "VALUESCRIPT": "edit_reactive"
+      },
+      "evidence": {
+        "version": "8.40",
+        "native_open_save_export": true,
+        "electrical_behavior": "not individually qualified",
+        "manual": "SIMPLIS_Reference.pdf"
+      },
+      "connection_note": "Use actual pin order below; example values must be chosen for the target circuit.",
+      "installed_symbol_libraries": [
+        "passives.sxslb"
+      ]
+    },
+    {
+      "id": "D04",
+      "name": "gnd",
+      "chinese_name": "参考地",
+      "description": "电路零电位与逻辑返回端",
+      "aliases": [
+        "参考地",
+        "接地",
+        "ground"
+      ],
+      "library": "connection.sxslb",
+      "pins": [
+        {
+          "name": "GND",
+          "order": "1",
+          "x": "0",
+          "y": "0",
+          "visible": "0"
+        }
+      ],
+      "instance_defaults": {
+        "NETNAME": "",
+        "VALUE": "0"
+      },
+      "evidence": {
+        "version": "8.40",
+        "native_open_save_export": true,
+        "electrical_behavior": "not individually qualified",
+        "manual": "UsersManual.pdf"
+      },
+      "connection_note": "Use actual pin order below; example values must be chosen for the target circuit.",
+      "installed_symbol_libraries": [
+        "connection.sxslb"
+      ]
+    },
+    {
+      "id": "D05",
+      "name": "term",
+      "chinese_name": "网络标签",
+      "description": "同名网络连接与信号命名",
+      "aliases": [
+        "网络标签",
+        "net label"
+      ],
+      "library": "connection.sxslb",
+      "pins": [
+        {
+          "name": "A",
+          "order": "1",
+          "x": "0",
+          "y": "0",
+          "visible": "0"
+        }
+      ],
+      "instance_defaults": {
+        "NETNAME": "",
+        "VALUE": "VOUT"
+      },
+      "evidence": {
+        "version": "8.40",
+        "native_open_save_export": true,
+        "electrical_behavior": "not individually qualified",
+        "manual": "UsersManual.pdf"
+      },
+      "connection_note": "Use actual pin order below; example values must be chosen for the target circuit.",
+      "installed_symbol_libraries": [
+        "connection.sxslb"
+      ]
+    },
+    {
+      "id": "D06",
+      "name": "dc_source",
+      "chinese_name": "直流电压源",
+      "description": "输入电源、偏置与基准",
+      "aliases": [
+        "直流电压源",
+        "独立电压源",
+        "voltage source",
+        "电源"
+      ],
+      "library": "sources.sxslb",
+      "pins": [
+        {
+          "name": "P",
+          "order": "1",
+          "x": "0",
+          "y": "0",
+          "visible": "0"
+        },
+        {
+          "name": "N",
+          "order": "2",
+          "x": "0",
+          "y": "480",
+          "visible": "0"
+        }
+      ],
+      "instance_defaults": {
+        "MODEL": "V",
+        "SIMULATOR": "DUAL",
+        "VALUESCRIPT": "edit_dcsource",
+        "VALUE": "5",
+        "REF": "V?"
+      },
+      "evidence": {
+        "version": "8.40",
+        "native_open_save_export": true,
+        "electrical_behavior": "not individually qualified",
+        "manual": "SIMPLIS_Reference.pdf"
+      },
+      "connection_note": "Use actual pin order below; example values must be chosen for the target circuit.",
+      "installed_symbol_libraries": [
+        "sources.sxslb"
+      ]
+    },
+    {
+      "id": "D07",
+      "name": "dc_isource",
+      "chinese_name": "直流电流源",
+      "description": "恒定负载与偏置电流",
+      "aliases": [
+        "直流电流源",
+        "独立电流源",
+        "恒流负载",
+        "current source"
+      ],
+      "library": "sources.sxslb",
+      "pins": [
+        {
+          "name": "P",
+          "order": "1",
+          "x": "0",
+          "y": "0",
+          "visible": "0"
+        },
+        {
+          "name": "N",
+          "order": "2",
+          "x": "0",
+          "y": "480",
+          "visible": "0"
+        }
+      ],
+      "instance_defaults": {
+        "MODEL": "I",
+        "SIMULATOR": "DUAL",
+        "VALUESCRIPT": "edit_dcsource",
+        "VALUE": "1m",
+        "REF": "I?"
+      },
+      "evidence": {
+        "version": "8.40",
+        "native_open_save_export": true,
+        "electrical_behavior": "not individually qualified",
+        "manual": "SIMPLIS_Reference.pdf"
+      },
+      "connection_note": "Use actual pin order below; example values must be chosen for the target circuit.",
+      "installed_symbol_libraries": [
+        "sources.sxslb"
+      ]
+    },
+    {
+      "id": "D08",
+      "name": "ipwl",
+      "chinese_name": "分段线性电流源",
+      "description": "负载跃变与任意电流激励",
+      "aliases": [
+        "负载跃变",
+        "分段线性电流",
+        "pwl current",
+        "load step"
+      ],
+      "library": "sources.sxslb",
+      "pins": [
+        {
+          "name": "P",
+          "order": "1",
+          "x": "0",
+          "y": "0",
+          "visible": "0"
+        },
+        {
+          "name": "N",
+          "order": "2",
+          "x": "0",
+          "y": "480",
+          "visible": "0"
+        }
+      ],
+      "instance_defaults": {
+        "MODEL": "I",
+        "SIMPLIS_TEMPLATE": "<ref> <nodelist> PWL %VALUE%",
+        "SIMULATOR": "DUAL",
+        "SPICE_PAIRS": "0 0 10u 0 20u 1m",
+        "TEMPLATE": "<ref> <nodelist> <ifd:REPEAT: PWLS REPEAT <if:%REPEAT%:FOR %REPEAT%:FOREVER> %SPICE_PAIRS% ENDREPEAT:PWL %SPICE_PAIRS%>",
+        "VALUE": "NSEG=2 X0=0 Y0=0 X1=10u Y1=0 X2=20u Y2=1m",
+        "VALUESCRIPT": "edit_pwlr",
+        "REF": "I?"
+      },
+      "evidence": {
+        "version": "8.40",
+        "native_open_save_export": true,
+        "electrical_behavior": "not individually qualified",
+        "manual": "SIMPLIS_Reference.pdf"
+      },
+      "connection_note": "Use actual pin order below; example values must be chosen for the target circuit.",
+      "installed_symbol_libraries": [
+        "sources.sxslb"
+      ]
+    },
+    {
+      "id": "D09",
+      "name": "vwave_v2",
+      "chinese_name": "可配置电压波形源",
+      "description": "当前为三角波；可编辑波形",
+      "aliases": [
+        "方波",
+        "三角波",
+        "脉冲电压",
+        "波形源",
+        "pulse",
+        "triangle"
+      ],
+      "library": "sources.sxslb",
+      "pins": [
+        {
+          "name": "P",
+          "order": "1",
+          "x": "0",
+          "y": "0",
+          "visible": "0"
+        },
+        {
+          "name": "N",
+          "order": "2",
+          "x": "0",
+          "y": "480",
+          "visible": "0"
+        }
+      ],
+      "instance_defaults": {
+        "EDITLITERALSCRIPT": "edit_vwave_literal",
+        "MODEL": "X",
+        "SIMPLIS_TEMPLATE": "<ref> <nodelist> %SOURCE_MODEL% vars: %SIMPLIS_VALUE%",
+        "SIMPLIS_VALUE": "_V1=0 _V2=1 _FREQ=10k _DELAY=0 _DRATIOx100=50 _T_RISE=50u _T_FALL=50u _DAMP_COEF=0 _PWIDTH=0 _OFF_UNTIL_DELAY=0 _IDLE_IN_POP=0 _USEPHASE=0 _PHASE=0 _SHOWPARAMS=0",
+        "SIMULATOR": "DUAL",
+        "SOURCE_MODEL": "TRI_SOURCE",
+        "TEMPLATE": "<ref> <nodelist> %SOURCE_MODEL% <pinnames> params: %SIMPLIS_VALUE%",
+        "VALUESCRIPT": "edit_wave_v2",
+        "VITYPE": "V",
+        "REF": "V?",
+        "VISPROP": "TRIANGLE\\nV1=0\\nV2=1\\nFREQ=10k\\nDRATIO=50\\nDELAY=0"
+      },
+      "evidence": {
+        "version": "8.40",
+        "native_open_save_export": true,
+        "electrical_behavior": "not individually qualified",
+        "manual": "SIMPLIS_Reference.pdf"
+      },
+      "connection_note": "Use actual pin order below; example values must be chosen for the target circuit.",
+      "installed_symbol_libraries": [
+        "sources.sxslb"
+      ]
+    },
+    {
+      "id": "D10",
+      "name": "modport",
+      "chinese_name": "子模块端口",
+      "description": "建立层级模块的外部连接",
+      "aliases": [
+        "子模块端口",
+        "层级端口",
+        "module port"
+      ],
+      "library": "connection.sxslb",
+      "pins": [
+        {
+          "name": "A",
+          "order": "1",
+          "x": "0",
+          "y": "0",
+          "visible": "0"
+        }
+      ],
+      "instance_defaults": {
+        "NETNAME": "",
+        "SCTERM": "1",
+        "VALUE": "VOUT"
+      },
+      "evidence": {
+        "version": "8.40",
+        "native_open_save_export": true,
+        "electrical_behavior": "not individually qualified",
+        "manual": "UsersManual.pdf"
+      },
+      "connection_note": "Use actual pin order below; example values must be chosen for the target circuit.",
+      "installed_symbol_libraries": [
+        "connection.sxslb"
+      ]
+    },
+    {
+      "id": "D11",
+      "name": "vcvs",
+      "chinese_name": "压控电压源",
+      "description": "电压增益、反相与差分",
+      "aliases": [
+        "压控电压源",
+        "电压增益",
+        "差分电压",
+        "vcvs"
+      ],
+      "library": "sources.sxslb",
+      "pins": [
+        {
+          "name": "P",
+          "order": "1",
+          "x": "360",
+          "y": "120",
+          "visible": "0"
+        },
+        {
+          "name": "N",
+          "order": "2",
+          "x": "360",
+          "y": "360",
+          "visible": "0"
+        },
+        {
+          "name": "CP",
+          "order": "3",
+          "x": "-120",
+          "y": "120",
+          "visible": "0"
+        },
+        {
+          "name": "CN",
+          "order": "4",
+          "x": "-120",
+          "y": "360",
+          "visible": "0"
+        }
+      ],
+      "instance_defaults": {
+        "MODEL": "E",
+        "SIMULATOR": "DUAL",
+        "REF": "E?",
+        "VALUE": "1"
+      },
+      "evidence": {
+        "version": "8.40",
+        "native_open_save_export": true,
+        "electrical_behavior": "not individually qualified",
+        "manual": "SIMPLIS_Reference.pdf"
+      },
+      "connection_note": "Use actual pin order below; example values must be chosen for the target circuit. Installed source marks this legacy symbol Obsolete; check suitability before reuse.",
+      "installed_symbol_libraries": [
+        "sources.sxslb"
+      ]
+    },
+    {
+      "id": "D12",
+      "name": "vccs",
+      "chinese_name": "压控电流源",
+      "description": "跨导、电压转电流与积分",
+      "aliases": [
+        "压控电流源",
+        "跨导",
+        "电压转电流",
+        "vccs",
+        "transconductance"
+      ],
+      "library": "sources.sxslb",
+      "pins": [
+        {
+          "name": "P",
+          "order": "1",
+          "x": "360",
+          "y": "120",
+          "visible": "0"
+        },
+        {
+          "name": "N",
+          "order": "2",
+          "x": "360",
+          "y": "360",
+          "visible": "0"
+        },
+        {
+          "name": "CP",
+          "order": "3",
+          "x": "-120",
+          "y": "120",
+          "visible": "0"
+        },
+        {
+          "name": "CN",
+          "order": "4",
+          "x": "-120",
+          "y": "360",
+          "visible": "0"
+        }
+      ],
+      "instance_defaults": {
+        "MODEL": "G",
+        "SIMULATOR": "DUAL",
+        "REF": "G?",
+        "VALUE": "1"
+      },
+      "evidence": {
+        "version": "8.40",
+        "native_open_save_export": true,
+        "electrical_behavior": "not individually qualified",
+        "manual": "SIMPLIS_Reference.pdf"
+      },
+      "connection_note": "Use actual pin order below; example values must be chosen for the target circuit. Installed source marks this legacy symbol Obsolete; check suitability before reuse.",
+      "installed_symbol_libraries": [
+        "sources.sxslb"
+      ]
+    },
+    {
+      "id": "D13",
+      "name": "simplis_prim_vcswitch",
+      "chinese_name": "电压控制开关",
+      "description": "功率开关、采样与复位",
+      "aliases": [
+        "采样开关",
+        "复位开关",
+        "受控开关",
+        "switch"
+      ],
+      "library": "simplis.sxslb",
+      "pins": [
+        {
+          "name": "P",
+          "order": "1",
+          "x": "0",
+          "y": "0",
+          "visible": "0"
+        },
+        {
+          "name": "N",
+          "order": "2",
+          "x": "0",
+          "y": "360",
+          "visible": "0"
+        },
+        {
+          "name": "CP",
+          "order": "3",
+          "x": "-240",
+          "y": "120",
+          "visible": "0"
+        },
+        {
+          "name": "CN",
+          "order": "4",
+          "x": "-240",
+          "y": "240",
+          "visible": "0"
+        }
+      ],
+      "instance_defaults": {
+        "HYSTWD": "0.1",
+        "IC": "Open",
+        "INIT_SCRIPT": "ic_parameterised_subckt 'VALUE'",
+        "LOGIC": "POS",
+        "MODEL": "X",
+        "PARAM_MODEL_NAME": "SIMPLIS_VC_SWITCH",
+        "ROFF": "1MEG",
+        "RON": "1",
+        "SIMPLIS_TEMPLATE": "<ref> <nodelist> %PARAM_MODEL_NAME% vars: %VALUE%",
+        "SIMULATOR": "SIMPLIS",
+        "THRESHOLD": "2",
+        "VALUE": "",
+        "VALUESCRIPT": "edit_parameterised_subckt 'VALUE'",
+        "REF": "S?"
+      },
+      "evidence": {
+        "version": "8.40",
+        "native_open_save_export": true,
+        "electrical_behavior": "not individually qualified",
+        "manual": "SIMPLIS_Reference.pdf"
+      },
+      "connection_note": "Use actual pin order below; example values must be chosen for the target circuit.",
+      "installed_symbol_libraries": [
+        "simplis.sxslb"
+      ]
+    },
+    {
+      "id": "D14",
+      "name": "simplis_pwlr_box",
+      "chinese_name": "分段线性电阻",
+      "description": "分段I-V关系与非线性近似",
+      "aliases": [
+        "非线性电阻",
+        "分段线性电阻",
+        "pwl resistor"
+      ],
+      "library": "simplis.sxslb",
+      "pins": [
+        {
+          "name": "P",
+          "order": "1",
+          "x": "0",
+          "y": "0",
+          "visible": "0"
+        },
+        {
+          "name": "N",
+          "order": "2",
+          "x": "0",
+          "y": "360",
+          "visible": "0"
+        }
+      ],
+      "instance_defaults": {
+        "MODEL": "!R",
+        "SIMPLIS_TEMPLATE": "<ref> <nodelist> %REF%$TP_SSPWLR IC=<ifd:IC:%IC%:1> ;.MODEL %REF%$TP_SSPWLR VPWLR %VALUE%",
+        "SIMULATOR": "SIMPLIS",
+        "VALUE": "NSEG=2 X0=0 Y0=0 X1=1 Y1=1 X2=2 Y2=2",
+        "VALUESCRIPT": "edit_pwlr 'dev'",
+        "REF": "R?",
+        "IC": "1"
+      },
+      "evidence": {
+        "version": "8.40",
+        "native_open_save_export": true,
+        "electrical_behavior": "not individually qualified",
+        "manual": "SIMPLIS_Reference.pdf"
+      },
+      "connection_note": "Use actual pin order below; example values must be chosen for the target circuit.",
+      "installed_symbol_libraries": [
+        "simplis.sxslb"
+      ]
+    },
+    {
+      "id": "D15",
+      "name": "SIMPLIS_SUMMER2",
+      "chinese_name": "双输入加法器",
+      "description": "加权相加；负系数可作相减",
+      "aliases": [
+        "加法器",
+        "减法器",
+        "加权求和",
+        "summer"
+      ],
+      "library": "simplis_analog_functions.sxslb",
+      "pins": [
+        {
+          "name": "OUT",
+          "order": "1",
+          "x": "720",
+          "y": "120",
+          "visible": "0"
+        },
+        {
+          "name": "RTN",
+          "order": "2",
+          "x": "360",
+          "y": "480",
+          "visible": "1",
+          "xlabel": "-3",
+          "ylabel": "-134",
+          "align": "CentreBase",
+          "rotated": "0"
+        },
+        {
+          "name": "IN1",
+          "order": "3",
+          "x": "0",
+          "y": "0",
+          "visible": "0"
+        },
+        {
+          "name": "IN2",
+          "order": "4",
+          "x": "0",
+          "y": "240",
+          "visible": "0"
+        }
+      ],
+      "instance_defaults": {
+        "DESCRIPTIONS": "Edit 2 - Input Summer (Version 8.0+),2 - Input Summer (Version 8.0+),3075",
+        "DEVICE": "SUMMER2_BB",
+        "GROUPS": "Parameters:GROUP:Inputs:0:0:0:1:0:1:0,Parameters:CHECK:Use input resistance?:1:0:1:0:7:0:0,Parameters:GROUP:Output parameters:1:1:1:1:0:0:0",
+        "K1": "1",
+        "K1_ANNO": "0",
+        "K1_ANNO_TEXT": "+",
+        "K2": "1",
+        "K2_ANNO": "0",
+        "K2_ANNO_TEXT": "+",
+        "LABELS": "Parameters:Inputs:Gain for input #1:0:0:V/V:REAL:::The gain of the first input. The gain can be negative to implement the difference of two input signals.,Parameters:Inputs:Annotate pin?:0:1::BOOL:::If <b>Checked</b> the pin will be annotated with the <b>Annotation</b> text.,Parameters:Inputs:Annotation:0:2::STRING:::The text describing this input,Parameters:Inputs:Gain for input #2:1:0:V/V:REAL:::The gain of the second input. The gain can be negative to implement the difference of two input signals.,Parameters:Inputs:Annotate pin?:1:1::BOOL:::If <b>Checked</b> the pin will be annotated with the <b>Annotation</b> text.,Parameters:Inputs:Annotation:1:2::STRING:::The text describing this input,Parameters:Output parameters:Output offset:0:0:V:REAL:::The output voltage will be offset by this voltage,Dummy::Dummy:0:0:::::,Parameters:Use input resistance?:Input resistance:0:0:__Ohms__:REAL:1n|1G::The input resistance for all inputs",
+        "MODEL": "X",
+        "NAME": "Summer - 2 Input",
+        "OFFSET": "0",
+        "PARAM_MODEL_NAME": "SIMPLIS_SUMMER2_BB",
+        "PARAMETERS": "K1=1 K1_ANNO=0 K1_ANNO_TEXT=+ K2=1 K2_ANNO=0 K2_ANNO_TEXT=+ OFFSET=0 USE_RIN=0 RIN=10k",
+        "REF": "U?",
+        "RIN": "10k",
+        "SIMPLIS_TEMPLATE": "<ref> <nodelist> %PARAM_MODEL_NAME% vars: K1=%K1% K2=%K2%\\n+ OFFSET=%OFFSET% USE_RIN=%USE_RIN% RIN=%RIN%",
+        "SIMULATOR": "SIMPLIS",
+        "TABS": "Parameters",
+        "USE_RIN": "0",
+        "USE_VERSION": "720,800",
+        "VALUESCRIPT": "simplis_edit_summer"
+      },
+      "evidence": {
+        "version": "8.40",
+        "native_open_save_export": true,
+        "electrical_behavior": "not individually qualified",
+        "manual": "SIMPLIS_Reference.pdf"
+      },
+      "connection_note": "Use actual pin order below; example values must be chosen for the target circuit.",
+      "installed_symbol_libraries": [
+        "simplis_analog_functions.sxslb"
+      ]
+    },
+    {
+      "id": "D16",
+      "name": "SIMPLIS_DIGI1_COMP_Y",
+      "chinese_name": "比较器",
+      "description": "阈值判定；含正反输出",
+      "aliases": [
+        "比较器",
+        "阈值判定",
+        "comparator"
+      ],
+      "library": "devices.sxsch (embedded symbol)",
+      "pins": [
+        {
+          "name": "OUT",
+          "order": "1",
+          "x": "600",
+          "y": "240",
+          "visible": "0"
+        },
+        {
+          "name": "OUT_BAR",
+          "order": "2",
+          "x": "600",
+          "y": "480",
+          "visible": "0"
+        },
+        {
+          "name": "RTN",
+          "order": "3",
+          "x": "240",
+          "y": "720",
+          "visible": "0"
+        },
+        {
+          "name": "INP",
+          "order": "4",
+          "x": "0",
+          "y": "240",
+          "visible": "0"
+        },
+        {
+          "name": "INN",
+          "order": "5",
+          "x": "0",
+          "y": "480",
+          "visible": "0"
+        }
+      ],
+      "instance_defaults": {
+        "DELAY": "2p",
+        "HYSTWD": "2M",
+        "IC": "0",
+        "INIT_SCRIPT": "simplis_back_annotate_digital_devices",
+        "MODEL": "X",
+        "PARAM_MODEL_NAME": "SIMPLIS_DIGI1_COMP_Y",
+        "PARAMSSCRIPT": "no_params",
+        "REF": "U?",
+        "RIN": "10Meg",
+        "ROUT": "10",
+        "SIMPLIS_TEMPLATE": "<ref> <nodelist> %PARAM_MODEL_NAME% vars: IC=%IC% RIN=%RIN% ROUT=%ROUT% HYSTWD=%HYSTWD% VOL=%VOL% VOH=%VOH% DELAY=%DELAY%",
+        "SIMULATOR": "SIMPLIS",
+        "VALUESCRIPT": "edit_parameterised_multi_prop_subckt",
+        "VOH": "5",
+        "VOL": "0"
+      },
+      "evidence": {
+        "version": "8.40",
+        "native_open_save_export": true,
+        "electrical_behavior": "not individually qualified",
+        "manual": "SIMPLIS_Reference.pdf"
+      },
+      "connection_note": "Use actual pin order below; example values must be chosen for the target circuit.",
+      "installed_symbol_libraries": [],
+      "model_dependency": "support/models/SIMPLIS_DIGI1.lb"
+    },
+    {
+      "id": "D17",
+      "name": "SIMPLIS_DIGI1_BUF_Y",
+      "chinese_name": "缓冲与反相输出",
+      "description": "OUT同相；OUT_BAR反相",
+      "aliases": [
+        "缓冲器",
+        "反相器",
+        "非门",
+        "inverter",
+        "buffer"
+      ],
+      "library": "devices.sxsch (embedded symbol)",
+      "pins": [
+        {
+          "name": "OUT",
+          "order": "1",
+          "x": "600",
+          "y": "240",
+          "visible": "0"
+        },
+        {
+          "name": "OUT_BAR",
+          "order": "2",
+          "x": "600",
+          "y": "480",
+          "visible": "0"
+        },
+        {
+          "name": "RTN",
+          "order": "3",
+          "x": "240",
+          "y": "720",
+          "visible": "0"
+        },
+        {
+          "name": "IN1",
+          "order": "4",
+          "x": "0",
+          "y": "360",
+          "visible": "0"
+        }
+      ],
+      "instance_defaults": {
+        "DELAY": "2p",
+        "HYSTWD": "1",
+        "IC": "0",
+        "INIT_SCRIPT": "simplis_back_annotate_digital_devices",
+        "MODEL": "X",
+        "PARAM_MODEL_NAME": "SIMPLIS_DIGI1_BUF_Y",
+        "PARAMSSCRIPT": "no_params",
+        "REF": "U?",
+        "RIN": "10Meg",
+        "ROUT": "10",
+        "SIMPLIS_TEMPLATE": "<ref> <nodelist> %PARAM_MODEL_NAME% vars: IC=%IC% RIN=%RIN% ROUT=%ROUT% HYSTWD=%HYSTWD% VOL=%VOL% VOH=%VOH% DELAY=%DELAY% TH=%TH%",
+        "SIMULATOR": "SIMPLIS",
+        "TH": "2.5",
+        "VALUESCRIPT": "edit_parameterised_multi_prop_subckt",
+        "VOH": "5",
+        "VOL": "0"
+      },
+      "evidence": {
+        "version": "8.40",
+        "native_open_save_export": true,
+        "electrical_behavior": "not individually qualified",
+        "manual": "SIMPLIS_Reference.pdf"
+      },
+      "connection_note": "OUT_BAR supplies the inverted output; RTN is the logic reference.",
+      "installed_symbol_libraries": [],
+      "model_dependency": "support/models/SIMPLIS_DIGI1.lb"
+    },
+    {
+      "id": "D19",
+      "name": "SIMPLIS_DIGI1_AND_2I0_Y",
+      "chinese_name": "双输入与门",
+      "description": "两个条件同时成立",
+      "aliases": [
+        "双输入与门",
+        "与门",
+        "and gate"
+      ],
+      "library": "devices.sxsch (embedded symbol)",
+      "pins": [
+        {
+          "name": "OUT",
+          "order": "1",
+          "x": "600",
+          "y": "120",
+          "visible": "0"
+        },
+        {
+          "name": "OUT_BAR",
+          "order": "2",
+          "x": "600",
+          "y": "360",
+          "visible": "0"
+        },
+        {
+          "name": "RTN",
+          "order": "3",
+          "x": "240",
+          "y": "600",
+          "visible": "0"
+        },
+        {
+          "name": "IN1",
+          "order": "4",
+          "x": "0",
+          "y": "120",
+          "visible": "0"
+        },
+        {
+          "name": "IN2",
+          "order": "5",
+          "x": "0",
+          "y": "360",
+          "visible": "0"
+        }
+      ],
+      "instance_defaults": {
+        "DELAY": "2p",
+        "HYSTWD": "1",
+        "IC": "0",
+        "INIT_SCRIPT": "simplis_back_annotate_digital_devices",
+        "MODEL": "X",
+        "PARAM_MODEL_NAME": "SIMPLIS_DIGI1_AND2_Y",
+        "PARAMSSCRIPT": "no_params",
+        "REF": "U?",
+        "RIN": "10Meg",
+        "ROUT": "10",
+        "SIMPLIS_TEMPLATE": "<ref> <nodelist> %PARAM_MODEL_NAME% vars: NumInv=0 IC=%IC% RIN=%RIN% ROUT=%ROUT% HYSTWD=%HYSTWD% VOL=%VOL% VOH=%VOH% DELAY=%DELAY% TH=%TH%",
+        "SIMULATOR": "SIMPLIS",
+        "TH": "2.5",
+        "VALUESCRIPT": "edit_parameterised_multi_prop_subckt",
+        "VOH": "5",
+        "VOL": "0"
+      },
+      "evidence": {
+        "version": "8.40",
+        "native_open_save_export": true,
+        "electrical_behavior": "not individually qualified",
+        "manual": "SIMPLIS_Reference.pdf"
+      },
+      "connection_note": "Use actual pin order below; example values must be chosen for the target circuit.",
+      "installed_symbol_libraries": [],
+      "model_dependency": "support/models/SIMPLIS_DIGI1.lb"
+    },
+    {
+      "id": "D20",
+      "name": "SIMPLIS_DIGI1_AND_3I0_Y",
+      "chinese_name": "三输入与门",
+      "description": "三个条件同时成立",
+      "aliases": [
+        "三输入与门",
+        "and3"
+      ],
+      "library": "devices.sxsch (embedded symbol)",
+      "pins": [
+        {
+          "name": "OUT",
+          "order": "1",
+          "x": "600",
+          "y": "120",
+          "visible": "0"
+        },
+        {
+          "name": "OUT_BAR",
+          "order": "2",
+          "x": "600",
+          "y": "360",
+          "visible": "0"
+        },
+        {
+          "name": "RTN",
+          "order": "3",
+          "x": "240",
+          "y": "600",
+          "visible": "0"
+        },
+        {
+          "name": "IN1",
+          "order": "4",
+          "x": "0",
+          "y": "120",
+          "visible": "0"
+        },
+        {
+          "name": "IN2",
+          "order": "5",
+          "x": "0",
+          "y": "240",
+          "visible": "0"
+        },
+        {
+          "name": "IN3",
+          "order": "6",
+          "x": "0",
+          "y": "360",
+          "visible": "0"
+        }
+      ],
+      "instance_defaults": {
+        "DELAY": "2p",
+        "HYSTWD": "1",
+        "IC": "0",
+        "INIT_SCRIPT": "simplis_back_annotate_digital_devices",
+        "MODEL": "X",
+        "PARAM_MODEL_NAME": "SIMPLIS_DIGI1_AND3_Y",
+        "PARAMSSCRIPT": "no_params",
+        "REF": "U?",
+        "RIN": "10Meg",
+        "ROUT": "10",
+        "SIMPLIS_TEMPLATE": "<ref> <nodelist> %PARAM_MODEL_NAME% vars: NumInv=0 IC=%IC% RIN=%RIN% ROUT=%ROUT% HYSTWD=%HYSTWD% VOL=%VOL% VOH=%VOH% DELAY=%DELAY% TH=%TH%",
+        "SIMULATOR": "SIMPLIS",
+        "TH": "2.5",
+        "VALUESCRIPT": "edit_parameterised_multi_prop_subckt",
+        "VOH": "5",
+        "VOL": "0"
+      },
+      "evidence": {
+        "version": "8.40",
+        "native_open_save_export": true,
+        "electrical_behavior": "not individually qualified",
+        "manual": "SIMPLIS_Reference.pdf"
+      },
+      "connection_note": "Use actual pin order below; example values must be chosen for the target circuit.",
+      "installed_symbol_libraries": [],
+      "model_dependency": "support/models/SIMPLIS_DIGI1.lb"
+    },
+    {
+      "id": "D21",
+      "name": "SIMPLIS_DIGI1_OR_2I0_Y",
+      "chinese_name": "双输入或门",
+      "description": "任一条件成立",
+      "aliases": [
+        "或门",
+        "or gate"
+      ],
+      "library": "devices.sxsch (embedded symbol)",
+      "pins": [
+        {
+          "name": "OUT",
+          "order": "1",
+          "x": "600",
+          "y": "120",
+          "visible": "0"
+        },
+        {
+          "name": "OUT_BAR",
+          "order": "2",
+          "x": "600",
+          "y": "360",
+          "visible": "0"
+        },
+        {
+          "name": "RTN",
+          "order": "3",
+          "x": "240",
+          "y": "600",
+          "visible": "0"
+        },
+        {
+          "name": "IN1",
+          "order": "4",
+          "x": "0",
+          "y": "120",
+          "visible": "0"
+        },
+        {
+          "name": "IN2",
+          "order": "5",
+          "x": "0",
+          "y": "360",
+          "visible": "0"
+        }
+      ],
+      "instance_defaults": {
+        "DELAY": "2p",
+        "HYSTWD": "1",
+        "IC": "0",
+        "INIT_SCRIPT": "simplis_back_annotate_digital_devices",
+        "MODEL": "X",
+        "PARAM_MODEL_NAME": "SIMPLIS_DIGI1_OR2_Y",
+        "PARAMSSCRIPT": "no_params",
+        "REF": "U?",
+        "RIN": "10Meg",
+        "ROUT": "10",
+        "SIMPLIS_TEMPLATE": "<ref> <nodelist> %PARAM_MODEL_NAME% vars: NumInv=0 IC=%IC% RIN=%RIN% ROUT=%ROUT% HYSTWD=%HYSTWD% VOL=%VOL% VOH=%VOH% DELAY=%DELAY% TH=%TH%",
+        "SIMULATOR": "SIMPLIS",
+        "TH": "2.5",
+        "VALUESCRIPT": "edit_parameterised_multi_prop_subckt",
+        "VOH": "5",
+        "VOL": "0"
+      },
+      "evidence": {
+        "version": "8.40",
+        "native_open_save_export": true,
+        "electrical_behavior": "not individually qualified",
+        "manual": "SIMPLIS_Reference.pdf"
+      },
+      "connection_note": "Use actual pin order below; example values must be chosen for the target circuit.",
+      "installed_symbol_libraries": [],
+      "model_dependency": "support/models/SIMPLIS_DIGI1.lb"
+    },
+    {
+      "id": "D22",
+      "name": "SIMPLIS_DIGI1_SRLATCH_1_NONE_Y",
+      "chinese_name": "SR锁存器",
+      "description": "置位、复位及状态保持",
+      "aliases": [
+        "SR锁存器",
+        "锁存器",
+        "sr latch"
+      ],
+      "library": "devices.sxsch (embedded symbol)",
+      "pins": [
+        {
+          "name": "Q",
+          "order": "1",
+          "x": "720",
+          "y": "240",
+          "visible": "1",
+          "xlabel": "-144",
+          "ylabel": "30",
+          "align": "RightBase",
+          "rotated": "0"
+        },
+        {
+          "name": "QN",
+          "order": "2",
+          "x": "720",
+          "y": "480",
+          "visible": "1",
+          "xlabel": "-144",
+          "ylabel": "30",
+          "align": "RightBase",
+          "rotated": "0"
+        },
+        {
+          "name": "RTN",
+          "order": "3",
+          "x": "360",
+          "y": "720",
+          "visible": "0"
+        },
+        {
+          "name": "S",
+          "order": "4",
+          "x": "0",
+          "y": "240",
+          "visible": "1",
+          "xlabel": "156",
+          "ylabel": "30",
+          "align": "LeftBase",
+          "rotated": "0"
+        },
+        {
+          "name": "R",
+          "order": "5",
+          "x": "0",
+          "y": "360",
+          "visible": "1",
+          "xlabel": "156",
+          "ylabel": "30",
+          "align": "LeftBase",
+          "rotated": "0"
+        }
+      ],
+      "instance_defaults": {
+        "DOM": "'NONE'",
+        "ENABLE": "'N'",
+        "GNDREF": "'Y'",
+        "HYSTWD": "1",
+        "IC": "0",
+        "INIT_SCRIPT": "simplis_back_annotate_digital_devices",
+        "MODEL": "X",
+        "OUT_DELAY": "20p",
+        "PARAM_MODEL_NAME": "SIMPLIS_DIGI1_SRLATCH_Y",
+        "PARAMSSCRIPT": "no_params",
+        "REF": "U?",
+        "RIN": "10Meg",
+        "ROUT": "10",
+        "SET_RESET_LEVEL": "1",
+        "SIMPLIS_TEMPLATE": "<ref> <nodelist> %PARAM_MODEL_NAME% vars: IC=%IC%  RIN=%RIN% ROUT=%ROUT% TH=%TH% HYSTWD=%HYSTWD% VOL=%VOL% VOH=%VOH%  OUT_DELAY=%OUT_DELAY% SET_RESET_LEVEL=%SET_RESET_LEVEL% GNDREF=%GNDREF%  DOM=%DOM% ",
+        "SIMULATOR": "SIMPLIS",
+        "TH": "2.5",
+        "VALUESCRIPT": "simplis_edit_latch",
+        "VOH": "5",
+        "VOL": "0"
+      },
+      "evidence": {
+        "version": "8.40",
+        "native_open_save_export": true,
+        "electrical_behavior": "not individually qualified",
+        "manual": "SIMPLIS_Reference.pdf"
+      },
+      "connection_note": "Use actual pin order below; example values must be chosen for the target circuit.",
+      "installed_symbol_libraries": [],
+      "model_dependency": "support/models/SIMPLIS_DIGI1.lb"
+    },
+    {
+      "id": "D23",
+      "name": "SIMPLIS_DIGI1_DFF_Y_0_TO_1",
+      "chinese_name": "上升沿D触发器",
+      "description": "边沿采样、状态切换与分频",
+      "aliases": [
+        "D触发器",
+        "上升沿触发",
+        "d flip flop"
+      ],
+      "library": "devices.sxsch (embedded symbol)",
+      "pins": [
+        {
+          "name": "Q",
+          "order": "1",
+          "x": "720",
+          "y": "240",
+          "visible": "1",
+          "xlabel": "-144",
+          "ylabel": "30",
+          "align": "RightBase",
+          "rotated": "0"
+        },
+        {
+          "name": "QN",
+          "order": "2",
+          "x": "720",
+          "y": "480",
+          "visible": "1",
+          "xlabel": "-144",
+          "ylabel": "30",
+          "align": "RightBase",
+          "rotated": "0"
+        },
+        {
+          "name": "RTN",
+          "order": "3",
+          "x": "360",
+          "y": "720",
+          "visible": "0"
+        },
+        {
+          "name": "D",
+          "order": "4",
+          "x": "0",
+          "y": "240",
+          "visible": "1",
+          "xlabel": "156",
+          "ylabel": "30",
+          "align": "LeftBase",
+          "rotated": "0"
+        },
+        {
+          "name": "CLK",
+          "order": "5",
+          "x": "0",
+          "y": "360",
+          "visible": "0"
+        }
+      ],
+      "instance_defaults": {
+        "CLK_TO_OUT_DELAY": "20p",
+        "GNDREF": "'Y'",
+        "HOLD_TIME": "1p",
+        "HYSTWD": "1",
+        "IC": "0",
+        "INIT_SCRIPT": "simplis_back_annotate_digital_devices",
+        "MIN_CLK": "10p",
+        "MODEL": "X",
+        "PARAM_MODEL_NAME": "SIMPLIS_DIGI1_DFF_Y",
+        "PARAMSSCRIPT": "no_params",
+        "REF": "U?",
+        "RIN": "10Meg",
+        "ROUT": "10",
+        "SETUP_TIME": "10p",
+        "SIMPLIS_TEMPLATE": "<ref> <nodelist> %PARAM_MODEL_NAME% vars: IC=%IC% RIN=%RIN% ROUT=%ROUT% TH=%TH% HYSTWD=%HYSTWD% VOL=%VOL% VOH=%VOH% MIN_CLK=%MIN_CLK% TRIG_COND=%TRIG_COND% CLK_TO_OUT_DELAY=%CLK_TO_OUT_DELAY% SETUP_TIME=%SETUP_TIME% HOLD_TIME=%HOLD_TIME% GNDREF=%GNDREF%",
+        "SIMULATOR": "SIMPLIS",
+        "TH": "2.5",
+        "TRIG_COND": "'0_TO_1'",
+        "VALUESCRIPT": "simplis_edit_flipflop",
+        "VOH": "5",
+        "VOL": "0"
+      },
+      "evidence": {
+        "version": "8.40",
+        "native_open_save_export": true,
+        "electrical_behavior": "not individually qualified",
+        "manual": "SIMPLIS_Reference.pdf"
+      },
+      "connection_note": "Use actual pin order below; example values must be chosen for the target circuit.",
+      "installed_symbol_libraries": [],
+      "model_dependency": "support/models/SIMPLIS_DIGI1.lb"
+    },
+    {
+      "id": "D24",
+      "name": "probev_new",
+      "chinese_name": "节点电压探针",
+      "description": "连接待测节点，输出电压波形",
+      "aliases": [
+        "电压探针",
+        "测量电压",
+        "voltage probe",
+        "电压测量",
+        "节点电压测量"
+      ],
+      "library": "connection.sxslb",
+      "pins": [
+        {
+          "name": "NODE",
+          "order": "1",
+          "x": "0",
+          "y": "0",
+          "visible": "0"
+        }
+      ],
+      "instance_defaults": {
+        "CLASS": "PROBE",
+        "EDITPROPSCRIPT": "edit_probe_props",
+        "LABEL": "Probe1-NODE",
+        "PARAMS_MENU": "Edit/Add Measurement...",
+        "PARAMSSCRIPT": "edit_probe_measure",
+        "PROBE_DISABLED": "false",
+        "PROBETYPE": "V",
+        "REF": "Probe?",
+        "SIMPLIS_TEMPLATE": ".PRINT V(<probe[1]>);.GRAPH :<probe[1]> %VALUE% <ifd:PROBE_DISABLED:disabled=%PROBE_DISABLED%> PROBEREF=%REF% <ifd:MEASURE_SPEC:userid=%REF%.<block> MeasureSpec=\\\"%MEASURE_SPEC%\\\";.post_process probe_measure %REF%.<block> %MEASURE_SPEC%> ",
+        "SIMULATOR": "DUAL",
+        "TEMPLATE": ".GRAPH <node[1]> %VALUE% <ifd:PROBE_DISABLED:disabled=%PROBE_DISABLED%> PROBEREF=%REF% <ifd:MEASURE_SPEC:userid=%REF%.<block> MeasureSpec=\\\"%MEASURE_SPEC%\\\" ;.post_process probe_measure %REF%.<block> %MEASURE_SPEC%> ",
+        "VALUE": "curveLabel= Probe1-NODE nowarn=true ylog=auto xlog=auto analysis=tran|pop",
+        "VALUESCRIPT": "edit_probe"
+      },
+      "evidence": {
+        "version": "8.40",
+        "native_open_save_export": true,
+        "electrical_behavior": "not individually qualified",
+        "manual": "SIMPLIS_Reference.pdf"
+      },
+      "connection_note": "Use actual pin order below; example values must be chosen for the target circuit.",
+      "installed_symbol_libraries": [
+        "connection.sxslb"
+      ]
+    },
+    {
+      "id": "D25",
+      "name": "InlineCurrentProbe",
+      "chinese_name": "串联电流探针",
+      "description": "串入支路；按箭头定义正方向",
+      "aliases": [
+        "测量支路电流",
+        "电流探针",
+        "支路电流",
+        "测量电流",
+        "current probe",
+        "电流测量",
+        "支路电流测量",
+        "branch current measurement"
+      ],
+      "library": "connection.sxslb",
+      "pins": [
+        {
+          "name": "P",
+          "order": "1",
+          "x": "0",
+          "y": "0",
+          "visible": "0"
+        },
+        {
+          "name": "N",
+          "order": "2",
+          "x": "240",
+          "y": "0",
+          "visible": "0"
+        }
+      ],
+      "instance_defaults": {
+        "CLASS": "PROBE",
+        "EDITPROPSCRIPT": "edit_probe_props",
+        "LABEL": "IPROBE1",
+        "PARAMS_MENU": "Edit/Add Measurement...",
+        "PARAMSSCRIPT": "edit_probe_measure",
+        "PROBE_DISABLED": "false",
+        "PROBETYPE": "I",
+        "REF": "IPROBE?",
+        "SIMPLIS_TEMPLATE": "V<sep>%REF% <NODELIST> 0.0;.PRINT I(V<sep>%REF%);.GRAPH %REF%#P %VALUE% <ifd:PROBE_DISABLED:disabled=%PROBE_DISABLED%> <ifd:MEASURE_SPEC:userid=%REF%.<block> MeasureSpec=\\\"%MEASURE_SPEC%\\\";.post_process probe_measure %REF%.<block> %MEASURE_SPEC%>",
+        "SIMULATOR": "DUAL",
+        "TEMPLATE": "V<sep>%REF% <NODELIST> 0.0 ;.GRAPH %REF%#p %VALUE% <ifd:PROBE_DISABLED:disabled=%PROBE_DISABLED%> <ifd:MEASURE_SPEC:userid=%REF%.<block> MeasureSpec=\\\"%MEASURE_SPEC%\\\";.post_process probe_measure %REF%.<block> %MEASURE_SPEC%>",
+        "VALUE": "CurveLabel=IPROBE1 analysis=tran|pop",
+        "VALUESCRIPT": "edit_probe"
+      },
+      "evidence": {
+        "version": "8.40",
+        "native_open_save_export": true,
+        "electrical_behavior": "not individually qualified",
+        "manual": "SIMPLIS_Reference.pdf"
+      },
+      "connection_note": "Insert in series; positive direction P to N. Its 0 V netlist source measures current; retain probe properties.",
+      "installed_symbol_libraries": [
+        "connection.sxslb"
+      ]
+    }
+  ]
+}
