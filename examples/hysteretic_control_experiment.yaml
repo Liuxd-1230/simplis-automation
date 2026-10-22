@@ -1,0 +1,12 @@
+schema_version: simplis-automation/v2/experiment
+name: hysteretic_control_layout_check
+circuit: hysteretic_control.yaml
+analyses:
+  - type: startup
+    analysis: tran
+    behavior: sr_latch
+    group: simplis_tran1
+    directives: [.TRAN 100u 0]
+    vectors: {VOUT: "#VOUT", DRIVE: "#DRIVE", Q: "#Q", QN: "#QN", S: "#SET", R: "#RESET"}
+    checks: {initial_q: 1}
+execution: {startup_timeout_s: 20, stall_timeout_s: 45, hard_timeout_s: 120, poll_interval_s: 2, warning_allowlist: []}

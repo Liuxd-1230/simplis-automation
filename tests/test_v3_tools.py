@@ -41,6 +41,18 @@ class V3ToolsTests(unittest.TestCase):
         p = self.data(t2("0 0\n2 4\n", 2))
         self.assertAlmostEqual(tools.waveform(p, "V(2)", .25, 1.25)["measurement"]["time_mean"], 1.5)
 
+    def test_streaming_keeps_full_parser_validation_after_measurement_window(self):
+        p = self.data(t2("0 0\n1 1\n2 2\n", 4))
+        with self.assertRaises(ValueError):
+            tools.waveform(p, "V(2)", 0, .5)
+
+    def test_streaming_and_memory_integrals_agree_at_event_boundaries(self):
+        p = self.data(t2("0 0\n1 0\n1 4\n3 4\n"))
+        names, rows = tools.read_t2(p)
+        for start, end in ((0, 3), (0, 1), (1, 3), (.2, 2.7)):
+            measured = tools.waveform(p, "V(2)", start, end)["measurement"]["time_mean"]
+            self.assertAlmostEqual(measured, tools.time_mean(rows, names.index("V(2)"), start, end))
+
     def test_rejects_extrapolation_or_unknown_column(self):
         p = self.data(t2("0 0\n2 4\n", 2))
         for column, start, end in [("V(2)", -1, 1), ("V(2)", 1, 3), ("missing", 0, 1), ("V(2)", 1, 1)]:

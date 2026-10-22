@@ -16,6 +16,7 @@ from simplis_tools import run_deck, waveform
 from build_native_examples import build
 from run_storage import cleanup, protect, register_metrics
 from simplis_automation_v2.importer import _parse_instances_and_wires
+from simplis_automation_v2.watchdog import captured_script_error_lines
 
 
 def validate(gui: Path, solver: Path, out: Path):
@@ -59,9 +60,9 @@ def validate(gui: Path, solver: Path, out: Path):
             process.wait(timeout=10)
         raise RuntimeError(f"Native validation timeout; inspect {out / 'native.log'}")
     process.wait(timeout=15)
-    log = (out / "native.log").read_text(errors="replace").strip()
-    if log:
-        raise RuntimeError(f"Inspect native messages: {log}")
+    errors = captured_script_error_lines(out / "native.log")
+    if errors:
+        raise RuntimeError(f"Inspect native errors: {errors}")
     for name in ("simple_rc", "feedback"):
         instances, wires, diagnostics = _parse_instances_and_wires((native / (name + ".sxsch")).read_text(encoding="utf-8"))
         assert instances and wires and not diagnostics, diagnostics

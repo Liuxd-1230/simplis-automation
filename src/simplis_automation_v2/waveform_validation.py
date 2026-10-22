@@ -1187,7 +1187,7 @@ def validate_sr_latch_waveforms(
     q = [float(value) for value in vectors["Q"]]
     qn = [float(value) for value in vectors["QN"]]
     errors: list[dict[str, Any]] = []
-    if _p2p(s) < 2 or _p2p(r) < 2:
+    if _p2p(s) < 0.5 or _p2p(r) < 0.5:
         errors.append(_diagnostic("latch_stimulus_missing", "Set and reset inputs must both toggle"))
     # A node used only by DIGITAL1 devices is exported as logical 0/1, while
     # the same output loaded by an analog-domain device is exported at VOL/VOH

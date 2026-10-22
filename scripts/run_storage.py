@@ -16,7 +16,8 @@ def write_json(path: Path, value: dict) -> None:
 
 
 def register_run(root: Path, generated: dict[str, str], *, kind: str,
-                 completed: bool, environment: dict | None = None) -> dict:
+                 completed: bool, environment: dict | None = None,
+                 source: dict | None = None) -> dict:
     root = root.resolve()
     if kind not in KINDS:
         raise ValueError(f"Unknown run kind: {kind}")
@@ -32,7 +33,7 @@ def register_run(root: Path, generated: dict[str, str], *, kind: str,
         files.append(dict(path=path.relative_to(root).as_posix(), role=role,
                           bytes=stat.st_size, mtime_ns=stat.st_mtime_ns))
     record = dict(schema=1, root=str(root), kind=kind, completed=completed,
-                  protected=kind == "final", environment=environment or {}, files=files)
+                  protected=kind == "final", environment=environment or {}, source=source or {}, files=files)
     write_json(manifest, record)
     return record
 
@@ -74,13 +75,35 @@ def unchanged(path: Path, item: dict) -> bool:
     return stat.st_size == item["bytes"] and stat.st_mtime_ns == item["mtime_ns"]
 
 
+def raw_retention(root: Path, files: list[str], *, discard: bool, reason: str) -> dict:
+    root = root.resolve()
+    record = load_run(root)
+    if not reason.strip() or not files:
+        raise ValueError("Name specific raw files and explain their evidence/cleanup purpose")
+    if discard and (record["protected"] or record["kind"] == "final"):
+        raise ValueError("Protected evidence cannot be marked disposable")
+    selected = []
+    for name in files:
+        path = (root / name).resolve()
+        if not path.is_relative_to(root):
+            raise ValueError("Raw retention path points outside this run")
+        relative = path.relative_to(root).as_posix()
+        item = next((f for f in record["files"] if f["path"] == relative), None)
+        if item is None or item["role"] != "raw" or not path.is_file() or not unchanged(path, item):
+            raise ValueError(f"Select an unchanged registered raw file: {name}")
+        selected.append(item)
+    for item in selected:
+        item["retention"] = "discard" if discard else "retain"
+        item["retention_reason"] = reason
+    write_json(root / "storage.json", record)
+    return record
+
+
 def cleanup(root: Path, *, apply: bool = False) -> dict:
     root = root.resolve()
     record = load_run(root)
     if any(not (root / f["path"]).resolve().is_relative_to(root) for f in record["files"]):
         raise ValueError("Storage entry points outside this run")
-    measured = any(f["role"] == "metrics" and (root / f["path"]).is_file()
-                   and unchanged(root / f["path"], f) for f in record["files"])
     entries = []
     for item in record["files"]:
         path = (root / item["path"]).resolve()
@@ -94,8 +117,8 @@ def cleanup(root: Path, *, apply: bool = False) -> dict:
             reason = "input, diagnostics or extracted evidence"
         elif not unchanged(path, item):
             reason = "file changed after registration"
-        elif item["role"] == "raw" and record["completed"] and not measured:
-            reason = "extract and save metrics before pruning successful raw data"
+        elif item["role"] == "raw" and item.get("retention") != "discard":
+            reason = item.get("retention_reason", "raw evidence retained; no explicit file-level discard decision")
         elif item["role"] not in {"raw", "scratch"}:
             reason = "unrecognized role"
         size = path.stat().st_size
@@ -128,9 +151,18 @@ def main() -> int:
     p = commands.add_parser("cleanup")
     p.add_argument("runs", type=Path, nargs="+")
     p.add_argument("--apply", action="store_true")
+    p = commands.add_parser("raw-retention")
+    p.add_argument("run", type=Path)
+    p.add_argument("--file", nargs="+", required=True)
+    group = p.add_mutually_exclusive_group(required=True)
+    group.add_argument("--discard", action="store_true")
+    group.add_argument("--retain", action="store_true")
+    p.add_argument("--reason", required=True)
     args = parser.parse_args()
     if args.command == "protect":
         result = protect(args.run.resolve(), args.reason)
+    elif args.command == "raw-retention":
+        result = raw_retention(args.run, args.file, discard=args.discard, reason=args.reason)
     else:
         reports = [cleanup(p) for p in args.runs]
         if args.apply:

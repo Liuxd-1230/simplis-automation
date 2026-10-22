@@ -478,7 +478,7 @@ def _component_layout(
         group = str(source.get("group", "default"))
         if group not in groups:
             groups.append(group)
-    group_counts = {group: 0 for group in groups}
+    group_next_y = {group: int(origin[1]) + _layout_band(group) * band_spacing for group in groups}
 
     prepared: dict[str, dict[str, Any]] = {}
     for component_id, component in resolved_by_id.items():
@@ -490,13 +490,12 @@ def _component_layout(
         block_id = leaf_to_block.get(component_id) or (str(source.get("block")) if source.get("block") else None)
         if mode == "manual" and block_id is None and not all(key in raw_layout for key in ("x", "y")):
             raise ValidationError("manual layout requires x/y for every standalone component", component=component_id)
-        index = group_counts[group]
-        group_counts[group] += 1
         group_index = groups.index(group)
         default_x = int(origin[0]) + group_index * 2160
-        default_y = int(origin[1]) + _layout_band(group) * band_spacing + index * (footprint["height"] + vertical)
+        default_y = group_next_y[group] - footprint["min_y"]
         requested_x = _snap(int(raw_layout.get("x", default_x)), grid)
-        requested_y = _snap(int(raw_layout.get("y", default_y)), grid)
+        requested_y = _snap_up(int(default_y), grid) if "y" not in raw_layout else _snap(int(raw_layout["y"]), grid)
+        group_next_y[group] = max(group_next_y[group], requested_y + footprint["max_y"] + vertical)
         prepared[component_id] = {
             "id": component_id,
             "x": requested_x,

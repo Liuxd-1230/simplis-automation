@@ -13,7 +13,7 @@ from simplis_automation_v2.compiler import _transform_pin
 
 
 class Sheet:
-    # 仅构建本文档的两个固定示例，布局和拓扑由调用处明确指定
+    # 原生对象使用实际符号定义，布局和拓扑由调用处指定
     def __init__(self):
         self.definitions = {}
         self.items = []
@@ -30,6 +30,9 @@ class Sheet:
         for key, value in properties.items():
             visible = int(key in {"REF", "VALUE"})
             position = 'autopos=1 normal=Right rotated=Top'
+            original = next((p for p in definition["properties"] if p["name"] == key), {})
+            if key == "REF" and original.get("normal") == "Top":
+                position = 'autopos=1 normal=Top rotated=Top'
             if name == "vcvs" and visible:
                 position = f'autopos=0 x=120 y={-240 if key == "REF" else -120} align=LeftBase'
             if name == "modport" and key == "VALUE":
@@ -54,8 +57,8 @@ class Sheet:
     def ground(self, x, y):
         self.instance("gnd", None, x, y)
 
-    def label(self, name, x, y):
-        self.instance("term", None, x, y, VALUE=name)
+    def label(self, name, x, y, orient="N0"):
+        self.instance("term", None, x, y, orient, VALUE=name)
 
     def module(self, filename, ref, name, x):
         self.items.extend([f'.Instance\nAttributes type=component path="{filename}" x={x} y=0 orient=N0',

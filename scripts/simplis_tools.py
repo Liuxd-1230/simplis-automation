@@ -10,6 +10,7 @@ import re
 import subprocess
 import sys
 import time
+from typing import Iterator, TextIO
 
 
 def attributes(line: str) -> dict[str, str]:
@@ -41,40 +42,52 @@ def symbols(path: Path, query: str = "", name: str | None = None) -> dict:
     return {"library": str(path.resolve()), "sha256": hashlib.sha256(raw).hexdigest(), "symbols": found}
 
 
+def _t2_header(stream: TextIO) -> tuple[int, list[str]]:
+    head = stream.readline().split()
+    if len(head) < 4 or head[0] != "$$$":
+        raise ValueError("Expected a SIMPLIS text .t2 table (not .t0 or a native binary group)")
+    count, variables = int(head[2]), int(head[3])
+    if count < 2 or variables < 1:
+        raise ValueError("Waveform needs at least two points and one variable")
+    for _ in range(4):
+        if not stream.readline():
+            raise ValueError("Truncated waveform header")
+    names = []
+    for index in range(variables + 1):
+        fields = stream.readline().strip().split(maxsplit=1)
+        if len(fields) != 2 or fields[0] != str(index):
+            raise ValueError("Invalid waveform column header")
+        names.append(fields[1])
+    if names[0].upper() != "TIME" or len(set(names)) != len(names):
+        raise ValueError("Expected unique columns beginning with TIME")
+    return count, names
+
+
+def _t2_rows(stream: TextIO, count: int, width: int) -> Iterator[list[float]]:
+    seen = 0
+    first = previous = None
+    for line in stream:
+        if not line.strip():
+            continue
+        row = [float(s) for s in line.split()]
+        if len(row) != width or not all(math.isfinite(v) for v in row):
+            raise ValueError("Invalid waveform row width or non-finite value")
+        if previous is not None and row[0] < previous:
+            raise ValueError("Waveform time runs backwards")
+        first = row[0] if first is None else first
+        previous = row[0]
+        seen += 1
+        yield row
+    if seen != count:
+        raise ValueError(f"Truncated/extra waveform rows: expected {count}, found {seen}")
+    if previous <= first:
+        raise ValueError("Waveform has no positive time span")
+
+
 def read_t2(path: Path) -> tuple[list[str], list[list[float]]]:
     with path.open(encoding="ascii") as stream:
-        head = stream.readline().split()
-        if len(head) < 4 or head[0] != "$$$":
-            raise ValueError("Expected a SIMPLIS text .t2 table (not .t0 or a native binary group)")
-        count, variables = int(head[2]), int(head[3])
-        if count < 2 or variables < 1:
-            raise ValueError("Waveform needs at least two points and one variable")
-        for _ in range(4):
-            if not stream.readline():
-                raise ValueError("Truncated waveform header")
-        names = []
-        for index in range(variables + 1):
-            fields = stream.readline().strip().split(maxsplit=1)
-            if len(fields) != 2 or fields[0] != str(index):
-                raise ValueError("Invalid waveform column header")
-            names.append(fields[1])
-        if names[0].upper() != "TIME" or len(set(names)) != len(names):
-            raise ValueError("Expected unique columns beginning with TIME")
-        rows = []
-        for line in stream:
-            if not line.strip():
-                continue
-            row = [float(s) for s in line.split()]
-            if len(row) != len(names) or not all(math.isfinite(v) for v in row):
-                raise ValueError("Invalid waveform row width or non-finite value")
-            if rows and row[0] < rows[-1][0]:
-                raise ValueError("Waveform time runs backwards")
-            rows.append(row)
-        if len(rows) != count:
-            raise ValueError(f"Truncated/extra waveform rows: expected {count}, found {len(rows)}")
-        if rows[-1][0] <= rows[0][0]:
-            raise ValueError("Waveform has no positive time span")
-    return names, rows
+        count, names = _t2_header(stream)
+        return names, list(_t2_rows(stream, count, len(names)))
 
 
 def time_mean(rows: list[list[float]], column: int, start: float, end: float) -> float:
@@ -94,17 +107,41 @@ def time_mean(rows: list[list[float]], column: int, start: float, end: float) ->
 
 def waveform(path: Path, column: str | None = None,
              start: float | None = None, end: float | None = None) -> dict:
-    names, rows = read_t2(path)
-    result = {"points": len(rows), "columns": names, "start": rows[0][0], "end": rows[-1][0]}
-    if column is not None:
-        if column not in names:
-            raise ValueError(f"Column {column!r} not found; available: {names}")
-        start = rows[0][0] if start is None else start
-        end = rows[-1][0] if end is None else end
-        result["measurement"] = {"column": column, "start": start, "end": end,
-                                 "time_mean": time_mean(rows, names.index(column), start, end)}
-    elif start is not None or end is not None:
+    if column is None and (start is not None or end is not None):
         raise ValueError("--start/--end require --column")
+    if any(v is not None and not math.isfinite(v) for v in (start, end)):
+        raise ValueError("Integration bounds must be finite")
+    with path.open(encoding="ascii") as stream:
+        count, names = _t2_header(stream)
+        if column is not None and column not in names:
+            raise ValueError(f"Column {column!r} not found; available: {names}")
+        index = names.index(column) if column is not None else None
+        previous = first = None
+        integral = correction = 0.0
+        for row in _t2_rows(stream, count, len(names)):
+            if first is None:
+                first = row[0]
+            if index is not None and previous is not None:
+                lo = max(first if start is None else start, previous[0])
+                hi = min(row[0] if end is None else end, row[0])
+                if hi > lo:
+                    slope = (row[index] - previous[index]) / (row[0] - previous[0])
+                    left = previous[index] + slope * (lo - previous[0])
+                    right = previous[index] + slope * (hi - previous[0])
+                    # 补偿浮点累加误差；相同时间的左右极限不增加积分面积
+                    area = (hi - lo) * (left + right) / 2 - correction
+                    updated = integral + area
+                    correction = (updated - integral) - area
+                    integral = updated
+            previous = row
+    result = {"points": count, "columns": names, "start": first, "end": previous[0]}
+    if index is not None:
+        start = first if start is None else start
+        end = previous[0] if end is None else end
+        if not first <= start < end <= previous[0]:
+            raise ValueError("Integration bounds must lie inside the waveform and start < end")
+        result["measurement"] = {"column": column, "start": start, "end": end,
+                                 "time_mean": integral / (end - start)}
     return result
 
 
@@ -157,10 +194,11 @@ def run_deck(exe: Path, deck: Path, out: Path, timeout: float = 60, *,
     for path in out.rglob("*"):
         if path.is_file():
             roles[path.relative_to(out).as_posix()] = ("input" if path == staged else "record" if path.name == "run.json"
-                                else "log" if path.suffix in {".log", ".err"}
-                                else "raw" if path.suffix == ".t2" else "scratch")
+                                else "log" if path.suffix in {".log", ".err", ".lst"}
+                                else "raw" if path.suffix in {".t0", ".t2", ".tc"} else "scratch")
     register_run(out, roles, kind=kind if result["completed"] else "diagnostic",
-                 completed=result["completed"], environment=environment)
+                 completed=result["completed"], environment=environment,
+                 source={"kind": "netlist", "authoritative": [str(deck)], "snapshot": staged.name})
     return result
 
 

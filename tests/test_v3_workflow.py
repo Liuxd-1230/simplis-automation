@@ -10,7 +10,7 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 from device_lookup import find, REFERENCE
-from run_storage import cleanup, protect, register_metrics, register_run
+from run_storage import cleanup, protect, raw_retention, register_metrics, register_run
 from simplis_tools import symbols
 
 
@@ -103,6 +103,38 @@ class RunStorageTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             register_metrics(self.run, {"measurements": []})
         self.assertEqual(path.read_text(), "user measurement")
+
+    def test_one_measurement_never_releases_other_raw_evidence(self):
+        # 这里仅测试文件保留策略，文件内容不用于计算电路性能
+        for name in ("signal_a.dat", "signal_b.dat"):
+            (self.run / name).write_bytes(b"registered data file")
+        register_run(self.run, {"signal_a.dat": "raw", "signal_b.dat": "raw"},
+                     kind="candidate", completed=True)
+        register_metrics(self.run, {"measurements": [{"signal": "a", "time_mean": 1}]})
+        self.assertEqual(cleanup(self.run)["reclaimable_bytes"], 0)
+        raw_retention(self.run, ["signal_a.dat"], discard=True, reason="Disposable diagnostic signal")
+        raw_retention(self.run, ["signal_b.dat"], discard=False, reason="Needed for event timing verification")
+        cleanup(self.run, apply=True)
+        self.assertFalse((self.run / "signal_a.dat").exists())
+        self.assertTrue((self.run / "signal_b.dat").exists())
+
+    def test_raw_selection_rejects_sources_and_modified_files(self):
+        self.register()
+        with self.assertRaises(ValueError):
+            raw_retention(self.run, ["input.ckt"], discard=True, reason="Not a raw file")
+        with self.assertRaises(ValueError):
+            raw_retention(self.run, ["../user.sxsch"], discard=True, reason="Not owned")
+
+    def test_modified_raw_survives_a_previous_discard_decision(self):
+        path = self.run / "signal.dat"
+        path.write_bytes(b"registered file")
+        register_run(self.run, {path.name: "raw"}, kind="temporary", completed=True)
+        raw_retention(self.run, [path.name], discard=True, reason="Disposable test output")
+        path.write_bytes(b"manually changed file")
+        cleanup(self.run, apply=True)
+        self.assertTrue(path.exists())
+        with self.assertRaises(ValueError):
+            raw_retention(self.run, [path.name], discard=True, reason="Changed after registration")
 
 
 if __name__ == "__main__":

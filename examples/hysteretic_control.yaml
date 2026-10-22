@@ -1,0 +1,47 @@
+schema_version: simplis-automation/v2
+schema_revision: 3
+catalog_lock: {path: ../catalog/seed_8_4.yaml}
+design: {name: hysteretic_control}
+layout:
+  mode: auto
+  groups: [references, sense, latch, driver, plant, probes]
+  clearance: {horizontal: 480, vertical: 360}
+components:
+  - {id: low, ref: VLOW, kind: dc_voltage_source, properties: {VALUE: 1.8V}, pins: {P: LOW, N: "0"}, group: references}
+  - {id: high, ref: VHIGH, kind: dc_voltage_source, properties: {VALUE: 2.2V}, pins: {P: HIGH, N: "0"}, group: references}
+  - id: set_cmp
+    ref: USET
+    kind: digital_comparator_grounded
+    properties: {DELAY: 2ns, HYSTWD: 2mV}
+    pins: {OUT: SET, RTN: "0", INP: LOW, INN: VOUT}
+    unconnected_pins: [OUT_BAR]
+    group: sense
+  - id: reset_cmp
+    ref: URESET
+    kind: digital_comparator_grounded
+    properties: {DELAY: 2ns, HYSTWD: 2mV}
+    pins: {OUT: RESET, RTN: "0", INP: VOUT, INN: HIGH}
+    unconnected_pins: [OUT_BAR]
+    group: sense
+  - id: latch
+    ref: ULATCH
+    kind: sr_latch_grounded
+    properties: {OUT_DELAY: 2ns, IC: "1", DOM: R}
+    pins: {Q: Q, QN: QN, S: SET, R: RESET}
+    group: latch
+  - id: driver
+    ref: UDRIVER
+    kind: digital_buffer_grounded
+    properties: {DELAY: 5ns, ROUT: 10ohm}
+    pins: {OUT: DRIVE, IN1: Q}
+    unconnected_pins: [OUT_BAR]
+    group: driver
+  - {id: r_filter, ref: R1, kind: resistor, properties: {VALUE: 1kohm}, pins: {P: DRIVE, N: VOUT}, group: plant}
+  - {id: c_filter, ref: C1, kind: capacitor, properties: {VALUE: 10nF, IC: 0V}, pins: {P: VOUT, N: "0"}, group: plant}
+  - {id: load, ref: RL, kind: resistor, properties: {VALUE: 100kohm}, pins: {P: VOUT, N: "0"}, group: plant}
+  - {id: pv, ref: PV, kind: voltage_probe, properties: {Label: VOUT}, pins: {NODE: VOUT}, group: probes}
+  - {id: pd, ref: PD, kind: voltage_probe, properties: {Label: DRIVE}, pins: {NODE: DRIVE}, group: probes}
+  - {id: ps, ref: PS, kind: voltage_probe, properties: {Label: SET}, pins: {NODE: SET}, group: probes}
+  - {id: pr, ref: PR, kind: voltage_probe, properties: {Label: RESET}, pins: {NODE: RESET}, group: probes}
+  - {id: pq, ref: PQ, kind: voltage_probe, properties: {Label: Q}, pins: {NODE: Q}, group: probes}
+  - {id: pn, ref: PN, kind: voltage_probe, properties: {Label: QN}, pins: {NODE: QN}, group: probes}

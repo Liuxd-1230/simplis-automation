@@ -70,6 +70,15 @@ the requested bounds, retain left/right transition values, and avoid extrapolati
 The helper supports the observed whitespace-delimited `.t2` text table and refuses
 malformed/truncated data. For other formats, use the matching native export.
 
+`waveform` now reads `.t2` one row at a time for summaries and selected-column
+means. It retains adjacent event limits, interpolates window boundaries, compensates
+floating-point accumulation and validates the entire file, including rows after a
+measurement window. Memory scales with a row and the header, not the point count.
+`read_t2` remains the full-memory API when the caller actually needs all rows.
+Native Show exports and the existing v2 validators still use their current array
+readers; this change does not replace them. Actual million-point measurements:
+[validation](../docs/control-storage-validation.md).
+
 ## Model fidelity and stopping
 
 - Finite-Ron controlled switches can be appropriate for behavioural work. Zero Ron

@@ -33,12 +33,15 @@ inspect installed official libraries, then matching-version manuals/examples.
 
 - For simulation-only work, a standalone deck is sufficient. State its path,
   parameter changes and whether an editable schematic exists.
-- For circuit design, modification or delivery, maintain the native `.sxsch` and
-  its `.sxcmp` dependencies as the authoritative source; export decks from it.
-  Rebuild from a deck when needed and check the exported topology. Arbitrary
-  netlist-to-schematic conversion is not promised.
+- In a native drawing workflow, maintain `.sxsch` and its `.sxcmp` dependencies
+  as the authoritative source; export decks from them. When using the v2 backend,
+  preserve its YAML source protocol: schematics are generated outputs, and GUI
+  changes must be imported into YAML before rerunning. Do not maintain conflicting
+  native/YAML masters. Arbitrary netlist-to-schematic conversion is not promised.
 - Run in a fresh task-owned directory. The helper registers generated files;
-  extract metrics, protect representative/final raw evidence, then preview cleanup.
+  extract metrics, retain representative/final raw evidence, then preview cleanup.
+  Saving a measurement never releases raw evidence. Mark only explicitly reviewed
+  disposable raw files for cleanup; preserve waveforms needed by timing/ripple claims.
   Never recursively delete by extension or adopt a user's project as scratch space.
 - Deliver a short explanation of artifact paths, circuit function/changes,
   editability and actual checks/results. Include a relevant preview when useful;
