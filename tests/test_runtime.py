@@ -21,7 +21,7 @@ class RuntimeTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
-        self.root = Path(self.temp.name)
+        self.root = Path(self.temp.name).resolve()
         self.versions = {}
         # 模拟安装发现及 Windows PE 元数据，不模拟电路仿真结果
         for name, value in (("_registry_locations", []), ("_common_locations", [])):
