@@ -10,14 +10,15 @@ from __future__ import annotations
 
 import json
 import re
+import shutil
 import subprocess
 import time
 from pathlib import Path
 from typing import Any, Callable, Mapping
 
-from .catalog import BANNED_WRAPPERS, load_catalog
+from .catalog import BANNED_WRAPPERS, catalog_runtime_evidence, load_catalog
 from .io import load_yaml, sha256_file, write_json
-from .runtime import resolve_runtime
+from .runtime import resolve_runtime, startup_command
 from .watchdog import WatchdogConfig, run_script_with_watchdog
 
 
@@ -155,8 +156,11 @@ def _invoke_runner(
     command.extend(["/s", str(script)])
     try:
         if runner is None:
+            actual_command = startup_command(executable, script)
+            if interactive:
+                actual_command.insert(1, "/i")
             completed = subprocess.run(
-                command,
+                actual_command,
                 cwd=str(script.parent),
                 check=False,
                 timeout=timeout,
@@ -495,7 +499,42 @@ def validate_manifest_artifacts(manifest_path: str | Path) -> dict[str, Any]:
     return result
 
 
-def verify_manifest(
+def verify_manifest(manifest_path: str | Path, runtime: Mapping[str, Any] | str | Path | None = None,
+                    timeout: float | None = 90.0, interactive: bool = False, *, runner: Runner | None = None) -> dict[str, Any]:
+    from .run_storage import fresh_directory, finish_run
+    source = Path(manifest_path).expanduser().resolve()
+    root = fresh_directory(source.parent / "verification")
+    record = dict(completed=False, workflow="netlist-verification", source=dict(kind="v2-yaml", build_manifest=str(source), authoritative=[], snapshots={}))
+    try:
+        if source.is_file():
+            manifest = _read_manifest(source)
+            circuit = manifest.get("source_circuit")
+            expected_source = manifest.get("source_circuit_sha256")
+            if expected_source and circuit and sha256_file(circuit) != expected_source:
+                raise ValueError("YAML source changed after compilation; compile again in a fresh run directory")
+            record["source"]["authoritative"] = [str(circuit)] if circuit else []
+            inputs = root / "inputs"
+            inputs.mkdir()
+            for label, value in (("build-manifest", source), ("circuit", circuit), ("catalog", manifest.get("catalog", {}).get("path")), ("compiled-script", manifest.get("artifacts", {}).get("script"))):
+                if value:
+                    path = Path(value)
+                    path = path if path.is_absolute() else source.parent / path
+                    if path.is_file():
+                        target = inputs / (label + path.suffix)
+                        shutil.copy2(path, target)
+                        record["source"]["snapshots"][label] = dict(original=str(path), file=target.relative_to(root).as_posix())
+        result = _verify_manifest(source, runtime, timeout, interactive, runner=runner)
+        record.update(completed=bool(result["ok"]), runtime=result.get("runtime", {}),
+                      backend_result=result["evidence_path"], verification_scope="schematic and netlist; no electrical simulation")
+        return result
+    except Exception as exc:
+        record["error"] = repr(exc)
+        raise
+    finally:
+        finish_run(root, record)
+
+
+def _verify_manifest(
     manifest_path: str | Path,
     runtime: Mapping[str, Any] | str | Path | None = None,
     timeout: float | None = 90.0,
@@ -626,9 +665,15 @@ def verify_manifest(
         candidate = runtime.get("runner") or runtime.get("_runner")
         if callable(candidate):
             supplied_runner = candidate
-    runtime_status = resolve_runtime(runtime)
+    locked_catalog = load_catalog(catalog["path"]) if catalog.get("verified") else None
+    runtime_status = resolve_runtime(runtime, target_version=locked_catalog.get("runtime", {}).get("version") if locked_catalog else None)
     result["runtime"] = runtime_status
-    if not runtime_status.get("ok"):
+    if locked_catalog:
+        resources = catalog_runtime_evidence(locked_catalog, runtime_status["symbol_library"])
+        result["catalog"]["installed_resources"] = resources
+        if not resources["ready"]:
+            result["errors"].append(_diagnostic("catalog_resources_changed", "Installed symbol/model content requires revalidation", evidence=resources))
+    if not runtime_status.get("ready"):
         result["errors"].append(_diagnostic("runtime_invalid", "SIMetrix runtime preflight failed", diagnostics=runtime_status.get("errors", [])))
     executable = Path(str(runtime_status["executable"])) if runtime_status.get("executable") else None
 

@@ -16,6 +16,7 @@ from simplis_tools import run_deck, waveform
 from build_native_examples import build
 from run_storage import cleanup, protect, register_metrics
 from simplis_automation_v2.importer import _parse_instances_and_wires
+from simplis_automation_v2.runtime import startup_command
 from simplis_automation_v2.watchdog import captured_script_error_lines
 
 
@@ -50,7 +51,7 @@ def validate(gui: Path, solver: Path, out: Path):
         startup.dwFlags |= subprocess.STARTF_USESHOWWINDOW
         startup.wShowWindow = 0
     # 不传 /i，依照 8.40 UsersManual 第18.3节启动独立实例
-    process = subprocess.Popen([str(gui), "/s", str(script)], cwd=out, startupinfo=startup)
+    process = subprocess.Popen(startup_command(gui, script), cwd=out, startupinfo=startup)
     deadline = time.monotonic() + 60
     while not (out / "complete.txt").exists() and time.monotonic() < deadline:
         time.sleep(.5)
@@ -97,8 +98,9 @@ def validate(gui: Path, solver: Path, out: Path):
                              initial_V=rows[0][1], tau_s=tau, voltage_at_tau_V=tau_point[1], waveform_points=len(rows))
     protect(out / "feedback_run", "Representative hierarchy and feedback evidence")
     assert cleanup(out / "feedback_run")["reclaimable_bytes"] == 0
+    from simplis_automation_v2.runtime import resolve_runtime
     report = dict(native_open_save_export=True, exported_topology_checked=True,
-                  simulator="SIMetrix/SIMPLIS 8.40", measurements=results)
+                  runtime=resolve_runtime(simetrix_exe=gui), measurements=results)
     (out / "validation.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
     print(json.dumps(report, indent=2))
 

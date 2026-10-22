@@ -36,6 +36,9 @@ def _runtime_from_args(args: argparse.Namespace) -> dict[str, Any]:
         simetrix_exe=getattr(args, "simetrix_exe", None),
         symbol_library_dir=getattr(args, "symbol_lib_dir", None),
         config_path=getattr(args, "runtime_config", None),
+        install=getattr(args, "install", None),
+        version=getattr(args, "version", None),
+        project_dir=Path(getattr(args, "experiment", None) or getattr(args, "schematic", None) or ".").resolve().parent if getattr(args, "experiment", None) or getattr(args, "schematic", None) else None,
     )
 
 
@@ -178,6 +181,7 @@ def command_run(args: argparse.Namespace) -> dict[str, Any]:
         runtime=_runtime_from_args(args),
         parameter_overrides=_overrides(args.set),
         catalog_path=args.catalog,
+        kind=args.kind,
     )
     return {"ok": bool(result.get("ok")), "result": result}
 
@@ -214,6 +218,16 @@ def _runtime_options(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--simetrix-exe", help="Explicit SIMetrix.exe path")
     parser.add_argument("--symbol-lib-dir", help="Explicit installed .sxslb directory")
     parser.add_argument("--runtime-config", help="Optional v2 runtime config YAML/JSON")
+    parser.add_argument("--install", help="Installation root or executable; overrides project settings")
+    parser.add_argument("--version", help="Require a confirmed version, e.g. 8.30 or 8.40")
+
+
+def command_native(args: argparse.Namespace) -> dict[str, Any]:
+    from .native_runner import run_native
+    result = run_native(Path(args.schematic), Path(args.out_dir), runtime=_runtime_from_args(args),
+                        vectors=args.vector, project_root=Path(args.project_root) if args.project_root else None,
+                        group=args.group, timeout=args.timeout, kind=args.kind)
+    return {"ok": result["completed"], "result": result}
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -223,7 +237,19 @@ def build_parser() -> argparse.ArgumentParser:
     doctor = sub.add_parser("doctor", help="Validate runtime and an optional locked catalog")
     _runtime_options(doctor)
     doctor.add_argument("--catalog")
+    doctor.add_argument("--format", choices=("json", "text"), default="json")
     doctor.set_defaults(handler=command_doctor)
+
+    native = sub.add_parser("native", help="Run an authoritative native SIMPLIS schematic with default storage registration")
+    _runtime_options(native)
+    native.add_argument("schematic")
+    native.add_argument("--out-dir", required=True)
+    native.add_argument("--project-root")
+    native.add_argument("--vector", nargs="+", required=True)
+    native.add_argument("--group", default="simplis_tran1")
+    native.add_argument("--timeout", type=float, default=120)
+    native.add_argument("--kind", choices=("temporary", "candidate", "final"), default="candidate")
+    native.set_defaults(handler=command_native)
 
     catalog = sub.add_parser("catalog", help="Create and approve local device catalog entries")
     catalog_sub = catalog.add_subparsers(dest="catalog_command", required=True)
@@ -311,6 +337,7 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--out-dir", required=True)
     run.add_argument("--set", action="append", help="Parameter override NAME=VALUE")
     run.add_argument("--catalog", help="Override the circuit catalog lock, e.g. select the 8.3 catalog")
+    run.add_argument("--kind", choices=("temporary", "candidate", "final"), default="candidate")
     _runtime_options(run)
     run.set_defaults(handler=command_run)
 
@@ -354,7 +381,13 @@ def main(argv: list[str] | None = None) -> int:
     except Exception as exc:  # pragma: no cover - last-resort CLI containment
         _emit({"ok": False, "error": {"code": "internal_error", "message": str(exc), "details": {}}})
         return 1
-    _emit(payload)
+    if args.command == "doctor" and args.format == "text":
+        from .runtime import format_runtime
+        print(format_runtime(payload["runtime"]))
+        if payload.get("catalog"):
+            print("Catalog resources: " + ("matched" if payload["catalog"]["ready"] else "revalidation required"))
+    else:
+        _emit(payload)
     return 0 if payload.get("ok", True) else 4
 
 

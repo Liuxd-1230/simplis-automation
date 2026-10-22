@@ -5,6 +5,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 
 V2_ROOT = Path(__file__).resolve().parents[1]
@@ -30,6 +31,10 @@ class VerifierTests(unittest.TestCase):
             self.assertEqual(_validate_expected_netlist(netlist, expected), [])
 
     def _fixture(self, root: Path, *, opaque: bool = False) -> tuple[Path, dict[str, object], Path, Path]:
+        # 这里只模拟 Windows 版本元数据，实际仿真由独立集成测试验证
+        metadata = patch("simplis_automation_v2.runtime._file_version", return_value="8.30.0.1")
+        metadata.start()
+        self.addCleanup(metadata.stop)
         executable = root / "SIMetrix830" / "bin64" / "SIMetrix.exe"
         symbols = root / "SIMetrix830" / "support" / "symbollibs"
         executable.parent.mkdir(parents=True)

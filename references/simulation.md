@@ -2,6 +2,17 @@
 
 ## Choose the execution path
 
+Use [shared runtime discovery](runtime.md). The normal managed entries are:
+
+```powershell
+simplis native <source.sxsch> --vector "#VOUT" --out-dir <fresh-directory>
+simplis run <experiment.yaml> --out-dir <fresh-directory>
+python scripts/simplis_tools.py run --deck <self-contained.ckt> --out-dir <fresh-directory>
+```
+
+These register inputs, software/library evidence, logs and raw data by default.
+`--exe` remains available for explicit standalone solver selection.
+
 For a self-contained native deck, the tested 8.40 CLI is:
 
 ```powershell

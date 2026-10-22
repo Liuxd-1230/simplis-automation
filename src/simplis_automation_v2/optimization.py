@@ -151,7 +151,8 @@ def run_optimization(
 
     source = Path(experiment_path).resolve()
     root = Path(out_dir).resolve()
-    root.mkdir(parents=True, exist_ok=True)
+    from .run_storage import fresh_directory
+    fresh_directory(root)
     experiment = load_experiment(source)
     optimize = experiment["optimize"]
     parameters = optimize["parameters"]
@@ -276,6 +277,9 @@ def run_optimization(
         if source_result.is_file():
             shutil.copy2(source_result, derived / "experiment-result.json")
             candidate_root = source_result.parent
+            if candidate_root.is_relative_to(root) and (candidate_root / "storage.json").is_file():
+                from .run_storage import protect
+                protect(candidate_root, "Selected optimization result required for finalization")
             evidence = derived / "evidence"
             evidence.mkdir(exist_ok=True)
             for name in ("vector-manifest.json", "run-status.txt", "job-message.log", "error-bundle.json"):

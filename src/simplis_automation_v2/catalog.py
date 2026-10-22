@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
+import json
 from pathlib import Path
 import re
 from typing import Any, Iterable
@@ -253,7 +254,13 @@ def catalog_fingerprint(catalog: dict[str, Any]) -> str:
     """Fingerprint semantic catalog content, excluding derived lookup indexes."""
 
     payload = {key: value for key, value in catalog.items() if key not in {"_path", "_by_kind", "fingerprint"}}
-    return sha256_text(canonical_json(payload))
+    fingerprint = sha256_text(canonical_json(payload))
+    # 两份公开 seed 仅迁移安装路径时沿用已有锁定身份；内容改变立即失效
+    records = json.loads(Path(__file__).with_name("compatibility.json").read_text(encoding="utf-8"))
+    for record in records.values():
+        if fingerprint == record.get("portable_catalog_fingerprint"):
+            return record["historical_catalog_fingerprint"]
+    return fingerprint
 
 
 def validate_catalog(raw: dict[str, Any]) -> dict[str, Any]:
@@ -582,17 +589,19 @@ def catalog_runtime_evidence(catalog: dict[str, Any], symbol_library_dir: str | 
     """Return structured hash/path evidence; callers decide whether to require it."""
 
     runtime = catalog.get("runtime", {})
-    root = Path(symbol_library_dir or runtime.get("symbol_library_dir", ""))
+    from .runtime import installed_source_path, resolve_runtime
+    configured = symbol_library_dir or runtime.get("symbol_library_dir")
+    root = Path(configured) if configured else Path(resolve_runtime(version=runtime.get("version"))["symbol_library"])
     evidence: dict[str, Any] = {
         "catalog_fingerprint": catalog.get("fingerprint"),
         "symbol_library_dir": str(root),
         "symbol_library_dir_exists": root.is_dir(),
         "libraries": [],
     }
-    for entry in runtime.get("symbol_libraries", []):
+    for entry in [*runtime.get("symbol_libraries", []), *runtime.get("model_libraries", catalog.get("model_libraries", []))]:
         if not isinstance(entry, dict):
             continue
-        path = Path(entry.get("path", ""))
+        path = installed_source_path(entry.get("path", ""), root)
         if not path.is_absolute() and root:
             path = root / path
         present = path.is_file()

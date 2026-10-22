@@ -60,17 +60,38 @@ and total bytes, plus unregistered files. On tested Windows 8.40, SIMPLIS marks 
 read-only: apply clears that attribute only for eligible unchanged generated files.
 Failed cleanup stops at the operating-system error; inspect it before retrying.
 
-## Optional native and v2 execution
+## Default native and v2 execution
 
-`scripts/run_managed.py` adds this same storage record around either execution path:
+The installed `simplis` / `simplis-v2` commands now register normal `run` execution
+by default. `run_experiment()` is the common layer for direct API calls and the
+default optimizer evaluator. `simplis native` uses the same native runner and
+storage policy. `verify` and the original compile/netlist `sweep` register their
+verification subdirectories; those commands do not perform electrical simulation.
+Compile failures before verification remain in the sweep's aggregate diagnostic
+record; custom evaluators are responsible for their external execution records.
+Finalization protects its managed input run and registers its own final artifacts.
+The stdlib deck runner already registers its outputs.
+
+All execution destinations must be new or empty. Existing results and manually
+edited files are preserved; select a new output path for another run. YAML inputs
+are snapshotted and checked for changes during execution. Compilation records the
+source identity; verification detects changes after compilation. Native execution
+runs its staged schematic/module snapshot. Run records link backend measurements
+and include registered space use. Raw retention remains explicit per file.
+
+External custom optimizer evaluators, hand-launched simulator commands, arbitrary
+native SIMetrix analyses and historical directories are not automatically enrolled.
+The default native entry currently supports SIMPLIS transient exports only.
+
+`scripts/run_managed.py` retains its previous commands and `execution/` result paths:
 
 ```powershell
 python scripts/run_managed.py v2 --experiment <experiment.yaml> --out-dir <fresh-run> --runtime <runtime.json>
 python scripts/run_managed.py native --schematic <circuit.sxsch> --out-dir <fresh-run> --runtime <runtime.json> --vector "#VOUT" "#Q"
 ```
 
-`runtime.json` uses the existing v2 configuration fields `executable` and
-`symbol_library`. Optional backend dependencies are required. The v2 command calls
+`runtime.json` is optional; shared discovery is used when omitted. Existing fields
+`executable` and `symbol_library` remain accepted. Backend dependencies are required. The v2 command calls
 the existing runner and preserves its status, validation, analysis isolation and
 result files under `execution/`. `run.json` links that result; it does not promote a
 failed/unvalidated v2 run to success. Snapshots retain original YAML text plus

@@ -234,7 +234,8 @@ def run_sweep(
 
     source = Path(experiment_path).expanduser().resolve()
     destination = Path(out_dir).expanduser().resolve()
-    destination.mkdir(parents=True, exist_ok=True)
+    from .run_storage import fresh_directory
+    fresh_directory(destination)
     result: dict[str, Any] = {
         "schema_version": 1,
         "ok": False,

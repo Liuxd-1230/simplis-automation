@@ -1,8 +1,13 @@
 # SIMPLIS 自动化技能 v3
 
+运行环境发现已统一，默认仿真入口自动登记数据。使用 `simplis doctor --format text`
+检查环境，使用原有 `simplis run` 或新增 `simplis native` 运行。旧命令和参数继续保留。
+配置方式见[运行环境](references/runtime.md)，实际通过项目和限制见
+[兼容验证记录](docs/runtime-compatibility-validation.md)。8.30 与 8.40 的实机验证状态分别记录。
+
 宗旨：**灵活、不臃肿、参考有依据**。入口是 [SKILL.md](SKILL.md)。
 
-v3.1 整合了用户的[中文器件参考](assets/device-reference/README.md)，包含 24 种器件。
+v3.1 整合了用户的[中文器件参考](assets/device-reference/README.md)，目前包含 27 种器件。
 增加按功能查询、官方资料定位、两个[可编辑原生示例](examples/native/README.md)，以及
 [运行数据保存和清理](references/run-storage.md)。清理默认预览，正式证据可以标记保留。
 
