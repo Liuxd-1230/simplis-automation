@@ -11,6 +11,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import hashlib
 import json
+import logging
 import os
 from pathlib import Path
 import re
@@ -236,6 +237,8 @@ def _artifact_snapshot(root: Path) -> list[dict[str, Any]]:
 
 
 def _powershell_json(script: str, *, timeout: float = 5.0) -> Any:
+    logger = logging.getLogger(__name__)
+    logger.debug("PowerShell observation started; timeout=%s", timeout)
     try:
         completed = subprocess.run(
             ["powershell", "-NoProfile", "-NonInteractive", "-Command",
@@ -246,13 +249,16 @@ def _powershell_json(script: str, *, timeout: float = 5.0) -> Any:
             encoding="utf-8",
             timeout=timeout,
         )
-    except (OSError, subprocess.TimeoutExpired):
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        logger.debug("PowerShell observation failed: %s", type(exc).__name__)
         return None
     if completed.returncode != 0 or not completed.stdout.strip():
+        logger.debug("PowerShell observation returned %s; stderr=%r", completed.returncode, completed.stderr[-2000:])
         return None
     try:
         return json.loads(completed.stdout)
-    except json.JSONDecodeError:
+    except json.JSONDecodeError as exc:
+        logger.debug("PowerShell JSON invalid: %s; stdout=%r", exc, completed.stdout[:500])
         return None
 
 
