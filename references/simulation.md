@@ -45,6 +45,21 @@ not perform that preprocessing itself. A GUI command returning is not sufficient
 proof of completion. Check actual solver output; don't wait on a status string
 alone or accept stale vectors left by a previous run.
 
+For POP/AC, the tested 8.40 frontend can finish solving and then block inside its
+optional `simplis_health_report`. Managed scripts temporarily disable only that
+HTML report with `Set /temp SimplisSimulationHealthReportGlobalEnable=FALSE`;
+solver errors, warnings and logs remain active. Record the return token immediately
+after `simplis_run`, before querying status. See the
+[real Buck diagnosis](../docs/pop-ac-buck-validation.md).
+
+The editable [native Buck](../examples/native/acot_buck/README.md) shares one core
+between cold-start and precharged POP/AC benches. `simplis native --group simplis_ac1`
+accepts complex Show data; `simplis_pop1` expects time-domain data. Specify `PSP_NPT`
+to obtain POP waveforms. Inspect the exported hierarchy for the real trigger name.
+GUI `.t2/.f2` files can contain headers without numeric rows: use current-group
+Show exports. Standalone AC produces a full `.f2`; the helper checks real/imaginary
+pairs, sample count and increasing positive frequencies. Raw AC data remain retained.
+
 Sources: [evidence](evidence.md), D2-D3, O2-O3.
 
 ## Obtain data

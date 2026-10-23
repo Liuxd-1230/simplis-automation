@@ -915,32 +915,39 @@ def validate_ac_response(frequency: Sequence[float], response: Sequence[Mapping[
     magnitudes = [abs(value) for value in complex_values]
     wrapped_phases = [math.degrees(math.atan2(value.imag, value.real)) for value in complex_values]
     phases = _unwrap_phase_degrees(wrapped_phases)
-    crossing_index = next((index for index in range(1, len(magnitudes)) if magnitudes[index - 1] >= 1.0 > magnitudes[index]), None)
-    if crossing_index is None:
+    gain_crossings = []
+    for index in range(1, len(magnitudes)):
+        left, right = magnitudes[index-1:index+1]
+        if not (left >= 1 > right or left <= 1 < right):
+            continue
+        fraction = (1-left) / (right-left)
+        gain_crossings.append(dict(frequency_hz=10 ** (math.log10(frequency[index-1]) + fraction * math.log10(frequency[index]/frequency[index-1])),
+                                   phase_margin_deg=180 + phases[index-1] + fraction * (phases[index]-phases[index-1]),
+                                   direction="descending" if left > right else "ascending"))
+    descending = [item for item in gain_crossings if item["direction"] == "descending"]
+    if not descending:
         errors.append(_diagnostic("zero_db_crossing_missing", "AC loop response has no descending 0 dB crossing"))
-        return {"valid": False, "errors": errors, "metrics": {}}
-    index = crossing_index
-    left_mag, right_mag = magnitudes[index - 1], magnitudes[index]
-    fraction = (left_mag - 1.0) / max(left_mag - right_mag, 1e-30)
-    log_left = math.log10(float(frequency[index - 1]))
-    log_right = math.log10(float(frequency[index]))
-    crossover = 10 ** (log_left + fraction * (log_right - log_left))
-    phase = phases[index - 1] + fraction * (phases[index] - phases[index - 1])
-    phase_margin = 180.0 + phase
+        return {"valid": False, "errors": errors, "metrics": {"gain_crossings": gain_crossings}}
+    # 全部交越均保留；主指标采用下降交越中最小的相位裕度
+    selected = min(descending, key=lambda item: item["phase_margin_deg"])
+    crossover, phase_margin = selected["frequency_hz"], selected["phase_margin_deg"]
     gain_margin_db: float | None = None
     phase_crossing_frequency: float | None = None
-    phase_crossing = next((i for i in range(1, len(phases)) if phases[i - 1] > -180.0 >= phases[i]), None)
-    if phase_crossing is not None:
-        left_phase, right_phase = phases[phase_crossing - 1], phases[phase_crossing]
-        phase_fraction = (left_phase + 180.0) / max(left_phase - right_phase, 1e-30)
-        phase_log_left = math.log10(float(frequency[phase_crossing - 1]))
-        phase_log_right = math.log10(float(frequency[phase_crossing]))
-        phase_crossing_frequency = 10 ** (phase_log_left + phase_fraction * (phase_log_right - phase_log_left))
-        magnitude_db = [20.0 * math.log10(max(value, 1e-30)) for value in magnitudes]
-        magnitude_at_phase_db = magnitude_db[phase_crossing - 1] + phase_fraction * (
-            magnitude_db[phase_crossing] - magnitude_db[phase_crossing - 1]
-        )
-        gain_margin_db = -magnitude_at_phase_db
+    phase_crossings = []
+    magnitude_db = [20.0 * math.log10(max(value, 1e-30)) for value in magnitudes]
+    for branch in range(math.ceil((min(phases)+180)/360), math.floor((max(phases)+180)/360)+1):
+        target = -180 + 360*branch
+        for index in range(1, len(phases)):
+            left, right = phases[index-1:index+1]
+            if not (left > target >= right or left < target <= right):
+                continue
+            fraction = (target-left)/(right-left)
+            phase_crossings.append(dict(phase_deg=target,
+                frequency_hz=10 ** (math.log10(frequency[index-1]) + fraction*math.log10(frequency[index]/frequency[index-1])),
+                gain_margin_db=-(magnitude_db[index-1] + fraction*(magnitude_db[index]-magnitude_db[index-1]))))
+    if phase_crossings:
+        critical = min(phase_crossings, key=lambda item: item["gain_margin_db"])
+        gain_margin_db, phase_crossing_frequency = critical["gain_margin_db"], critical["frequency_hz"]
     return {
         "valid": phase_margin > 0.0,
         "errors": [] if phase_margin > 0.0 else [_diagnostic("phase_margin_nonpositive", "Interpolated phase margin is not positive", value=phase_margin)],
@@ -949,7 +956,10 @@ def validate_ac_response(frequency: Sequence[float], response: Sequence[Mapping[
             "phase_margin_deg": phase_margin,
             "gain_margin_db": gain_margin_db,
             "phase_crossing_frequency_hz": phase_crossing_frequency,
-            "gain_margin_unbounded_in_sweep": phase_crossing is None,
+            "gain_margin_unbounded_in_sweep": not phase_crossings,
+            "phase_crossings": phase_crossings,
+            "gain_crossings": gain_crossings,
+            "crossover_selection": "minimum_phase_margin_among_descending_crossings",
         },
     }
 

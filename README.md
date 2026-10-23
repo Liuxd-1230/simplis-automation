@@ -6,6 +6,11 @@ the old command names, flags and backend results remain available. Read
 [configuration and portability](references/runtime.md) and the
 [measured compatibility matrix](docs/runtime-compatibility-validation.md).
 
+The 8.40 POP/AC post-processing block has been diagnosed and repaired. A fully
+wired, editable [native Buck](examples/native/acot_buck/README.md) now passes real
+startup, POP, complex AC export and a deliberate trigger-error test; see the
+[measured results and original errors](docs/pop-ac-buck-validation.md).
+
 A lightweight skill for device reference, native schematic/submodule work and
 SIMPLIS simulation. Start with [SKILL.md](SKILL.md); read only the reference needed
 for the task. [中文说明](README.zh-CN.md).

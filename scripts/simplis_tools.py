@@ -45,7 +45,7 @@ def symbols(path: Path, query: str = "", name: str | None = None) -> dict:
     return {"library": str(path.resolve()), "sha256": hashlib.sha256(raw).hexdigest(), "symbols": found}
 
 
-def _t2_header(stream: TextIO) -> tuple[int, list[str]]:
+def _t2_header(stream: TextIO, *, axis: str = "TIME") -> tuple[int, list[str]]:
     head = stream.readline().split()
     if len(head) < 4 or head[0] != "$$$":
         raise ValueError("Expected a SIMPLIS text .t2 table (not .t0 or a native binary group)")
@@ -61,8 +61,8 @@ def _t2_header(stream: TextIO) -> tuple[int, list[str]]:
         if len(fields) != 2 or fields[0] != str(index):
             raise ValueError("Invalid waveform column header")
         names.append(fields[1])
-    if names[0].upper() != "TIME" or len(set(names)) != len(names):
-        raise ValueError("Expected unique columns beginning with TIME")
+    if names[0].upper() != axis or len(set(names)) != len(names):
+        raise ValueError(f"Expected unique columns beginning with {axis}")
     return count, names
 
 
@@ -91,6 +91,23 @@ def read_t2(path: Path) -> tuple[list[str], list[list[float]]]:
     with path.open(encoding="ascii") as stream:
         count, names = _t2_header(stream)
         return names, list(_t2_rows(stream, count, len(names)))
+
+
+def ac_waveform(path: Path) -> dict:
+    with path.open(encoding="ascii") as stream:
+        count, names = _t2_header(stream, axis="FREQUENCY")
+        if len(names) < 3 or (len(names) - 1) % 2:
+            raise ValueError("AC output must contain real/imaginary column pairs")
+        for real, imag in zip(names[1::2], names[2::2]):
+            if not real.endswith(".REAL") or imag != real[:-5] + ".IMAG":
+                raise ValueError("AC real/imaginary columns do not match")
+        first = previous = None
+        for row in _t2_rows(stream, count, len(names)):
+            if row[0] <= 0 or (previous is not None and row[0] <= previous):
+                raise ValueError("AC frequency must be positive and strictly increasing")
+            first = row[0] if first is None else first
+            previous = row[0]
+    return dict(points=count, columns=names, start=first, end=previous, analysis="ac")
 
 
 def time_mean(rows: list[list[float]], column: int, start: float, end: float) -> float:
@@ -188,7 +205,15 @@ def run_deck(exe: Path | None, deck: Path, out: Path, timeout: float = 60, *,
         if process.returncode != 0 or errors:
             result["error"] = errors or "Solver failed; see solver.log"
         else:
-            result["waveform"] = waveform(out / "input.ckt.t2")
+            tables = {}
+            for suffix, analysis, reader in ((".t2", "tran_or_pop", waveform), (".f2", "ac", ac_waveform)):
+                path = out / ("input.ckt" + suffix)
+                if path.is_file():
+                    tables[analysis] = reader(path)
+            if not tables:
+                raise ValueError("Solver returned without a supported .t2/.f2 waveform; inspect solver logs")
+            result["waveforms"] = tables
+            result["waveform"] = next(iter(tables.values()))
             result["completed"] = True
     except subprocess.TimeoutExpired:
         # subprocess.run kills and reaps only the solver process it launched.
@@ -203,8 +228,8 @@ def run_deck(exe: Path | None, deck: Path, out: Path, timeout: float = 60, *,
     for path in out.rglob("*"):
         if path.is_file():
             roles[path.relative_to(out).as_posix()] = ("input" if path == staged else "record" if path.name == "run.json"
-                                else "log" if path.suffix in {".log", ".err", ".lst"}
-                                else "raw" if path.suffix in {".t0", ".t2", ".tc"} else "scratch")
+                                else "log" if path.suffix in {".log", ".err", ".warn", ".dbg", ".lst"}
+                                else "raw" if path.suffix in {".t0", ".t2", ".t4", ".f2", ".tc"} else "scratch")
     register_run(out, roles, kind=kind if result["completed"] else "diagnostic",
                  completed=result["completed"], environment=dict(runtime=active, conditions=environment or {}),
                  source={"kind": "netlist", "authoritative": [str(deck)], "snapshot": staged.name})
@@ -230,7 +255,7 @@ def main() -> int:
     p = commands.add_parser("locate", help="Locate installed libraries, manuals and examples")
     p.add_argument("--install", type=Path)
     p.add_argument("--query", default="")
-    p = commands.add_parser("run", help="Run a self-contained transient deck in a fresh directory")
+    p = commands.add_parser("run", help="Run a self-contained SIMPLIS transient/POP/AC deck in a fresh directory")
     p.add_argument("--exe", type=Path, help="Explicit solver, otherwise use shared runtime discovery")
     p.add_argument("--deck", type=Path, required=True)
     p.add_argument("--out-dir", type=Path, required=True)

@@ -73,14 +73,27 @@ def run_native(schematic: Path, out: Path, *, runtime: dict | None = None, vecto
         result["execution"] = process
         if process["ok"]:
             state = process["status_values"]
-            groups = validate_group_evidence(state, {group: {"analysis": "tran", "vectors": vectors}})
+            analysis = "ac" if group.startswith("simplis_ac") else "pop" if group.startswith("simplis_pop") else "tran"
+            groups = validate_group_evidence(state, {group: {"analysis": analysis, "vectors": vectors}})
             info = _simulation_info_matches_current_run(state, schematic=staged, run_root=work, run_started_at=begun)
             exports = []
             for vector in vectors:
                 path = vector_dir / f"{_vector_slug(group)}_{_vector_slug(vector)}.txt"
+                if not path.is_file():
+                    result.setdefault("errors", []).append(dict(code="native_vector_not_exported", group=group,
+                                vector=vector, length=state.get(f"group.{group}.vector.{_vector_slug(vector)}.length"),
+                                message="Check group, .PRINT and PSP_NPT for POP/time-domain data"))
+                    exports.append(dict(file=path.relative_to(root).as_posix(), vector=vector, samples=0,
+                                        finite=False, monotonic=False, fresh=False, axis_valid=False))
+                    continue
                 data = parse_show_file(path)
+                values = [float(value) for value in data["x"]]
+                for value in data["y"]:
+                    values.extend((value["real"], value["imag"]) if isinstance(value, dict) else [value])
                 exports.append(dict(file=path.relative_to(root).as_posix(), vector=vector,
-                                    samples=len(data["y"]), finite=all(math.isfinite(v) for values in (data["x"], data["y"]) for v in values),
+                                    samples=len(data["y"]), finite=all(math.isfinite(v) for v in values),
+                                    analysis=analysis, x_name=data["x_name"],
+                                    axis_valid=(data["x_name"].casefold() in {"freq", "frequency"} and all(v > 0 for v in data["x"])) if analysis == "ac" else data["x_name"].casefold() == "time",
                                     monotonic=all(b >= a for a, b in zip(data["x"], data["x"][1:])),
                                     fresh=path.stat().st_mtime >= begun - 1))
             result.update(group_evidence=groups, simulation_info_evidence=info, vectors=exports)
@@ -94,7 +107,7 @@ def run_native(schematic: Path, out: Path, *, runtime: dict | None = None, vecto
                             stage_tokens_complete=all(state.get(k) == "true" for k in
                                   ("simulation_started", "simulation_returned", "errors_collected", "vector_export_done", "completion_token")),
                             vectors_fresh_complete=groups["valid"] and bool(exports) and
-                                  all(v["samples"] and v["finite"] and v["monotonic"] and v["fresh"] for v in exports))
+                                  all(v["samples"] and v["finite"] and v["monotonic"] and v["fresh"] and v["axis_valid"] for v in exports))
             trust = assess_simulation_status(state, warning_allowlist=[],
                         recent_error_files=process.get("recent_error_files", []), completion_evidence=evidence)
             result.update(execution_trust=trust, current_native_netlist=current_netlist)

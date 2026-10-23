@@ -5,6 +5,10 @@
 配置方式见[运行环境](references/runtime.md)，实际通过项目和限制见
 [兼容验证记录](docs/runtime-compatibility-validation.md)。8.30 与 8.40 的实机验证状态分别记录。
 
+8.40 的 POP/AC 后处理阻塞已完成专项修复。[原生 Buck 工程](examples/native/acot_buck/README.md)
+使用实际导线和可编辑子模块，已通过真实启动、POP、复数 AC 导出及错误触发测试。
+原始报错、波特图指标和复现命令见[专项结果](docs/pop-ac-buck-validation.md)。
+
 宗旨：**灵活、不臃肿、参考有依据**。入口是 [SKILL.md](SKILL.md)。
 
 v3.1 整合了用户的[中文器件参考](assets/device-reference/README.md)，目前包含 27 种器件。

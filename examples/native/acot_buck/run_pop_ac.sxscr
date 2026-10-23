@@ -1,0 +1,19 @@
+Set EchoOn
+Let buck_settled = Sleep(3)
+Let buck_parts = SplitPath(ScriptName())
+Let buck_directory = buck_parts[0] & buck_parts[1]
+Let buck_status = OpenEchoFile(buck_directory & 'manual-pop-ac-status.txt', 'w')
+Echo native_script_started=true
+Let buck_closed = CloseEchoFile()
+Set /temp SimplisSimulationHealthReportGlobalEnable=FALSE
+Let buck_schematic = buck_directory & 'buck_pop_ac.sxsch'
+OpenSchem /cd {buck_schematic}
+Let buck_status = OpenEchoFile(buck_directory & 'manual-pop-ac-status.txt', 'a')
+Echo schematic_opened=true
+Let buck_closed = CloseEchoFile()
+simplis_run
+Let buck_status = OpenEchoFile(buck_directory & 'manual-pop-ac-status.txt', 'a')
+Echo POP_AC_script_returned=true
+Echo SIMPLIS_exit_code={GetSIMPLISExitCode()}
+Echo completion_token=true
+Let buck_closed = CloseEchoFile()

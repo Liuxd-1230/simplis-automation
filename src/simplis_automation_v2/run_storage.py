@@ -28,11 +28,11 @@ def finish_run(root: Path, result: dict, kind: str = "candidate") -> dict:
         relative = path.relative_to(root)
         if path.suffix.casefold() in {".sxsch", ".sxcmp", ".yaml", ".net", ".deck", ".sxscr", ".ckt"} or relative.parts[0] == "inputs":
             role = "input"
-        elif path.suffix.casefold() in {".log", ".err", ".warn", ".lst"}:
+        elif path.suffix.casefold() in {".log", ".err", ".warn", ".dbg", ".lst"}:
             role = "log"
         elif path.suffix.casefold() == ".json":
             role = "record"
-        elif "vectors" in relative.parts or "SIMPLIS_Data" in relative.parts or path.suffix.casefold() in {".t0", ".t2", ".tc", ".sxdat", ".sxd"}:
+        elif "vectors" in relative.parts or "SIMPLIS_Data" in relative.parts or path.suffix.casefold() in {".t0", ".t2", ".t4", ".f2", ".tc", ".sxdat", ".sxd"}:
             role = "raw"
         elif "TMP" in relative.parts:
             role = "scratch"
