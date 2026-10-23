@@ -590,7 +590,7 @@ Netnames
 .Instance
 Attributes type=component path="timer.sxcmp" x=2880 y=8160 orient=N0
 Property name="REF" value="XTON" autopos=0 x=120 y=-240 align=LeftBase visible=1 font=Default order=-1
-Property name="ModuleName" value="timer" autopos=0 x=120 y=-60 align=LeftBase visible=1 font=Default order=-1
+Property name="ModuleName" value="Adaptive on-time timer" autopos=0 x=120 y=-60 align=LeftBase visible=1 font=Default order=-1
 Property name="MODEL" value="X" visible=0
 Property name="SIMPLIS_TEMPLATE" value="<ref> <nodelist> <value>" visible=0
 Property name="SIMULATOR" value="Simplis" visible=0
@@ -664,22 +664,6 @@ Attributes x1=2160 y1=5280 x2=2880 y2=5280
 Wire x1=5280 y1=4920 x2=5760 y2=4920
 .Wire
 Attributes x1=5280 y1=4920 x2=5760 y2=4920
-.EndWire
-Wire x1=5760 y1=4920 x2=5760 y2=7800
-.Wire
-Attributes x1=5760 y1=4920 x2=5760 y2=7800
-.EndWire
-Wire x1=5760 y1=7800 x2=2400 y2=7800
-.Wire
-Attributes x1=5760 y1=7800 x2=2400 y2=7800
-.EndWire
-Wire x1=2400 y1=7800 x2=2400 y2=8520
-.Wire
-Attributes x1=2400 y1=7800 x2=2400 y2=8520
-.EndWire
-Wire x1=2400 y1=8520 x2=2880 y2=8520
-.Wire
-Attributes x1=2400 y1=8520 x2=2880 y2=8520
 .EndWire
 Wire x1=5280 y1=8520 x2=6120 y2=8520
 .Wire
@@ -959,6 +943,36 @@ Netnames
 Attributes type=symbol name="term" x=9000 y=8280 orient=N0
 Property name="netname" value="" autopos=1 normal=Top rotated=Top visible=0 font=Default order=-1
 Property name="VALUE" value="TRIG_GATE" autopos=0 x=120 y=-300 align=LeftBase visible=1 font=Default order=-1
+Netnames
+.EndInstance
+Wire x1=1800 y1=8880 x2=2880 y2=8880
+.Wire
+Attributes x1=1800 y1=8880 x2=2880 y2=8880
+.EndWire
+.Instance
+Attributes type=symbol name="term" x=1800 y=8880 orient=N0
+Property name="netname" value="" autopos=1 normal=Right rotated=Top visible=0 font=Default order=-1
+Property name="VALUE" value="VIN" autopos=1 normal=Right rotated=Top visible=1 font=Default order=-1
+Netnames
+.EndInstance
+Wire x1=1800 y1=9240 x2=2880 y2=9240
+.Wire
+Attributes x1=1800 y1=9240 x2=2880 y2=9240
+.EndWire
+.Instance
+Attributes type=symbol name="term" x=1800 y=9240 orient=N0
+Property name="netname" value="" autopos=1 normal=Right rotated=Top visible=0 font=Default order=-1
+Property name="VALUE" value="VOUT" autopos=1 normal=Right rotated=Top visible=1 font=Default order=-1
+Netnames
+.EndInstance
+Wire x1=1800 y1=8520 x2=2880 y2=8520
+.Wire
+Attributes x1=1800 y1=8520 x2=2880 y2=8520
+.EndWire
+.Instance
+Attributes type=symbol name="term" x=1800 y=8520 orient=N0
+Property name="netname" value="" autopos=1 normal=Right rotated=Top visible=0 font=Default order=-1
+Property name="VALUE" value="PWM_HS" autopos=1 normal=Right rotated=Top visible=1 font=Default order=-1
 Netnames
 .EndInstance
 Text value=""

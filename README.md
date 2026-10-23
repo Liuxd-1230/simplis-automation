@@ -11,6 +11,11 @@ wired, editable [native Buck](examples/native/acot_buck/README.md) now passes re
 startup, POP, complex AC export and a deliberate trigger-error test; see the
 [measured results and original errors](docs/pop-ac-buck-validation.md).
 
+The native Buck now includes a device-connected adaptive on-time timer with live
+VIN/VOUT sensing and timing from the actual high-side drive. It includes a
+5→18→5 V line-step bench and opt-in multi-input POP/AC checks; see
+[the circuit and measured verification](docs/acot-timer-validation.md).
+
 A lightweight skill for device reference, native schematic/submodule work and
 SIMPLIS simulation. Start with [SKILL.md](SKILL.md); read only the reference needed
 for the task. [中文说明](README.zh-CN.md).
@@ -93,6 +98,7 @@ python tests/validate_v3_native.py --gui <SIMetrix.exe> --solver <simplis.exe> -
 python tests/validate_v3_runtime.py --solver <simplis.exe> --install <installation-root> --out-dir <fresh-runtime-check>
 python tests/validate_control_workflow.py --gui <SIMetrix.exe> --install <installation-root> --out-dir <fresh-control-check>
 python tests/validate_runtime_compatibility.py --out-dir <fresh-version-check>
+python tests/validate_acot_timer.py --out-dir <fresh-acot-check>
 python tests/validate_large_t2.py --solver <simplis.exe> --out-dir <fresh-memory-check>
 ```
 
