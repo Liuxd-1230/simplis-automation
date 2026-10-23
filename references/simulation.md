@@ -53,7 +53,9 @@ after `simplis_run`, before querying status. See the
 [real Buck diagnosis](../docs/pop-ac-buck-validation.md).
 
 The editable [native Buck](../examples/native/acot_buck/README.md) shares one core
-between cold-start and precharged POP/AC benches. `simplis native --group simplis_ac1`
+between cold-start, line-step and precharged POP/AC benches. Its device-connected
+ACOT timer senses live VIN/VOUT and starts from the actual high-side drive; see
+[measured timer checks](../docs/acot-timer-validation.md). `simplis native --group simplis_ac1`
 accepts complex Show data; `simplis_pop1` expects time-domain data. Specify `PSP_NPT`
 to obtain POP waveforms. Inspect the exported hierarchy for the real trigger name.
 GUI `.t2/.f2` files can contain headers without numeric rows: use current-group

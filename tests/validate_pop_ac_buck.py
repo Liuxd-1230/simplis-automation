@@ -58,7 +58,9 @@ def native_netlist_check(path):
     assert core["XSENSE"][1:3] == [nets["VOUT"], nets["SW"]]
     assert core["XCTRL"][2] == core["XSENSE"][3]
     assert core["XCTRL"][3] == core["XTON"][2]
-    assert core["XCTRL"][5] == core["XTON"][1] == nets["PWM_RAW"]
+    assert core["XCTRL"][5] == nets["PWM_RAW"]
+    assert core["XTON"][1] == nets["PWM_HS"]
+    assert core["XTON"][3:5] == [nets["VIN"], nets["VOUT"]]
     assert core["XDRV"][1:4] == [nets["PWM_RAW"], nets["PWM_HS"], nets["PWM_LS"]]
     assert core["XPOP"][1:3] == [nets["PWM_HS"], nets["TRIG_GATE"]]
     sense = {r[0]: r for r in sections["sensing"] if not r[0].startswith(".")}
@@ -68,8 +70,16 @@ def native_netlist_check(path):
     assert sense["R$FEEDBACK_RB"][1:4] == [sn["FB_DIV"], "0", "10000"]
     assert sense["E$RIPPLE_E"][2:6] == [sn["RIP_BASE"], sn["SW"], sn["VOUT"], "0.1"]
     assert sense["C$RIPPLE_C"][1:3] == [sn["SENSE"], sn["RIP_BASE"]]
+    timer = {r[0]: r for r in sections["timer"] if not r[0].startswith(".")}
+    tn = {r[1]: r[2] for r in sections["timer"] if r[0] == ".node_map"}
+    assert timer["GTON"][1:6] == ["0", tn["RAMP"], tn["VIN"], "0", "5u"]
+    assert timer["CTON"][1:4] == [tn["RAMP"], "0", "10p"]
+    assert timer["X$UCMP"][1] == tn["DONE"]
+    assert timer["X$UCMP"][4:6] == [tn["RAMP"], tn["VTH"]]
+    assert timer["X$SRESET"][1:5] == [tn["RAMP"], "0", tn["RESET"], "0"]
+    assert timer["RTH"][1:3] == [tn["VOUT"], tn["VTH"]]
     return dict(power_stage=True, output_filter=True, feedback_loop=True, ac_injection=True,
-                comparator_timer_driver=True, pop_trigger=True, checked_native_netlist=str(path))
+                comparator_timer_driver=True, adaptive_timer=True, pop_trigger=True, checked_native_netlist=str(path))
 
 
 def negative_source(destination):

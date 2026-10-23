@@ -22,7 +22,8 @@ class WatchdogTests(unittest.TestCase):
     @unittest.skipUnless(sys.platform == "win32", "Windows process metadata encoding")
     def test_real_powershell_unicode_json(self):
         with self.assertLogs("simplis_automation_v2.watchdog", level="DEBUG") as events:
-            value = _powershell_json("[pscustomobject]@{path='E:/自定义 安装目录'} | ConvertTo-Json -Compress")
+            # CI 的真实进程冷启动单独留出时间；本项检查中文 JSON 的传输和解析。
+            value = _powershell_json("[pscustomobject]@{path='E:/自定义 安装目录'} | ConvertTo-Json -Compress", timeout=30.0)
         self.assertEqual(value, {"path": "E:/自定义 安装目录"}, "\n".join(events.output))
 
     def test_task_message_log_growth_is_not_artifact_progress(self) -> None:

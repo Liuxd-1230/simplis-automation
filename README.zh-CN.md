@@ -9,6 +9,10 @@
 使用实际导线和可编辑子模块，已通过真实启动、POP、复数 AC 导出及错误触发测试。
 原始报错、波特图指标和复现命令见[专项结果](docs/pop-ac-buck-validation.md)。
 
+原生 Buck 示例现已接入器件搭建的 ACOT 定时器，实时检测 VIN/VOUT，
+从实际高侧驱动开始计时，并增加 5→18→5 V 输入跃变测试入口。
+三个输入工作点的 POP／AC 和定时测量见[ACOT 验证](docs/acot-timer-validation.md)。
+
 宗旨：**灵活、不臃肿、参考有依据**。入口是 [SKILL.md](SKILL.md)。
 
 v3.1 整合了用户的[中文器件参考](assets/device-reference/README.md)，目前包含 27 种器件。

@@ -1,0 +1,9 @@
+Let buck_settled = Sleep(3)
+Let buck_parts = SplitPath(ScriptName())
+Let buck_directory = buck_parts[0] & buck_parts[1]
+Set /temp SimplisSimulationHealthReportGlobalEnable=FALSE
+Let buck_schematic = buck_directory & 'buck_line_step.sxsch'
+OpenSchem /cd {buck_schematic}
+simplis_run
+Echo Startup_script_returned=true
+Echo SIMPLIS_exit_code={GetSIMPLISExitCode()}
