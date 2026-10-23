@@ -48,8 +48,8 @@ components:
   - {id: ac_top, ref: RAC1, kind: resistor, properties: {VALUE: 1kohm}, pins: {P: AC_IN, N: AC_OUT}, group: ac, layout: {x: 2160, y: 7200}}
   - {id: ac_bottom, ref: RAC2, kind: resistor, properties: {VALUE: 1kohm}, pins: {P: AC_OUT, N: "0"}, group: ac, layout: {x: 4320, y: 7200}}
   - {id: bode, ref: PBODE, kind: bode_probe, pins: {OUT: AC_OUT, IN: AC_IN}, group: ac, layout: {x: 6480, y: 7200}}
-  - {id: p_ac_in, ref: P_ACIN, kind: voltage_probe, properties: {Label: AC_IN}, pins: {NODE: AC_IN}, group: observation, layout: {x: 8640, y: 7200}}
-  - {id: p_ac_out, ref: P_ACOUT, kind: voltage_probe, properties: {Label: AC_OUT}, pins: {NODE: AC_OUT}, group: observation, layout: {x: 10800, y: 7200}}
+  - {id: p_ac_in, ref: P_ACIN, kind: voltage_probe, properties: {Label: AC_IN}, pins: {NODE: AC_IN}, group: observation, layout: {x: 9360, y: 7200}}
+  - {id: p_ac_out, ref: P_ACOUT, kind: voltage_probe, properties: {Label: AC_OUT}, pins: {NODE: AC_OUT}, group: observation, layout: {x: 11520, y: 7200}}
 
   # SIMPLIS small-signal AC always follows POP. Keep its periodic trigger in
   # an independent analysis gutter so it does not alter the proof networks.
@@ -63,4 +63,4 @@ components:
     group: analysis
     layout: {x: 0, y: 9600}
   - {id: pop, ref: XPOP, kind: pop_trigger, properties: {VREF: 2.5V, TRIG_COND: 0_TO_1}, pins: {IN: POP_CLK, OUT: TRIG_GATE}, group: analysis, layout: {x: 2160, y: 9600}}
-  - {id: p_trig, ref: P_TRIG, kind: voltage_probe, properties: {Label: TRIG_GATE}, pins: {NODE: TRIG_GATE}, group: observation, layout: {x: 4320, y: 9600}}
+  - {id: p_trig, ref: P_TRIG, kind: voltage_probe, properties: {Label: TRIG_GATE}, pins: {NODE: TRIG_GATE}, group: observation, layout: {x: 5400, y: 9600}}

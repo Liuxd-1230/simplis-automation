@@ -9,50 +9,47 @@ purpose: >-
 runtime:
   product: SIMetrix/SIMPLIS
   version: "8.3"
-  executable: D:\\SIMetrix830\\bin64\\SIMetrix.exe
-  symbol_library: D:\\SIMetrix830\\support\\symbollibs
-  symbol_library_dir: D:\\SIMetrix830\\support\\symbollibs
   symbol_libraries:
-    - path: D:\\SIMetrix830\\support\\symbollibs\\passives.sxslb
+    - path: support/symbollibs/passives.sxslb
       sha256: b67b7788514235605d0d5e1d7fa7698178738c068139e42c458121d056fa40f8
-    - path: D:\\SIMetrix830\\support\\symbollibs\\sources.sxslb
+    - path: support/symbollibs/sources.sxslb
       sha256: 891cfcd46f58bfb8fff71d505596f7ba6b94955a9dca3a687b42cd605d67300f
-    - path: D:\\SIMetrix830\\support\\symbollibs\\simplis.sxslb
+    - path: support/symbollibs/simplis.sxslb
       sha256: fb4c6219656ddcab42bfe4c53890c73569a3253ed8880067ba4cad79fbacaa2c
-    - path: D:\\SIMetrix830\\support\\symbollibs\\connection.sxslb
+    - path: support/symbollibs/connection.sxslb
       sha256: 9fcee5f4afbbd83ec9be17588c2c845c04c18c171f491782b659dfb5f6111770
-    - path: D:\\SIMetrix830\\support\\symbollibs\\system.sxslb
+    - path: support/symbollibs/system.sxslb
       sha256: ec38cfbb0e14a9775f6019c2f181e599906a7a6e6ecad116b96d04522d2b4324
-    - path: D:\\SIMetrix830\\support\\symbollibs\\mixed_mode.sxslb
+    - path: support/symbollibs/mixed_mode.sxslb
       sha256: ffa1ccbf2980239d07dd3e754c567fb760425b0b40cca7c4fdaed163459a900c
-    - path: D:\\SIMetrix830\\support\\symbollibs\\semiconductors.sxslb
+    - path: support/symbollibs/semiconductors.sxslb
       sha256: a5778c4411843ab43555c57a236b798f345816c506a7d0a8b0e14455bd333d41
-    - path: D:\\SIMetrix830\\support\\symbollibs\\simplis_analog_functions.sxslb
+    - path: support/symbollibs/simplis_analog_functions.sxslb
       sha256: e6451da314c5adf2edf57f9eab9bc3245725a331972a6b83612a67868425a04a
 
 # These hashes are observations from this machine, not portable vendor release
 # hashes.  A changed local installation must be imported and approved again.
 symbol_libraries:
-  - path: D:\\SIMetrix830\\support\\symbollibs\\passives.sxslb
+  - path: support/symbollibs/passives.sxslb
     sha256: b67b7788514235605d0d5e1d7fa7698178738c068139e42c458121d056fa40f8
-  - path: D:\\SIMetrix830\\support\\symbollibs\\sources.sxslb
+  - path: support/symbollibs/sources.sxslb
     sha256: 891cfcd46f58bfb8fff71d505596f7ba6b94955a9dca3a687b42cd605d67300f
-  - path: D:\\SIMetrix830\\support\\symbollibs\\simplis.sxslb
+  - path: support/symbollibs/simplis.sxslb
     sha256: fb4c6219656ddcab42bfe4c53890c73569a3253ed8880067ba4cad79fbacaa2c
-  - path: D:\\SIMetrix830\\support\\symbollibs\\connection.sxslb
+  - path: support/symbollibs/connection.sxslb
     sha256: 9fcee5f4afbbd83ec9be17588c2c845c04c18c171f491782b659dfb5f6111770
-  - path: D:\\SIMetrix830\\support\\symbollibs\\system.sxslb
+  - path: support/symbollibs/system.sxslb
     sha256: ec38cfbb0e14a9775f6019c2f181e599906a7a6e6ecad116b96d04522d2b4324
-  - path: D:\\SIMetrix830\\support\\symbollibs\\mixed_mode.sxslb
+  - path: support/symbollibs/mixed_mode.sxslb
     sha256: ffa1ccbf2980239d07dd3e754c567fb760425b0b40cca7c4fdaed163459a900c
-  - path: D:\\SIMetrix830\\support\\symbollibs\\semiconductors.sxslb
+  - path: support/symbollibs/semiconductors.sxslb
     sha256: a5778c4411843ab43555c57a236b798f345816c506a7d0a8b0e14455bd333d41
-  - path: D:\\SIMetrix830\\support\\symbollibs\\simplis_analog_functions.sxslb
+  - path: support/symbollibs/simplis_analog_functions.sxslb
     sha256: e6451da314c5adf2edf57f9eab9bc3245725a331972a6b83612a67868425a04a
 model_libraries:
-  - path: D:\\SIMetrix830\\support\\models\\SIMPLIS_DIGI1.lb
+  - path: support/models/SIMPLIS_DIGI1.lb
     sha256: 073836571353c918f11f2ca00ccf21825b6d8a184b22405fff673006b4c2868f
-  - path: D:\\SIMetrix830\\support\\models\\simplis_sources.lb
+  - path: support/models/simplis_sources.lb
     sha256: b8121f0258e9bd0118ee1e78947ee496a882edab490e8d539c180332c17bd256
 
 devices:

@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import math
 import re
+import shutil
 import time
 import uuid
 from bisect import bisect_right
@@ -14,7 +15,8 @@ from typing import Any, Iterable, Mapping, Sequence
 
 from .compiler import compile_circuit
 from .execution import JOB_STAGES, JobStateMachine, assess_simulation_status, build_simulation_script, validate_group_evidence
-from .io import canonical_json, sha256_file, sha256_text, write_json
+from .io import canonical_json, load_yaml, sha256_file, sha256_text, write_json
+from .run_storage import fresh_directory, finish_run
 from .runtime import resolve_runtime
 from .schema import load_experiment
 from .vectors import build_vector_manifest, parse_show_file
@@ -1011,7 +1013,55 @@ def _aggregate_analysis_classification(results: Sequence[Mapping[str, Any]], *, 
     return classifications[0] if classifications else "infrastructure_failed"
 
 
-def run_experiment(
+def run_experiment(experiment_path: str | Path, out_dir: str | Path, *,
+                   runtime: Mapping[str, Any] | str | Path | None = None,
+                   parameter_overrides: Mapping[str, Any] | None = None,
+                   catalog_path: str | Path | None = None,
+                   catalog_proof_kinds: Iterable[str] = (),
+                   kind: str = "candidate", _execution_subdir: str | None = None) -> dict[str, Any]:
+    if kind not in {"temporary", "candidate", "final", "diagnostic"}:
+        raise ValueError(f"Unknown run kind: {kind}")
+    source = Path(experiment_path).resolve()
+    root = fresh_directory(Path(out_dir))
+    execution = root / _execution_subdir if _execution_subdir else root
+    record = dict(completed=False, workflow="v2", parameters=dict(parameter_overrides or {}), source=dict(kind="v2-yaml", authoritative=[str(source)], snapshots={},
+                  native_outputs="generated; import GUI edits into YAML before rerunning"))
+    result = None
+    try:
+        config = load_yaml(source)
+        circuit = (source.parent / config["circuit"]).resolve()
+        circuit_config = load_yaml(circuit)
+        catalog = Path(catalog_path).resolve() if catalog_path else (circuit.parent / circuit_config["catalog_lock"]["path"]).resolve()
+        inputs = root / "inputs"
+        inputs.mkdir()
+        snapshots = record["source"]["snapshots"]
+        for label, path in (("experiment", source), ("circuit", circuit), ("catalog", catalog)):
+            target = inputs / (label + path.suffix)
+            shutil.copy2(path, target)
+            snapshots[label] = dict(original=str(path), file=target.relative_to(root).as_posix(), sha256=sha256_file(target))
+        record["source"]["authoritative"] = [str(source), str(circuit)]
+        active = resolve_runtime(runtime, project_dir=source.parent, target_version=load_yaml(catalog).get("runtime", {}).get("version"))
+        record["runtime"] = active
+        result = _execute_experiment(source, execution, runtime=active, parameter_overrides=parameter_overrides,
+                                      catalog_path=catalog_path, catalog_proof_kinds=catalog_proof_kinds)
+        changed = [s["original"] for s in snapshots.values() if not Path(s["original"]).is_file() or sha256_file(s["original"]) != s["sha256"]]
+        record["source"]["input_consistency"] = "changed_during_run" if changed else "verified_unchanged"
+        if changed:
+            result.update(ok=False, classification="infrastructure_failed", scoring_eligible=False)
+            result.setdefault("errors", []).append(dict(code="source_changed_during_run", files=changed))
+            _write_result(execution, result)
+        record.update(completed=bool(result["ok"]), backend_result=(execution / "experiment-result.json").relative_to(root).as_posix(),
+                      classification=result["classification"])
+        record["measurements"] = result.get("validation", [])
+    except Exception as exc:
+        record["error"] = repr(exc)
+        raise
+    finally:
+        finish_run(root, record, kind)
+    return result
+
+
+def _execute_experiment(
     experiment_path: str | Path,
     out_dir: str | Path,
     *,

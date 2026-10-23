@@ -23,9 +23,12 @@ class Sheet:
         definition = symbols(ROOT / "assets/device-reference/devices.sxsch", name=name)["symbols"][0]
         self.definitions[name] = definition["definition"]
         properties = {p["name"]: p.get("value", "") for p in definition["properties"]}
-        properties.update(values)
+        for key, value in values.items():
+            actual = next((name for name in properties if name.casefold() == key.casefold()), key)
+            properties[actual] = value
         if ref:
-            properties["REF"] = ref
+            actual = next((name for name in properties if name.casefold() == "ref"), "REF")
+            properties[actual] = ref
         self.items.append(f'.Instance\nAttributes type=symbol name="{name}" x={x} y={y} orient={orient}')
         for key, value in properties.items():
             visible = int(key in {"REF", "VALUE"})

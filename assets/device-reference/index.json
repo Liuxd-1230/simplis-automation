@@ -1443,6 +1443,197 @@
       "installed_symbol_libraries": [
         "connection.sxslb"
       ]
+    },
+    {
+      "id": "D26",
+      "name": "ac_source",
+      "chinese_name": "AC小信号电压源",
+      "description": "提供AC分析的小信号激励，直流分量为零",
+      "aliases": [
+        "AC源",
+        "交流源",
+        "小信号激励",
+        "ac source",
+        "AC 1"
+      ],
+      "library": "sources.sxslb",
+      "pins": [
+        {
+          "name": "P",
+          "order": "1",
+          "x": "0",
+          "y": "0",
+          "visible": "0"
+        },
+        {
+          "name": "N",
+          "order": "2",
+          "x": "0",
+          "y": "480",
+          "visible": "0"
+        }
+      ],
+      "instance_defaults": {
+        "MODEL": "V",
+        "StyleNormal": "DefaultInstance",
+        "StyleSelected": "DefaultSelected",
+        "VALUE": "AC 1",
+        "REF": "V3"
+      },
+      "installed_symbol_libraries": [
+        "sources.sxslb"
+      ],
+      "evidence": {
+        "version": "8.40",
+        "native_open_save_export": true,
+        "electrical_behavior": "not individually qualified",
+        "manual": "SIMPLIS_Reference.pdf",
+        "installed_files": {
+          "support/symbollibs/sources.sxslb": "1a8def4926637d79fe0fb175bb273d8a2aad5ae54afc463ab1df455ec0a5402f"
+        }
+      },
+      "connection_note": "用于小信号分析，保持原有直流工作点"
+    },
+    {
+      "id": "D27",
+      "name": "Bode_Probe2",
+      "chinese_name": "双节点波特探针",
+      "description": "测量OUT/IN的增益及相位，不提供激励",
+      "aliases": [
+        "波特图",
+        "波特探针",
+        "环路增益",
+        "bode",
+        "增益相位"
+      ],
+      "library": "connection.sxslb",
+      "pins": [
+        {
+          "name": "OUT",
+          "order": "1",
+          "x": "960",
+          "y": "0",
+          "visible": "1",
+          "xlabel": "-130",
+          "ylabel": "-2",
+          "align": "RightBase",
+          "rotated": "0"
+        },
+        {
+          "name": "IN",
+          "order": "2",
+          "x": "0",
+          "y": "0",
+          "visible": "1",
+          "xlabel": "178",
+          "ylabel": "-2",
+          "align": "LeftBase",
+          "rotated": "0"
+        }
+      ],
+      "instance_defaults": {
+        "CURVE_LOCATION": "1",
+        "GAIN_AXIS_LABEL": "",
+        "GAIN_COLOR": "-1",
+        "GAIN_GRID": "20",
+        "GAIN_LABEL": "Gain",
+        "GAIN_LIMIT_MAX": "40",
+        "GAIN_LIMIT_MIN": "-40",
+        "GAIN_USE_AUTO_GRID": "0",
+        "GAIN_USE_AUTO_LIMITS": "1",
+        "GAIN_VERTICAL": "0",
+        "GRAPH_NAME": "",
+        "MEASURE_SPEC_GAIN": "Gain\\sCrossover\\sFrequency\\s(dB\\sPlot)|0|0|0|0!Gain\\sMargin\\s(dB\\sPlot)|0|0|0|0",
+        "MEASURE_SPEC_PHASE": "Phase\\sMargin\\s(Phase\\sPlot)|0|0|0|0",
+        "PERSISTENCE": "-1",
+        "PHASE_AXIS_LABEL": "",
+        "PHASE_COLOR": "-1",
+        "PHASE_GRID": "45",
+        "PHASE_LABEL": "Phase",
+        "PHASE_LIMIT_MAX": "180",
+        "PHASE_LIMIT_MIN": "-180",
+        "PHASE_USE_AUTO_GRID": "0",
+        "PHASE_USE_AUTO_LIMITS": "1",
+        "PHASE_VERTICAL": "0",
+        "PLOT_GAIN": "1",
+        "PLOT_PHASE": "1",
+        "REF": "Probe2",
+        "StyleNormal": "DefaultInstance",
+        "StyleSelected": "DefaultSelected",
+        "VERTICAL_ORDER": "0"
+      },
+      "installed_symbol_libraries": [
+        "connection.sxslb"
+      ],
+      "evidence": {
+        "version": "8.40",
+        "native_open_save_export": true,
+        "electrical_behavior": "not individually qualified",
+        "manual": "SIMPLIS_Reference.pdf",
+        "installed_files": {
+          "support/symbollibs/connection.sxslb": "9fcee5f4afbbd83ec9be17588c2c845c04c18c171f491782b659dfb5f6111770"
+        }
+      },
+      "connection_note": "OUT接被测输出，IN接激励输入"
+    },
+    {
+      "id": "D28",
+      "name": "PERIODIC_OP_V8",
+      "chinese_name": "POP周期触发器",
+      "description": "检测周期信号的阈值交越，为POP提供周期标记",
+      "aliases": [
+        "POP触发",
+        "周期工作点",
+        "周期触发器",
+        "periodic operating point",
+        "POP"
+      ],
+      "library": "simplis.sxslb",
+      "pins": [
+        {
+          "name": "IN",
+          "order": "1",
+          "x": "0",
+          "y": "-120",
+          "visible": "0"
+        },
+        {
+          "name": "OUT",
+          "order": "2",
+          "x": "840",
+          "y": "-120",
+          "visible": "0"
+        }
+      ],
+      "instance_defaults": {
+        "DELAY": "0",
+        "DIVIDE_BY_2": "0",
+        "HYSTWD": "0.002",
+        "IC": "0",
+        "REF": "X1",
+        "SIMPLIS_TEMPLATE": "<ref> <nodelist> %PARAM_MODEL_NAME% vars: VREF=%VREF% VOL=%VOL% VOH=%VOH% HYSTWD=%HYSTWD% DIVIDE_BY_2=%DIVIDE_BY_2% IC=%IC% DELAY=%DELAY% TRIG_COND='%TRIG_COND%'",
+        "StyleNormal": "DefaultInstance",
+        "StyleSelected": "DefaultSelected",
+        "TRIG_COND": "0_TO_1",
+        "VOH": "5",
+        "VOL": "0",
+        "VREF": "2.5"
+      },
+      "installed_symbol_libraries": [
+        "simplis.sxslb"
+      ],
+      "evidence": {
+        "version": "8.40",
+        "native_open_save_export": true,
+        "electrical_behavior": "not individually qualified",
+        "manual": "SIMPLIS_Reference.pdf",
+        "installed_files": {
+          "support/symbollibs/simplis.sxslb": "fb4c6219656ddcab42bfe4c53890c73569a3253ed8880067ba4cad79fbacaa2c",
+          "support/models/simplis_param.lb": "efabe85a3af84a0735968558b030ff79b807cdadcf518099309cd52f187f4cd7"
+        }
+      },
+      "connection_note": "IN检测周期信号，OUT连接POP触发节点",
+      "model_dependency": "support/models/simplis_param.lb"
     }
   ]
 }

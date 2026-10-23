@@ -293,6 +293,10 @@ def build_simulation_script(
     """Build a run script that writes provenance/status before exporting data."""
 
     vector_root = Path(vector_dir or status_file.parent / "vectors").resolve()
+    def progress(stage: str) -> list[str]:
+        return [f"Let v2_status = OpenEchoFile({_quote_string(status_file)}, 'a')",
+                f"Echo progress={stage}", "Let v2_close = CloseEchoFile()"]
+
     lines = [
         "Set EchoOn",
         "Set precision = 16",
@@ -304,14 +308,27 @@ def build_simulation_script(
         "Echo running=true",
         "Let v2_close = CloseEchoFile()",
         f"OpenSchem /cd /readonly {_quote_path(schematic)}",
+        *progress("schematic_opened"),
+        # 仅在当前脚本期间关闭厂商 HTML 健康报告；保留求解器错误、警告和原始日志
+        "Set /temp SimplisSimulationHealthReportGlobalEnable=FALSE",
+        *progress("solver_call"),
         "simplis_run",
+        f"Let v2_status = OpenEchoFile({_quote_string(status_file)}, 'a')",
+        "Echo simulation_returned=true",
+        "Echo progress=solver_returned",
+        "Let v2_close = CloseEchoFile()",
         "Let v2_exit = GetSIMPLISExitCode()",
+        *progress("exit_code_read"),
         "Let v2_has_errors = SimulationHasErrors()",
         "Let v2_errors = GetSimulationErrors()",
+        *progress("solver_errors_read"),
         "Let v2_sim_status = GetSimulatorStatus()",
+        *progress("simulator_status_read"),
         "Let v2_sim_info = GetSimulationInfo()",
+        *progress("simulation_info_read"),
         "Let v2_sim_info_count = Length(v2_sim_info)",
         "Let v2_groups = Groups()",
+        *progress("groups_read"),
         "Let v2_errors_safe = JoinStringArray(['<none>'], v2_errors)",
         "Let v2_sim_info_safe = JoinStringArray(['<none>'], v2_sim_info)",
         "Let v2_groups_safe = JoinStringArray(['<none>'], v2_groups)",
@@ -337,6 +354,8 @@ def build_simulation_script(
     for group, vectors in required_vectors.items():
         lines.extend(
             [
+                *progress(f"select_group.{group}"),
+                f"IF Search(v2_groups, '{group}') >= 0 THEN",
                 f"SetGroup {group}",
                 f"Let v2_status = OpenEchoFile({_quote_string(status_file)}, 'a')",
                 f"Echo group.{group}.selected=true",
@@ -354,7 +373,10 @@ def build_simulation_script(
             lines.append(f"IF {length_var} > 0 THEN")
             lines.append(f'Show /force /names "{_vector_slug(str(vector))}" /file {_quote_path(target)} {_vector_expr(str(vector))}')
             lines.append("ENDIF")
-        lines.extend(("Let v2_close = CloseEchoFile()",))
+        lines.extend(("Let v2_close = CloseEchoFile()", "ELSE",
+                      f"Let v2_status = OpenEchoFile({_quote_string(status_file)}, 'a')",
+                      f"Echo group.{group}.selected=false", "Let v2_close = CloseEchoFile()", "ENDIF",
+                      *progress(f"exported_group.{group}")))
     lines.extend(
         [
             f"Let v2_status = OpenEchoFile({_quote_string(status_file)}, 'a')",

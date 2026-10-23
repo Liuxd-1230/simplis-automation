@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import tempfile
 import unittest
+import sys
 from pathlib import Path
 from unittest import mock
 
@@ -13,10 +14,17 @@ from simplis_automation_v2.watchdog import (
     captured_script_error_lines,
     parse_status_file,
     write_error_bundle,
+    _powershell_json,
 )
 
 
 class WatchdogTests(unittest.TestCase):
+    @unittest.skipUnless(sys.platform == "win32", "Windows process metadata encoding")
+    def test_real_powershell_unicode_json(self):
+        with self.assertLogs("simplis_automation_v2.watchdog", level="DEBUG") as events:
+            value = _powershell_json("[pscustomobject]@{path='E:/自定义 安装目录'} | ConvertTo-Json -Compress")
+        self.assertEqual(value, {"path": "E:/自定义 安装目录"}, "\n".join(events.output))
+
     def test_task_message_log_growth_is_not_artifact_progress(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)

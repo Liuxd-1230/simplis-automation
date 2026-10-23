@@ -14,6 +14,8 @@ __pycache__/
 !examples/native/feedback.sxsch
 !examples/native/controller.sxcmp
 !examples/native/plant.sxcmp
+!examples/native/acot_buck/*.sxsch
+!examples/native/acot_buck/*.sxcmp
 *.net
 *.deck
 *.err

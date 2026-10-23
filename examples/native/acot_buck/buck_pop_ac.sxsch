@@ -1,0 +1,319 @@
+SIMetrixFile type=schematic format=1.0 revision=8
+.Component
+.Schematic
+.SymbolLibrary
+.Symbol
+Attributes format=1.0 revision=8 name="Free_text" description="Free text" catalog="Sheet/Text" track=1
+Property name="VALUE" value="Text" autopos=0 x=0 y=156 align=LeftBase linear=1 selectable=1 font=FreeText overrideStyle="LegacyFontFreeText" order=-1
+Property name="VALUESCRIPT" value="edit_schem_text" autopos=1 normal=Left rotated=Left protected=1 visible=0 font=Default order=-1
+.EndSymbol
+.Symbol
+Attributes format=1.0 revision=8 name="dc_source" description="DC Voltage Source" catalog="Sources" track=1
+Segment x1=0 y1=0 x2=0 y2=168
+Segment x1=-120 y1=168 x2=120 y2=168
+Segment x1=-48 y1=216 x2=48 y2=216
+Segment x1=-120 y1=264 x2=120 y2=264
+Segment x1=-48 y1=312 x2=48 y2=312
+Segment x1=0 y1=312 x2=0 y2=480
+Pin name="N" order=2 x=0 y=480 visible=0
+Pin name="P" order=1 x=0 y=0 visible=0
+Property name="MODEL" value="V" autopos=1 normal=Left rotated=Left visible=0 font=Default order=-1
+Property name="SIMULATOR" value="DUAL" autopos=0 x=-240 y=780 align=LeftBase protected=1 visible=0 font=Default order=-1
+Property name="VALUESCRIPT" value="edit_dcsource" autopos=0 x=-240 y=660 align=LeftBase protected=1 visible=0 font=Default order=-1
+Property name="VALUE" value="5" autopos=1 normal=Right rotated=Top font=Default order=1
+Property name="REF" value="V?" autopos=1 normal=Right rotated=Bottom font=Default order=2
+.EndSymbol
+.Symbol
+Attributes format=1.0 revision=8 name="gnd" description="Ground" catalog="Connections;Terminals" track=1
+Segment x1=0 y1=0 x2=0 y2=120
+Segment x1=-120 y1=120 x2=120 y2=120
+Segment x1=-72 y1=156 x2=72 y2=156
+Segment x1=-24 y1=192 x2=24 y2=192
+Pin name="GND" order=1 x=0 y=0 visible=0
+Property name="netname" value="" autopos=1 normal=Left rotated=Left visible=0 font=Default order=-1
+Property name="VALUE" value="0" autopos=1 normal=Left rotated=Left protected=1 visible=0 font=Default order=-1
+.EndSymbol
+.Symbol
+Attributes format=1.0 revision=8 name="vpwl" description="PWL Voltage Source" catalog="Sources" track=1
+Arc l=-120 t=120 r=120 b=360 x1=0 y1=360 x2=0 y2=360
+Segment x1=0 y1=0 x2=0 y2=120
+Segment x1=0 y1=156 x2=0 y2=204
+Segment x1=-24 y1=180 x2=24 y2=180
+Segment x1=-60 y1=300 x2=-36 y2=216
+Segment x1=-36 y1=216 x2=0 y2=312
+Segment x1=0 y1=312 x2=36 y2=216
+Segment x1=36 y1=216 x2=60 y2=300
+Segment x1=-84 y1=300 x2=-60 y2=300
+Segment x1=60 y1=300 x2=84 y2=300
+Segment x1=0 y1=360 x2=0 y2=480
+Pin name="N" order=2 x=0 y=480 visible=0
+Pin name="P" order=1 x=0 y=0 visible=0
+Property name="MODEL" value="V" autopos=1 normal=Left rotated=Left visible=0 font=Default order=-1
+Property name="SIMPLIS_TEMPLATE" value="<ref> <nodelist> PWL %VALUE%" autopos=0 x=-240 y=600 align=LeftBase visible=0 font=Default order=-1
+Property name="SIMULATOR" value="DUAL" autopos=0 x=-240 y=900 align=LeftBase protected=1 visible=0 font=Default order=-1
+Property name="SPICE_PAIRS" value="0 0 10u 0 20u 1" autopos=0 x=-240 y=960 align=LeftBase visible=0 font=Default order=-1
+Property name="TEMPLATE" value="<ref> <nodelist> <ifd:REPEAT: PWLS REPEAT <if:%REPEAT%:FOR %REPEAT%:FOREVER> %SPICE_PAIRS% ENDREPEAT:PWL %SPICE_PAIRS%>" autopos=0 x=-240 y=1080 align=LeftBase protected=1 visible=0 linear=1 font=Default order=-1
+Property name="VALUE" value="NSEG=2 X0=0 Y0=0 X1=10u Y1=0 X2=20u Y2=1" autopos=0 x=-240 y=1200 align=LeftBase visible=0 font=Default order=-1
+Property name="VALUESCRIPT" value="edit_pwlr" autopos=1 normal=Left rotated=Left protected=1 visible=0 font=Default order=-1
+Property name="REF" value="V?" autopos=1 normal=Right rotated=Bottom font=Default order=1
+.EndSymbol
+.Symbol
+Attributes format=1.0 revision=8 name="InlineCurrentProbe" description="Inline Current Probe" catalog="Connections;Probes" track=1
+Segment x1=0 y1=0 x2=48 y2=48
+Segment x1=192 y1=48 x2=240 y2=0
+Segment x1=120 y1=24 x2=168 y2=48
+Segment x1=48 y1=48 x2=192 y2=48
+Segment x1=168 y1=48 x2=120 y2=72
+Pin name="N" order=2 x=240 y=0 visible=0
+Pin name="P" order=1 x=0 y=0 visible=0
+Property name="CLASS" value="PROBE" autopos=0 x=0 y=840 align=LeftBase protected=1 visible=0 font=Default order=-1
+Property name="EditPropScript" value="edit_probe_props" autopos=0 x=0 y=960 align=LeftTop protected=1 visible=0 linear=1 font=Default order=-1
+Property name="LABEL" value="" autopos=1 normal=Top rotated=Right font=Default order=-1
+Property name="PARAMS_MENU" value="Edit/Add Measurement..." autopos=0 x=0 y=660 align=LeftTop protected=1 visible=0 font=Default order=-1
+Property name="PARAMSSCRIPT" value="edit_probe_measure" autopos=0 x=0 y=720 align=LeftTop protected=1 visible=0 font=Default order=-1
+Property name="PROBE_DISABLED" value="false" autopos=0 x=0 y=864 align=LeftTop visible=0 font=Default order=-1
+Property name="ProbeType" value="I" autopos=1 normal=Left rotated=Left protected=1 visible=0 font=Default order=-1
+Property name="REF" value="IPROBE?" autopos=1 normal=Top rotated=Right visible=0 font=Default order=-1
+Property name="SIMPLIS_TEMPLATE" value="V<sep>%REF% <NODELIST> 0.0;.PRINT I(V<sep>%REF%);.GRAPH %REF%#P %VALUE% <ifd:PROBE_DISABLED:disabled=%PROBE_DISABLED%> <ifd:MEASURE_SPEC:userid=%REF%.<block> MeasureSpec=\"%MEASURE_SPEC%\";.post_process probe_measure %REF%.<block> %MEASURE_SPEC%>" autopos=0 x=0 y=240 align=LeftBase protected=1 visible=0 font=Default order=-1
+Property name="SIMULATOR" value="DUAL" autopos=1 normal=Left rotated=Left protected=1 visible=0 font=Default order=-1
+Property name="TEMPLATE" value="V<sep>%REF% <NODELIST> 0.0 ;.GRAPH %REF%#p %VALUE% <ifd:PROBE_DISABLED:disabled=%PROBE_DISABLED%> <ifd:MEASURE_SPEC:userid=%REF%.<block> MeasureSpec=\"%MEASURE_SPEC%\";.post_process probe_measure %REF%.<block> %MEASURE_SPEC%>" autopos=0 x=0 y=360 align=LeftBase protected=1 visible=0 font=Default order=-1
+Property name="VALUE" value="" autopos=0 x=0 y=600 align=LeftBase visible=0 font=Default order=-1
+Property name="VALUESCRIPT" value="edit_probe" autopos=0 x=0 y=480 align=LeftBase protected=1 visible=0 font=Default order=-1
+.EndSymbol
+.Symbol
+Attributes format=1.0 revision=8 name="iwave_v2" description="Current Waveform" catalog="Sources" track=1
+Arc l=-72 t=120 r=72 b=264 x1=0 y1=264 x2=0 y2=264
+Arc l=-72 t=216 r=72 b=360 x1=0 y1=360 x2=0 y2=360
+Segment x1=0 y1=0 x2=0 y2=120
+Segment x1=-156 y1=96 x2=-144 y2=12
+Segment x1=-144 y1=12 x2=-96 y2=12
+Segment x1=-96 y1=12 x2=-84 y2=96
+Segment x1=-156 y1=96 x2=-180 y2=96
+Segment x1=-84 y1=96 x2=-60 y2=96
+Segment x1=-120 y1=120 x2=-120 y2=360
+Segment x1=-120 y1=360 x2=-144 y2=300
+Segment x1=-120 y1=360 x2=-96 y2=300
+Segment x1=0 y1=360 x2=0 y2=480
+Pin name="N" order=2 x=0 y=480 visible=0
+Pin name="P" order=1 x=0 y=0 visible=0
+Property name="EditLiteralScript" value="edit_vwave_literal" autopos=0 x=-120 y=1080 align=LeftBase protected=1 visible=0 font=Default order=-1
+Property name="MODEL" value="X" autopos=1 normal=Left rotated=Left protected=1 visible=0 font=Default order=-1
+Property name="SIMPLIS_TEMPLATE" value="<ref> <nodelist> %SOURCE_MODEL% vars: %SIMPLIS_VALUE%" autopos=0 x=-120 y=720 align=LeftBase protected=1 visible=0 font=Default order=-1
+Property name="SIMPLIS_VALUE" value="_V1=0 _V2=1 _FREQ=10k _DELAY=0 _DRATIOx100=50 _T_RISE=500n _T_FALL=500n _DAMP_COEF=0 _PWIDTH=49.5u _OFF_UNTIL_DELAY=0 _IDLE_IN_POP=0 _USEPHASE=0 _PHASE=0" autopos=0 x=-120 y=780 align=LeftBase visible=0 font=Default order=-1
+Property name="SIMULATOR" value="DUAL" autopos=0 x=-120 y=1020 align=LeftBase visible=0 font=Default order=-1
+Property name="SOURCE_MODEL" value="SQU_SOURCE_I" autopos=0 x=-120 y=1140 align=LeftTop visible=0 font=Default order=-1
+Property name="TEMPLATE" value="<ref> <nodelist> %SOURCE_MODEL% <pinnames> params: %SIMPLIS_VALUE%" autopos=0 x=-120 y=840 align=LeftTop protected=1 visible=0 font=Default order=-1
+Property name="USE_PHASE" value="NO" autopos=1 normal=Left rotated=Left visible=0 font=Default order=-1
+Property name="VALUESCRIPT" value="edit_wave_v2" autopos=0 x=-120 y=600 align=LeftBase protected=1 visible=0 font=Default order=-1
+Property name="VITYPE" value="I" autopos=0 x=-120 y=1200 align=LeftTop visible=0 font=Default order=-1
+Property name="REF" value="I?" autopos=1 normal=Right rotated=Bottom font=Default order=1
+.EndSymbol
+.Symbol
+Attributes format=1.0 revision=8 name="term" description="Terminal" catalog="Connections;Terminals" track=1
+Segment x1=120 y1=-60 x2=240 y2=-60
+Segment x1=120 y1=-60 x2=120 y2=60
+Segment x1=240 y1=-60 x2=240 y2=60
+Segment x1=0 y1=0 x2=120 y2=0
+Segment x1=120 y1=60 x2=240 y2=60
+Pin name="A" order=1 x=0 y=0 visible=0
+Property name="netname" value="" autopos=1 normal=Left rotated=Left visible=0 font=Default order=-1
+Property name="VALUE" value="VOUT" autopos=1 normal=Right rotated=Bottom font=Default order=-1
+.EndSymbol
+.Symbol
+Attributes format=1.0 revision=8 name="probev_new" description="Probe Voltage" catalog="Connections;Probes" track=1
+Segment x1=60 y1=-60 x2=60 y2=-120
+Segment x1=0 y1=0 x2=60 y2=-60
+Segment x1=60 y1=-60 x2=120 y2=-60
+Pin name="NODE" order=1 x=0 y=0 visible=0
+Property name="CLASS" value="PROBE" autopos=0 x=-240 y=480 align=LeftBase protected=1 visible=0 font=Default order=-1
+Property name="EditPropScript" value="edit_probe_props" autopos=0 x=-240 y=1110 align=LeftTop protected=1 visible=0 linear=1 font=Default order=-1
+Property name="Label" value="" autopos=1 normal=Right rotated=Right font=Default order=-1
+Property name="PARAMS_MENU" value="Edit/Add Measurement..." autopos=0 x=-240 y=780 align=LeftTop protected=1 visible=0 font=Default order=-1
+Property name="PARAMSSCRIPT" value="edit_probe_measure" autopos=0 x=-240 y=840 align=LeftTop protected=1 visible=0 font=Default order=-1
+Property name="PROBE_DISABLED" value="false" autopos=0 x=-240 y=1020 align=LeftTop visible=0 font=Default order=-1
+Property name="PROBETYPE" value="V" autopos=0 x=-240 y=600 align=LeftBase protected=1 visible=0 font=Default order=-1
+Property name="REF" value="Probe?" autopos=1 normal=Left rotated=Left visible=0 font=Default order=-1
+Property name="SIMPLIS_TEMPLATE" value=".PRINT V(<probe[1]>);.GRAPH :<probe[1]> %VALUE% <ifd:PROBE_DISABLED:disabled=%PROBE_DISABLED%> PROBEREF=%REF% <ifd:MEASURE_SPEC:userid=%REF%.<block> MeasureSpec=\"%MEASURE_SPEC%\";.post_process probe_measure %REF%.<block> %MEASURE_SPEC%> " autopos=0 x=-240 y=240 align=LeftBase protected=1 visible=0 linear=1 font=Default order=-1
+Property name="SIMULATOR" value="DUAL" autopos=0 x=-240 y=720 align=LeftBase protected=1 visible=0 font=Default order=-1
+Property name="TEMPLATE" value=".GRAPH <node[1]> %VALUE% <ifd:PROBE_DISABLED:disabled=%PROBE_DISABLED%> PROBEREF=%REF% <ifd:MEASURE_SPEC:userid=%REF%.<block> MeasureSpec=\"%MEASURE_SPEC%\" ;.post_process probe_measure %REF%.<block> %MEASURE_SPEC%> " autopos=0 x=-240 y=120 align=LeftBase protected=1 visible=0 linear=1 font=Default order=-1
+Property name="VALUE" value="" autopos=1 normal=Right rotated=Right font=Default order=-1
+Property name="VALUESCRIPT" value="edit_probe" autopos=0 x=-240 y=360 align=LeftBase protected=1 visible=0 font=Default order=-1
+.EndSymbol
+.EndSymbolLibrary
+.Instance
+Attributes type=symbol name="Free_text" x=0 y=-960 orient=N0
+Property name="VALUE" value="Editable native Buck: shared buck_core.sxcmp" autopos=1 normal=Top rotated=Top visible=1 font=Default order=-1
+Property name="VALUESCRIPT" value="edit_schem_text" autopos=1 normal=Top rotated=Top visible=0 font=Default order=-1
+Netnames
+.EndInstance
+.Instance
+Attributes type=component path="buck_core.sxcmp" x=2400 y=0 orient=N0
+Property name="REF" value="XBUCK" autopos=0 x=120 y=-240 align=LeftBase visible=1 font=Default order=-1
+Property name="ModuleName" value="buck_core" autopos=0 x=120 y=-60 align=LeftBase visible=1 font=Default order=-1
+Property name="MODEL" value="X" visible=0
+Property name="SIMPLIS_TEMPLATE" value="<ref> <nodelist> <value>" visible=0
+Property name="SIMULATOR" value="Simplis" visible=0
+Netnames
+.EndInstance
+.Instance
+Attributes type=symbol name="dc_source" x=0 y=480 orient=N0
+Property name="MODEL" value="V" autopos=1 normal=Top rotated=Top visible=0 font=Default order=-1
+Property name="SIMULATOR" value="DUAL" autopos=1 normal=Top rotated=Top visible=0 font=Default order=-1
+Property name="VALUESCRIPT" value="edit_dcsource" autopos=1 normal=Top rotated=Top visible=0 font=Default order=-1
+Property name="VALUE" value="12" autopos=1 normal=Top rotated=Top visible=1 font=Default order=-1
+Property name="REF" value="VIN1" autopos=1 normal=Top rotated=Top visible=1 font=Default order=-1
+Netnames
+.EndInstance
+Wire x1=0 y1=480 x2=2400 y2=480
+.Wire
+Attributes x1=0 y1=480 x2=2400 y2=480
+.EndWire
+.Instance
+Attributes type=symbol name="gnd" x=0 y=960 orient=N0
+Property name="netname" value="" autopos=1 normal=Top rotated=Top visible=0 font=Default order=-1
+Property name="VALUE" value="0" autopos=1 normal=Top rotated=Top visible=1 font=Default order=-1
+Netnames
+.EndInstance
+.Instance
+Attributes type=symbol name="vpwl" x=0 y=1680 orient=N0
+Property name="MODEL" value="V" autopos=1 normal=Top rotated=Top visible=0 font=Default order=-1
+Property name="SIMPLIS_TEMPLATE" value="<ref> <nodelist> PWL %VALUE%" autopos=1 normal=Top rotated=Top visible=0 font=Default order=-1
+Property name="SIMULATOR" value="DUAL" autopos=1 normal=Top rotated=Top visible=0 font=Default order=-1
+Property name="SPICE_PAIRS" value="0 0 10u 0 20u 1" autopos=1 normal=Top rotated=Top visible=0 font=Default order=-1
+Property name="TEMPLATE" value="<ref> <nodelist> <ifd:REPEAT: PWLS REPEAT <if:%REPEAT%:FOR %REPEAT%:FOREVER> %SPICE_PAIRS% ENDREPEAT:PWL %SPICE_PAIRS%>" autopos=1 normal=Top rotated=Top visible=0 font=Default order=-1
+Property name="VALUE" value="NSEG=1 X0=0 Y0=0.12 X1=100n Y1=0.12" autopos=1 normal=Top rotated=Top visible=0 font=Default order=-1
+Property name="VALUESCRIPT" value="edit_pwlr" autopos=1 normal=Top rotated=Top visible=0 font=Default order=-1
+Property name="REF" value="VREF1" autopos=1 normal=Top rotated=Top visible=1 font=Default order=-1
+Netnames
+.EndInstance
+.Instance
+Attributes type=symbol name="gnd" x=0 y=2160 orient=N0
+Property name="netname" value="" autopos=1 normal=Top rotated=Top visible=0 font=Default order=-1
+Property name="VALUE" value="0" autopos=1 normal=Top rotated=Top visible=1 font=Default order=-1
+Netnames
+.EndInstance
+Wire x1=0 y1=1680 x2=1200 y2=1680
+.Wire
+Attributes x1=0 y1=1680 x2=1200 y2=1680
+.EndWire
+Wire x1=1200 y1=1680 x2=1200 y2=1200
+.Wire
+Attributes x1=1200 y1=1680 x2=1200 y2=1200
+.EndWire
+Wire x1=1200 y1=1200 x2=2400 y2=1200
+.Wire
+Attributes x1=1200 y1=1200 x2=2400 y2=1200
+.EndWire
+.Instance
+Attributes type=symbol name="vpwl" x=0 y=3000 orient=N0
+Property name="MODEL" value="V" autopos=1 normal=Top rotated=Top visible=0 font=Default order=-1
+Property name="SIMPLIS_TEMPLATE" value="<ref> <nodelist> PWL %VALUE%" autopos=1 normal=Top rotated=Top visible=0 font=Default order=-1
+Property name="SIMULATOR" value="DUAL" autopos=1 normal=Top rotated=Top visible=0 font=Default order=-1
+Property name="SPICE_PAIRS" value="0 0 10u 0 20u 1" autopos=1 normal=Top rotated=Top visible=0 font=Default order=-1
+Property name="TEMPLATE" value="<ref> <nodelist> <ifd:REPEAT: PWLS REPEAT <if:%REPEAT%:FOR %REPEAT%:FOREVER> %SPICE_PAIRS% ENDREPEAT:PWL %SPICE_PAIRS%>" autopos=1 normal=Top rotated=Top visible=0 font=Default order=-1
+Property name="VALUE" value="NSEG=1 X0=0 Y0=0 X1=100n Y1=0" autopos=1 normal=Top rotated=Top visible=1 font=Default order=-1
+Property name="VALUESCRIPT" value="edit_pwlr" autopos=1 normal=Top rotated=Top visible=0 font=Default order=-1
+Property name="REF" value="VRST" autopos=1 normal=Top rotated=Top visible=1 font=Default order=-1
+Netnames
+.EndInstance
+.Instance
+Attributes type=symbol name="gnd" x=0 y=3480 orient=N0
+Property name="netname" value="" autopos=1 normal=Top rotated=Top visible=0 font=Default order=-1
+Property name="VALUE" value="0" autopos=1 normal=Top rotated=Top visible=1 font=Default order=-1
+Netnames
+.EndInstance
+Wire x1=0 y1=3000 x2=1200 y2=3000
+.Wire
+Attributes x1=0 y1=3000 x2=1200 y2=3000
+.EndWire
+Wire x1=1200 y1=3000 x2=1200 y2=1920
+.Wire
+Attributes x1=1200 y1=3000 x2=1200 y2=1920
+.EndWire
+Wire x1=1200 y1=1920 x2=2400 y2=1920
+.Wire
+Attributes x1=1200 y1=1920 x2=2400 y2=1920
+.EndWire
+.Instance
+Attributes type=symbol name="InlineCurrentProbe" x=6000 y=480 orient=N0
+Property name="CLASS" value="PROBE" autopos=1 normal=Top rotated=Top visible=0 font=Default order=-1
+Property name="EditPropScript" value="edit_probe_props" autopos=1 normal=Top rotated=Top visible=0 font=Default order=-1
+Property name="LABEL" value="ILOAD" autopos=1 normal=Top rotated=Top visible=0 font=Default order=-1
+Property name="PARAMS_MENU" value="Edit/Add Measurement..." autopos=1 normal=Top rotated=Top visible=0 font=Default order=-1
+Property name="PARAMSSCRIPT" value="edit_probe_measure" autopos=1 normal=Top rotated=Top visible=0 font=Default order=-1
+Property name="PROBE_DISABLED" value="false" autopos=1 normal=Top rotated=Top visible=0 font=Default order=-1
+Property name="ProbeType" value="I" autopos=1 normal=Top rotated=Top visible=0 font=Default order=-1
+Property name="REF" value="IPRB_LOAD" autopos=1 normal=Top rotated=Top visible=1 font=Default order=-1
+Property name="SIMPLIS_TEMPLATE" value="V<sep>%REF% <NODELIST> 0.0;.PRINT I(V<sep>%REF%);.GRAPH %REF%#P %VALUE% <ifd:PROBE_DISABLED:disabled=%PROBE_DISABLED%> <ifd:MEASURE_SPEC:userid=%REF%.<block> MeasureSpec=\"%MEASURE_SPEC%\";.post_process probe_measure %REF%.<block> %MEASURE_SPEC%>" autopos=1 normal=Top rotated=Top visible=0 font=Default order=-1
+Property name="SIMULATOR" value="DUAL" autopos=1 normal=Top rotated=Top visible=0 font=Default order=-1
+Property name="TEMPLATE" value="V<sep>%REF% <NODELIST> 0.0 ;.GRAPH %REF%#p %VALUE% <ifd:PROBE_DISABLED:disabled=%PROBE_DISABLED%> <ifd:MEASURE_SPEC:userid=%REF%.<block> MeasureSpec=\"%MEASURE_SPEC%\";.post_process probe_measure %REF%.<block> %MEASURE_SPEC%>" autopos=1 normal=Top rotated=Top visible=0 font=Default order=-1
+Property name="VALUE" value="" autopos=1 normal=Top rotated=Top visible=1 font=Default order=-1
+Property name="VALUESCRIPT" value="edit_probe" autopos=1 normal=Top rotated=Top visible=0 font=Default order=-1
+Netnames
+.EndInstance
+.Instance
+Attributes type=symbol name="iwave_v2" x=6960 y=960 orient=N0
+Property name="EditLiteralScript" value="edit_vwave_literal" autopos=1 normal=Top rotated=Top visible=0 font=Default order=-1
+Property name="MODEL" value="X" autopos=1 normal=Top rotated=Top visible=0 font=Default order=-1
+Property name="SIMPLIS_TEMPLATE" value="<ref> <nodelist> %SOURCE_MODEL% vars: %SIMPLIS_VALUE%" autopos=1 normal=Top rotated=Top visible=0 font=Default order=-1
+Property name="SIMPLIS_VALUE" value="_V1=5 _V2=10 _FREQ=2.5k _DELAY=200u _DRATIOx100=50 _T_RISE=1n _T_FALL=1n _DAMP_COEF=0 _PWIDTH=200u _OFF_UNTIL_DELAY=0 _IDLE_IN_POP=1 _USEPHASE=0 _PHASE=0" autopos=1 normal=Top rotated=Top visible=0 font=Default order=-1
+Property name="SIMULATOR" value="DUAL" autopos=1 normal=Top rotated=Top visible=0 font=Default order=-1
+Property name="SOURCE_MODEL" value="SQU_SOURCE_I" autopos=1 normal=Top rotated=Top visible=0 font=Default order=-1
+Property name="TEMPLATE" value="<ref> <nodelist> %SOURCE_MODEL% <pinnames> params: %SIMPLIS_VALUE%" autopos=1 normal=Top rotated=Top visible=0 font=Default order=-1
+Property name="USE_PHASE" value="NO" autopos=1 normal=Top rotated=Top visible=0 font=Default order=-1
+Property name="VALUESCRIPT" value="edit_wave_v2" autopos=1 normal=Top rotated=Top visible=0 font=Default order=-1
+Property name="VITYPE" value="I" autopos=1 normal=Top rotated=Top visible=0 font=Default order=-1
+Property name="REF" value="LOAD1" autopos=1 normal=Top rotated=Top visible=1 font=Default order=-1
+Netnames
+.EndInstance
+Wire x1=4800 y1=480 x2=6000 y2=480
+.Wire
+Attributes x1=4800 y1=480 x2=6000 y2=480
+.EndWire
+Wire x1=6240 y1=480 x2=6960 y2=480
+.Wire
+Attributes x1=6240 y1=480 x2=6960 y2=480
+.EndWire
+Wire x1=6960 y1=480 x2=6960 y2=960
+.Wire
+Attributes x1=6960 y1=480 x2=6960 y2=960
+.EndWire
+.Instance
+Attributes type=symbol name="gnd" x=6960 y=1440 orient=N0
+Property name="netname" value="" autopos=1 normal=Top rotated=Top visible=0 font=Default order=-1
+Property name="VALUE" value="0" autopos=1 normal=Top rotated=Top visible=1 font=Default order=-1
+Netnames
+.EndInstance
+.Instance
+Attributes type=symbol name="term" x=5520 y=480 orient=N0
+Property name="netname" value="" autopos=1 normal=Top rotated=Top visible=0 font=Default order=-1
+Property name="VALUE" value="VOUT" autopos=0 x=120 y=-300 align=LeftBase visible=1 font=Default order=-1
+Netnames
+.EndInstance
+.Instance
+Attributes type=symbol name="probev_new" x=5520 y=480 orient=N0
+Property name="CLASS" value="PROBE" autopos=1 normal=Top rotated=Top visible=0 font=Default order=-1
+Property name="EditPropScript" value="edit_probe_props" autopos=1 normal=Top rotated=Top visible=0 font=Default order=-1
+Property name="Label" value="VOUT" autopos=1 normal=Top rotated=Top visible=0 font=Default order=-1
+Property name="PARAMS_MENU" value="Edit/Add Measurement..." autopos=1 normal=Top rotated=Top visible=0 font=Default order=-1
+Property name="PARAMSSCRIPT" value="edit_probe_measure" autopos=1 normal=Top rotated=Top visible=0 font=Default order=-1
+Property name="PROBE_DISABLED" value="false" autopos=1 normal=Top rotated=Top visible=0 font=Default order=-1
+Property name="PROBETYPE" value="V" autopos=1 normal=Top rotated=Top visible=0 font=Default order=-1
+Property name="REF" value="P_OUT" autopos=1 normal=Top rotated=Top visible=0 font=Default order=-1
+Property name="SIMPLIS_TEMPLATE" value=".PRINT V(<probe[1]>);.GRAPH :<probe[1]> %VALUE% <ifd:PROBE_DISABLED:disabled=%PROBE_DISABLED%> PROBEREF=%REF% <ifd:MEASURE_SPEC:userid=%REF%.<block> MeasureSpec=\"%MEASURE_SPEC%\";.post_process probe_measure %REF%.<block> %MEASURE_SPEC%> " autopos=1 normal=Top rotated=Top visible=0 font=Default order=-1
+Property name="SIMULATOR" value="DUAL" autopos=1 normal=Top rotated=Top visible=0 font=Default order=-1
+Property name="TEMPLATE" value=".GRAPH <node[1]> %VALUE% <ifd:PROBE_DISABLED:disabled=%PROBE_DISABLED%> PROBEREF=%REF% <ifd:MEASURE_SPEC:userid=%REF%.<block> MeasureSpec=\"%MEASURE_SPEC%\" ;.post_process probe_measure %REF%.<block> %MEASURE_SPEC%> " autopos=1 normal=Top rotated=Top visible=0 font=Default order=-1
+Property name="VALUE" value="" autopos=1 normal=Top rotated=Top visible=1 font=Default order=-1
+Property name="VALUESCRIPT" value="edit_probe" autopos=1 normal=Top rotated=Top visible=0 font=Default order=-1
+Netnames
+.EndInstance
+.Instance
+Attributes type=symbol name="Free_text" x=0 y=4200 orient=N0
+Property name="VALUE" value="POP at 5 A; AC injection inside sensing.sxcmp; initial state is precharged" autopos=1 normal=Top rotated=Top visible=1 font=Default order=-1
+Property name="VALUESCRIPT" value="edit_schem_text" autopos=1 normal=Top rotated=Top visible=0 font=Default order=-1
+Netnames
+.EndInstance
+Text value=".OPTIONS PSP_NPT=2001 POP_OUTPUT_CYCLES=5\n.INIT V(XBUCK.COUT)=1.2 I(XBUCK.L1)=4.028\n.INIT V(XBUCK.XSENSE.C$RIPPLE_C)=-0.000883636363636\n.POP TRIG_GATE=XBUCK.XPOP.!D_CYCLE TRIG_COND=0_TO_1 MAX_PERIOD=5u CONVERGENCE=1p CYCLES_BEFORE_LAUNCH=5 TD_RUN_AFTER_POP_FAILS=-1\n.AC DEC 50 1k 5Meg"
+SimulatorMode value="Simplis"
+.EndSchematic
+.EndComponent

@@ -11,6 +11,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import hashlib
 import json
+import logging
 import os
 from pathlib import Path
 import re
@@ -20,6 +21,7 @@ from typing import Any, Callable, Iterable, Mapping
 
 from .execution import assess_simulation_status, classify_watchdog
 from .io import sha256_file, write_json
+from .runtime import startup_command
 
 
 @dataclass(frozen=True)
@@ -235,21 +237,28 @@ def _artifact_snapshot(root: Path) -> list[dict[str, Any]]:
 
 
 def _powershell_json(script: str, *, timeout: float = 5.0) -> Any:
+    logger = logging.getLogger(__name__)
+    logger.debug("PowerShell observation started; timeout=%s", timeout)
     try:
         completed = subprocess.run(
-            ["powershell", "-NoProfile", "-NonInteractive", "-Command", script],
+            ["powershell", "-NoProfile", "-NonInteractive", "-Command",
+             "[Console]::OutputEncoding=[System.Text.UTF8Encoding]::new($false);" + script],
             check=False,
             capture_output=True,
             text=True,
+            encoding="utf-8",
             timeout=timeout,
         )
-    except (OSError, subprocess.TimeoutExpired):
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        logger.debug("PowerShell observation failed: %s", type(exc).__name__)
         return None
     if completed.returncode != 0 or not completed.stdout.strip():
+        logger.debug("PowerShell observation returned %s; stderr=%r", completed.returncode, completed.stderr[-2000:])
         return None
     try:
         return json.loads(completed.stdout)
-    except json.JSONDecodeError:
+    except json.JSONDecodeError as exc:
+        logger.debug("PowerShell JSON invalid: %s; stdout=%r", exc, completed.stdout[:500])
         return None
 
 
@@ -336,6 +345,7 @@ def query_simulator_status(
                 check=False,
                 capture_output=True,
                 text=True,
+                encoding="utf-8", errors="replace",
                 timeout=timeout,
             )
             outputs.extend((completed.stdout, completed.stderr))
@@ -363,7 +373,7 @@ def query_simulator_status(
 
 
 def recent_error_artifacts(root: Path, *, started_at: float) -> list[Path]:
-    suffixes = {".err", ".warn", ".lst", ".log"}
+    suffixes = {".err", ".warn", ".dbg", ".lst", ".log"}
     result: list[Path] = []
     if not root.exists():
         return result
@@ -378,6 +388,24 @@ def recent_error_artifacts(root: Path, *, started_at: float) -> list[Path]:
         if stat.st_mtime >= started_at - 1.0:
             result.append(path)
     return sorted(result, key=lambda item: str(item).casefold())
+
+
+def solver_diagnostics(artifacts: Iterable[Path]) -> dict[str, Any]:
+    messages: list[dict[str, Any]] = []
+    pop_records: list[dict[str, Any]] = []
+    for source in artifacts:
+        path = Path(source)
+        if path.suffix.casefold() not in {".err", ".warn", ".dbg", ".lst", ".log"}:
+            continue
+        lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
+        for index, line in enumerate(lines):
+            if re.search(r"\b(?:error|warning)\s+(?:message\s+)?(?:id|number)\s*[:#=]?\s*\d+", line, re.I):
+                number = re.search(r"(?:id|number)\s*[:#=]?\s*(\d+)", line, re.I)
+                messages.append(dict(path=str(path), line=index + 1, error_id=number.group(1),
+                                     text="\n".join(lines[max(0, index-1):index+9])))
+            if re.search(r"POP (?:analysis|convergence)|Required POP convergence", line, re.I):
+                pop_records.append(dict(path=str(path), line=index+1, text=line.strip()))
+    return dict(messages=messages, pop_records=pop_records)
 
 
 def write_error_bundle(
@@ -422,6 +450,8 @@ def write_error_bundle(
         "status_values": dict(status_values),
         "dialogs": [dict(item) for item in dialogs],
         "artifacts": records,
+        "solver_diagnostics": solver_diagnostics(Path(item["path"]) for item in records
+                                                  if not item.get("read_error") and item.get("size")),
     }
     write_json(path, payload)
     return path
@@ -473,7 +503,8 @@ def run_script_with_watchdog(
         return {"ok": False, "classification": "message_path_outside_work_dir", "message_log": str(message_target)}
 
     started_at = clock()
-    process = subprocess.Popen([str(executable), "/s", str(source)], cwd=str(root), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    process = subprocess.Popen(startup_command(executable, source), cwd=str(root), stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                               text=True, encoding="utf-8", errors="replace")
     owned_pids = {int(process.pid)}
     monitor = WatchdogMonitor(started_at=started_at, config=config)
     last_dialogs: list[dict[str, Any]] = []
@@ -515,6 +546,7 @@ def run_script_with_watchdog(
         monitor.timeline[-1]["owned_pids"] = sorted(owned_pids)
         monitor.timeline[-1]["processes"] = alive_snapshots
         monitor.timeline[-1]["artifacts"] = _artifact_snapshot(root)
+        monitor.timeline[-1]["script_progress"] = status_values.get("progress")
         classification = str(result["classification"])
         status_values = parse_status_file(status_target)
         script_errors = captured_script_error_lines(message_target)
@@ -561,6 +593,7 @@ def run_script_with_watchdog(
                 "status_values": status_values,
                 "recent_error_files": [str(item) for item in error_artifacts if item.suffix.casefold() in {".err", ".warn"}],
                 "owned_pids": sorted(owned_pids),
+                "solver_diagnostics": solver_diagnostics(error_artifacts),
             }
         captured_warnings = captured_warning_lines(message_target)
         if captured_warnings:
@@ -582,6 +615,7 @@ def run_script_with_watchdog(
             "timeline": monitor.timeline,
             "status_values": status_values,
             "owned_pids": sorted(owned_pids),
+            "solver_diagnostics": solver_diagnostics(error_artifacts),
         }
 
     _terminate_owned_pids(owned_pids)
@@ -615,4 +649,5 @@ def run_script_with_watchdog(
         "timeline": monitor.timeline,
         "status_values": status_values,
         "owned_pids": sorted(owned_pids),
+        "solver_diagnostics": json.loads(bundle.read_text(encoding="utf-8"))["solver_diagnostics"],
     }

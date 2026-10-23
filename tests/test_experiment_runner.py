@@ -15,7 +15,7 @@ from simplis_automation_v2.experiment_runner import (
     _f11_lines,
     _partition_analysis_experiments,
     _prepare_analysis_schematic,
-    run_experiment,
+    _execute_experiment as run_experiment,
     _script_string_expression,
     _simulation_info_matches_current_run,
 )
