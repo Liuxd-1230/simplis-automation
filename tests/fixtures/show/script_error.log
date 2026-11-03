@@ -1,0 +1,5 @@
+Let ff=OpenEchoFile('<TASK>\outputs\performance\final\script-error\status.txt', 'w')
+Echo script_started=true
+Let ff=CloseEchoFile()
+Let invalid = missing_vector_for_error_detection
+Error : Line 5 of <TASK>\outputs\performance\final\script-error\invalid.sxscr : Cannot find vector of name 'missing_vector_for_error_detection'
