@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-import math
 from pathlib import Path
 import shutil
 import time
@@ -10,7 +9,7 @@ from .execution import assess_simulation_status, build_simulation_script, valida
 from .experiment_runner import _simulation_info_matches_current_run
 from .importer import _parse_instances_and_wires
 from .runtime import resolve_runtime
-from .vectors import parse_show_file
+from .vectors import summarize_show_file
 from .watchdog import WatchdogConfig, run_script_with_watchdog
 from .run_storage import fresh_directory, finish_run as finish
 
@@ -86,15 +85,12 @@ def run_native(schematic: Path, out: Path, *, runtime: dict | None = None, vecto
                     exports.append(dict(file=path.relative_to(root).as_posix(), vector=vector, samples=0,
                                         finite=False, monotonic=False, fresh=False, axis_valid=False))
                     continue
-                data = parse_show_file(path)
-                values = [float(value) for value in data["x"]]
-                for value in data["y"]:
-                    values.extend((value["real"], value["imag"]) if isinstance(value, dict) else [value])
+                data = summarize_show_file(path)
                 exports.append(dict(file=path.relative_to(root).as_posix(), vector=vector,
-                                    samples=len(data["y"]), finite=all(math.isfinite(v) for v in values),
+                                    samples=data["samples"], finite=data["finite"],
                                     analysis=analysis, x_name=data["x_name"],
-                                    axis_valid=(data["x_name"].casefold() in {"freq", "frequency"} and all(v > 0 for v in data["x"])) if analysis == "ac" else data["x_name"].casefold() == "time",
-                                    monotonic=all(b >= a for a, b in zip(data["x"], data["x"][1:])),
+                                    axis_valid=(data["x_name"].casefold() in {"freq", "frequency"} and data["x_positive"]) if analysis == "ac" else data["x_name"].casefold() == "time",
+                                    monotonic=data["monotonic"],
                                     fresh=path.stat().st_mtime >= begun - 1))
             result.update(group_evidence=groups, simulation_info_evidence=info, vectors=exports)
             netlist = staged.parent / "SIMPLIS_Data" / (staged.stem + ".net")

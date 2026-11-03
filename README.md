@@ -20,6 +20,10 @@ A lightweight skill for device reference, native schematic/submodule work and
 SIMPLIS simulation. Start with [SKILL.md](SKILL.md); read only the reference needed
 for the task. [中文说明](README.zh-CN.md).
 
+Native waveform checks stream metadata, v2 reuses parsed exports, and the shared
+watchdog reduces process launches and repeated reads. See
+[measured results and logging limits](docs/performance-validation.md).
+
 ## What changed
 
 v3.1 adds the curated editable [device reference](assets/device-reference/README.md),
