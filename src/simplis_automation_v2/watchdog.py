@@ -1,11 +1,3 @@
-"""Windows watchdog for SIMetrix jobs.
-
-The monitor is deliberately external to the SIMetrix startup script because
-``simplis_run`` blocks script execution.  It records independent progress and
-can capture modal error text before terminating only processes launched by the
-current job.
-"""
-
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -186,40 +178,55 @@ def captured_warning_lines(message_log: Path) -> list[str]:
 
 
 def captured_script_error_lines(message_log: Path) -> list[str]:
-    """Return command-script failures that otherwise leave the GUI idle."""
-
-    if not Path(message_log).is_file():
-        return []
-    try:
-        lines = Path(message_log).read_text(encoding="utf-8", errors="replace").splitlines()
-    except OSError:
-        return []
-    errors = [
-        line.strip()
-        for line in lines
-        if re.search(r"(?i)^error\s*:\s*line\b", line.strip())
-        or "the expression cannot be evaluated" in line.casefold()
-    ]
-    return list(dict.fromkeys(errors))
+    return _ScriptErrorReader(message_log).read()
 
 
-def _artifact_signature(root: Path, *, excluded_paths: Iterable[Path] = ()) -> str:
+class _ScriptErrorReader:
+    def __init__(self, path: Path):
+        self.path = Path(path)
+        self.offset = 0
+        self.errors: dict[str, None] = {}
+
+    @staticmethod
+    def _error(raw: bytes) -> str | None:
+        text = raw.decode("utf-8", errors="replace").strip()
+        return text if re.search(r"(?i)^error\s*:\s*line\b", text) or "the expression cannot be evaluated" in text.casefold() else None
+
+    def read(self) -> list[str]:
+        try:
+            with self.path.open("rb") as handle:
+                if self.path.stat().st_size < self.offset:
+                    self.offset = 0
+                    self.errors.clear()
+                handle.seek(self.offset)
+                while raw := handle.readline():
+                    error = self._error(raw)
+                    if not raw.endswith(b"\n"):
+                        # 未完成的末行留到下一次读取，避免拆开 UTF-8 字符或错误消息。
+                        return list(dict.fromkeys([*self.errors, *([error] if error else [])]))
+                    self.offset = handle.tell()
+                    if error:
+                        self.errors[error] = None
+        except OSError as exc:
+            logging.getLogger(__name__).debug("Script log observation unavailable: %s", exc)
+            return list(self.errors)
+        return list(self.errors)
+
+
+def _artifact_signature(root: Path, *, excluded_paths: Iterable[Path] = (), snapshot: list[dict[str, Any]] | None = None) -> str:
     digest = hashlib.sha256()
     if not root.exists():
         return digest.hexdigest()
     excluded = {Path(path).resolve() for path in excluded_paths}
-    for path in sorted((item for item in root.rglob("*") if item.is_file()), key=lambda item: str(item).casefold()):
+    for item in _artifact_snapshot(root) if snapshot is None else snapshot:
+        path = root / item["path"]
         if path.resolve() in excluded:
             continue
         if path.name.casefold() in {"job-message.log", "remote-simulator-status.txt", "process.stdout.log", "process.stderr.log", "error-bundle.json"}:
             continue
-        try:
-            stat = path.stat()
-        except OSError:
-            continue
-        digest.update(str(path.relative_to(root)).encode("utf-8", errors="replace"))
-        digest.update(str(stat.st_size).encode("ascii"))
-        digest.update(str(stat.st_mtime_ns).encode("ascii"))
+        digest.update(item["path"].encode("utf-8", errors="replace"))
+        digest.update(str(item["size"]).encode("ascii"))
+        digest.update(str(item["mtime_ns"]).encode("ascii"))
     return digest.hexdigest()
 
 
@@ -232,7 +239,7 @@ def _artifact_snapshot(root: Path) -> list[dict[str, Any]]:
             stat = path.stat()
         except OSError:
             continue
-        records.append({"path": str(path.relative_to(root)), "size": stat.st_size, "mtime": stat.st_mtime})
+        records.append({"path": str(path.relative_to(root)), "size": stat.st_size, "mtime": stat.st_mtime, "mtime_ns": stat.st_mtime_ns})
     return records
 
 
@@ -265,7 +272,9 @@ def _powershell_json(script: str, *, timeout: float = 5.0) -> Any:
 def simetrix_processes() -> list[dict[str, Any]]:
     script = (
         "$p=Get-CimInstance Win32_Process -Filter \"Name='SIMetrix.exe'\" -ErrorAction SilentlyContinue;"
-        "@($p|ForEach-Object{[pscustomobject]@{pid=$_.ProcessId;path=$_.ExecutablePath;command_line=$_.CommandLine}})"
+        "@($p|ForEach-Object{$live=Get-Process -Id $_.ProcessId -ErrorAction SilentlyContinue;"
+        "if($live){[pscustomobject]@{pid=$_.ProcessId;path=$_.ExecutablePath;command_line=$_.CommandLine;"
+        "cpu=$live.CPU;responding=$live.Responding;title=$live.MainWindowTitle}}})"
         "|ConvertTo-Json -Compress"
     )
     value = _powershell_json(script)
@@ -327,30 +336,37 @@ def query_simulator_status(
 ) -> str:
     if not Path(sxcommand).is_file():
         return "Unavailable"
-    commands = ["Echo V2_REMOTE_STATUS={GetSimulatorStatus()}"]
+    command = "Echo V2_REMOTE_STATUS={GetSimulatorStatus()}"
     if status_file is not None:
         target = str(Path(status_file).resolve())
         if any(character in target for character in ("'", "\r", "\n")):
             return "Unavailable"
         commands = [
+            "RedirectMessages flush",
             f"Let global:v2_remote_echo = OpenEchoFile('{target}', 'w')",
             "Echo V2_REMOTE_STATUS={GetSimulatorStatus()}",
             "Let global:v2_remote_close = CloseEchoFile()",
         ]
+        query = Path(status_file).with_name(Path(status_file).name + ".query.sxscr")
+        content = "\n".join(commands) + "\n"
+        if not query.exists():
+            query.write_text(content, encoding="utf-8")
+        elif query.read_text(encoding="utf-8") != content:
+            raise ValueError(f"Status query script was modified: {query}")
+        command = f"Let global:v2_remote_query = Execute('{query.resolve().as_posix()}')"
     outputs: list[str] = []
-    for command in commands:
-        try:
-            completed = subprocess.run(
-                [str(sxcommand), "-quiet", "-immediate", command],
-                check=False,
-                capture_output=True,
-                text=True,
-                encoding="utf-8", errors="replace",
-                timeout=timeout,
-            )
-            outputs.extend((completed.stdout, completed.stderr))
-        except (OSError, subprocess.TimeoutExpired):
-            break
+    try:
+        completed = subprocess.run(
+            [str(sxcommand), "-quiet", "-immediate", command],
+            check=False,
+            capture_output=True,
+            text=True,
+            encoding="utf-8", errors="replace",
+            timeout=timeout,
+        )
+        outputs.extend((completed.stdout, completed.stderr))
+    except (OSError, subprocess.TimeoutExpired):
+        pass
     text = "\n".join(outputs).strip()
     if status_file is not None and Path(status_file).is_file():
         try:
@@ -359,7 +375,10 @@ def query_simulator_status(
             pass
     if message_log is not None and Path(message_log).is_file():
         try:
-            text += "\n" + Path(message_log).read_text(encoding="utf-8", errors="replace")[-20000:]
+            with Path(message_log).open("rb") as handle:
+                handle.seek(0, os.SEEK_END)
+                handle.seek(max(0, handle.tell() - 80000))
+                text += "\n" + handle.read().decode("utf-8", errors="replace")[-20000:]
         except OSError:
             pass
     matches = re.findall(r"V2_REMOTE_STATUS\s*=\s*(InProgress|ConvergenceFail|SimErrors|NetlistErrors|Warnings|Complete|Paused|None)", text, re.IGNORECASE)
@@ -372,20 +391,16 @@ def query_simulator_status(
     return "Unavailable"
 
 
-def recent_error_artifacts(root: Path, *, started_at: float) -> list[Path]:
+def recent_error_artifacts(root: Path, *, started_at: float, snapshot: list[dict[str, Any]] | None = None) -> list[Path]:
     suffixes = {".err", ".warn", ".dbg", ".lst", ".log"}
     result: list[Path] = []
     if not root.exists():
         return result
-    for path in root.rglob("*"):
-        try:
-            is_file = path.is_file()
-            stat = path.stat() if is_file else None
-        except OSError:
+    for item in _artifact_snapshot(root) if snapshot is None else snapshot:
+        path = root / item["path"]
+        if path.suffix.casefold() not in suffixes or item["size"] == 0:
             continue
-        if not is_file or path.suffix.casefold() not in suffixes or stat is None or stat.st_size == 0:
-            continue
-        if stat.st_mtime >= started_at - 1.0:
+        if item["mtime"] >= started_at - 1.0:
             result.append(path)
     return sorted(result, key=lambda item: str(item).casefold())
 
@@ -508,19 +523,20 @@ def run_script_with_watchdog(
     owned_pids = {int(process.pid)}
     monitor = WatchdogMonitor(started_at=started_at, config=config)
     last_dialogs: list[dict[str, Any]] = []
+    next_dialog_at = started_at
+    log_errors = _ScriptErrorReader(message_target)
     classification = "running"
     while True:
         now = clock()
         current_processes = simetrix_processes()
         owned_pids.update(int(item["pid"]) for item in current_processes if int(item.get("pid", 0)) not in preexisting)
-        snapshots = [process_snapshot(pid) for pid in owned_pids]
+        snapshots = [{key: item[key] for key in ("pid", "cpu", "responding", "title")}
+                     for item in current_processes if int(item["pid"]) in owned_pids]
         alive_snapshots = [item for item in snapshots if item]
         cpu = sum(float(item.get("cpu") or 0.0) for item in alive_snapshots) if alive_snapshots else None
         dialogs: list[dict[str, Any]] = []
-        for pid in owned_pids:
-            dialogs.extend(capture_dialogs(pid))
-        last_dialogs = dialogs or last_dialogs
         status_values = parse_status_file(status_target)
+        completed = str(status_values.get("completion_token", "")).casefold() in {"1", "true", "yes"}
         # Querying the command server while SIMetrix is still processing its
         # startup command can starve that command on some 8.4 installations.
         # Start remote polling only after the script proves it has begun.
@@ -531,28 +547,35 @@ def run_script_with_watchdog(
                 status_file=root / "remote-simulator-status.txt",
                 timeout=config.probe_timeout,
             )
-            if str(status_values.get("script_started", "")).casefold() in {"1", "true", "yes"}
+            if not completed and str(status_values.get("script_started", "")).casefold() in {"1", "true", "yes"}
             else "Unavailable"
         )
+        if not completed and (now >= next_dialog_at or any(not item.get("responding") for item in alive_snapshots)):
+            for pid in owned_pids:
+                dialogs.extend(capture_dialogs(pid))
+            next_dialog_at = now + max(10.0, config.poll_interval)
+            last_dialogs = dialogs
+        else:
+            dialogs = last_dialogs
+        artifacts = _artifact_snapshot(root)
         result = monitor.observe(
             now=now,
             process_alive=bool(alive_snapshots) or process.poll() is None,
             launch_observed=responsive_process_observed(alive_snapshots),
             cpu_seconds=cpu,
-            artifact_signature=_artifact_signature(root, excluded_paths=[message_target]),
+            artifact_signature=_artifact_signature(root, excluded_paths=[message_target], snapshot=artifacts),
             simulator_status=remote_status,
             dialogs=dialogs,
         )
         monitor.timeline[-1]["owned_pids"] = sorted(owned_pids)
         monitor.timeline[-1]["processes"] = alive_snapshots
-        monitor.timeline[-1]["artifacts"] = _artifact_snapshot(root)
+        monitor.timeline[-1]["artifacts"] = artifacts
         monitor.timeline[-1]["script_progress"] = status_values.get("progress")
         classification = str(result["classification"])
-        status_values = parse_status_file(status_target)
-        script_errors = captured_script_error_lines(message_target)
+        script_errors = log_errors.read()
         current_error_files = [
             path
-            for path in recent_error_artifacts(root, started_at=started_at)
+            for path in recent_error_artifacts(root, started_at=started_at, snapshot=artifacts)
             if path.suffix.casefold() in {".err", ".warn"}
         ]
         if current_error_files:
@@ -618,6 +641,7 @@ def run_script_with_watchdog(
             "solver_diagnostics": solver_diagnostics(error_artifacts),
         }
 
+    termination_classification = classification
     _terminate_owned_pids(owned_pids)
     try:
         stdout, stderr = process.communicate(timeout=3.0)
@@ -627,6 +651,11 @@ def run_script_with_watchdog(
     stderr_path = root / "process.stderr.log"
     stdout_path.write_text(stdout or "", encoding="utf-8")
     stderr_path.write_text(stderr or "", encoding="utf-8")
+    # 8.40 可能独占日志；进程退出释放文件后，补充实际脚本错误及原文。
+    script_errors = log_errors.read()
+    if script_errors:
+        classification = "script_error_blocked"
+        status_values["script_errors"] = script_errors
     error_artifacts.extend((stdout_path, stderr_path))
     evidence_inputs = [source]
     for pattern in ("*.net", "*.deck", "*.sxsch"):
@@ -645,6 +674,7 @@ def run_script_with_watchdog(
     return {
         "ok": False,
         "classification": classification,
+        "termination_classification": termination_classification,
         "error_bundle": str(bundle),
         "timeline": monitor.timeline,
         "status_values": status_values,

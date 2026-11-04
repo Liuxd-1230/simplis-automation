@@ -103,8 +103,10 @@ means. It retains adjacent event limits, interpolates window boundaries, compens
 floating-point accumulation and validates the entire file, including rows after a
 measurement window. Memory scales with a row and the header, not the point count.
 `read_t2` remains the full-memory API when the caller actually needs all rows.
-Native Show exports and the existing v2 validators still use their current array
-readers; this change does not replace them. Actual million-point measurements:
+Native Show validation now streams metadata without retaining arrays. v2 behavior
+validation retains the arrays it needs and reuses each export within the run.
+See [measured memory and monitoring changes](../docs/performance-validation.md).
+Actual million-point `.t2` measurements:
 [validation](../docs/control-storage-validation.md).
 
 ## Model fidelity and stopping

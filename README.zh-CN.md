@@ -15,6 +15,9 @@
 
 宗旨：**灵活、不臃肿、参考有依据**。入口是 [SKILL.md](SKILL.md)。
 
+原生波形校验现采用逐行统计，v2 复用同次运行的波形解析结果，公共监控减少辅助进程、
+日志读取与目录遍历。接口兼容性、实测结果和独占日志限制见[性能验证](docs/performance-validation.md)。
+
 v3.1 整合了用户的[中文器件参考](assets/device-reference/README.md)，目前包含 27 种器件。
 增加按功能查询、官方资料定位、两个[可编辑原生示例](examples/native/README.md)，以及
 [运行数据保存和清理](references/run-storage.md)。清理默认预览，正式证据可以标记保留。

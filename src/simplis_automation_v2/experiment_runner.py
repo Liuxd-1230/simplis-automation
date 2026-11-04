@@ -1,5 +1,3 @@
-"""End-to-end compile, run, export, provenance, and validation orchestration."""
-
 from __future__ import annotations
 
 import json
@@ -859,12 +857,16 @@ def _run_single_experiment(
 
     exports: list[dict[str, Any]] = []
     parsed_by_role: dict[str, Any] = {}
+    parsed_by_path: dict[str, Any] = {}
     for item in export_contract:
         path = vector_dir / f"{_slug(item['group'])}_{_vector_slug(item['vector'])}.txt"
         record = {**item, "path": str(path)}
         exports.append(record)
         if path.is_file():
-            parsed_by_role[item["role"]] = parse_show_file(path)
+            key = str(path.resolve())
+            if key not in parsed_by_path:
+                parsed_by_path[key] = parse_show_file(path, include_summary=True)
+            parsed_by_role[item["role"]] = parsed_by_path[key]
     simulation_info_hash = sha256_text(
         canonical_json(
             {
@@ -888,6 +890,7 @@ def _run_single_experiment(
         exports=exports,
         output_path=root / "vector-manifest.json",
         trusted=False,
+        parsed_vectors=parsed_by_path,
         simulation_info_hash=simulation_info_hash,
         artifact_hashes=artifact_hashes,
     )
@@ -968,17 +971,9 @@ def _run_single_experiment(
         result["classification"] = "data_failed"
         result["errors"].extend(vector_manifest["errors"])
         return _write_result(root, result)
-    vector_manifest = build_vector_manifest(
-        run_id=run_id,
-        candidate_hash=candidate_hash,
-        source_hash=source_hash,
-        run_started_at=started_at,
-        exports=exports,
-        output_path=root / "vector-manifest.json",
-        trusted=True,
-        simulation_info_hash=simulation_info_hash,
-        artifact_hashes=artifact_hashes,
-    )
+    vector_manifest["trusted_simulation"] = True
+    vector_manifest["classification"] = "scoring_eligible" if not vector_manifest["errors"] else "diagnostic_only"
+    write_json(root / "vector-manifest.json", vector_manifest)
     result["vector_manifest"] = vector_manifest
     if not behavior_evidence_complete:
         result["classification"] = "electrical_behavior_failed"
